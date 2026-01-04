@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>DK3 Cars | Register</title>
+
+  <link rel="stylesheet" th:href="@{/css/register.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <img th:src="@{/images/logo.png}" alt="DK3 Cars Logo">
+  <div class="nav-menu">
+    <a href="#">Home</a>
+    <a href="#">Inventory</a>
+    <a href="#">Services</a>
+    <a href="#">Features</a>
+    <a href="#">Contact Us</a>
+  </div>
+</nav>
+
+<!-- ===== REGISTER CARD ===== -->
+<div class="wrapper">
+  <div class="card">
+
+    <h2>Create Your Account</h2>
+    <p class="subtitle">Register to explore our premium car inventory</p>
+
+    <form id="register-form" th:action="@{/user/register}" method="post">
+
+      <!-- First Name -->
+      <div class="input-group">
+        <span>👤</span>
+        <input type="text" name="firstName" placeholder="First Name" required>
+      </div>
+
+      <!-- Last Name -->
+      <div class="input-group">
+        <span>👤</span>
+        <input type="text" name="lastName" placeholder="Last Name" required>
+      </div>
+
+      <!-- Email -->
+      <div class="input-group">
+        <span>✉️</span>
+        <input type="email" name="email" placeholder="Email Address" required>
+      </div>
+
+      <!-- Contact -->
+      <div class="input-group">
+        <span>📞</span>
+        <input type="tel" name="contact" placeholder="Contact Number" pattern="[0-9]{10}" required>
+      </div>
+
+      <!-- Password -->
+      <div class="input-group">
+        <span>🔒</span>
+        <input type="password" name="password" placeholder="Password" required>
+      </div>
+
+      <!-- Terms -->
+      <div class="checkbox">
+        <input type="checkbox" id="terms" required>
+        <label for="terms">I agree to the Terms & Conditions</label>
+      </div>
+
+      <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
+
+      <button class="btn" id="register-btn" type="submit">Register</button>
+
+      <p class="or">Or continue with</p>
+
+      <div class="social">
+        <button type="button" class="google">G Sign up with Google</button>
+        <button type="button" class="facebook">f Facebook</button>
+      </div>
+
+      <p class="login">
+        Already have an account? <a href="/login">Login</a>
+      </p>
+
+    </form>
+
+  </div>
+</div>
+
+  <script th:src="@{/js/register.js}" defer></script>
+
+</body>
+</html>
