@@ -172,3 +172,10 @@ body{
     color:#820000;
     border:1px solid #f5c6c6;
 }
+
+.form-message.info{
+    display:block;
+    background:#eef2ff;
+    color:#1b3a8a;
+    border:1px solid #c7d2fe;
+}

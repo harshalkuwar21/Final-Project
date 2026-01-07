@@ -2,8 +2,11 @@ package com.Dk3.Cars.restcontroller;
 
 import com.Dk3.Cars.dto.UserDto;
 import com.Dk3.Cars.entity.User;
+import com.Dk3.Cars.mapper.UserConversion;
 import com.Dk3.Cars.repository.UserRepository;
+import com.Dk3.Cars.service.EmailService;
 import com.Dk3.Cars.service.UserService;
+import com.Dk3.Cars.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,28 +22,36 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/user")
 public class UserRestcontroller {
-
+    @Autowired
+    private UserConversion userConversion;
     @Autowired
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
-
+    @Autowired
+    private EmailService emailService;
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
-
+    @Autowired
+    private VerificationTokenService tokenService;
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
+
         Map<String, Object> response = new HashMap<>();
 
         try {
-            UserDto registeredUser = userService.register(userDto);
+            // Register user (saved as disabled)
+            User user = userService.register(userDto);
 
-            // Remove password from response
-            registeredUser.setPassword(null);
+            // Generate verification token
+            String token = tokenService.createToken(user);
+
+            // Send email
+            emailService.sendVerificationEmail(user.getEmail(), "http://localhost:9094/verify?token=" + token);
 
             response.put("success", true);
-            response.put("message", "User registered successfully");
-            response.put("user", registeredUser);
+            response.put("message", "Registration successful. Please verify your email.");
+
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
@@ -50,7 +61,8 @@ public class UserRestcontroller {
         }
     }
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> login(
+            @RequestBody Map<String, String> request) {
 
         Map<String, String> response = new HashMap<>();
 
@@ -67,13 +79,19 @@ public class UserRestcontroller {
 
         User user = optionalUser.get();
 
+        // 🔴 EMAIL VERIFICATION CHECK
+        if (!user.isEnabled()) {
+            response.put("status", "error");
+            response.put("message", "Please verify your email before login");
+            return ResponseEntity.ok(response);
+        }
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
             response.put("status", "error");
             response.put("message", "Invalid password");
             return ResponseEntity.ok(response);
         }
 
-        // SUCCESS
         response.put("status", "success");
         response.put("message", "Login successful");
 

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     clearMessage();
     btn.disabled = true;
+    showMessage('Registering...', 'info');
+    const originalBtnText = btn.textContent;
+    btn.textContent = 'Registering...';
 
     const data = {
       first: form.querySelector('input[name="firstName"]').value.trim(),
@@ -16,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
       email: form.querySelector('input[name="email"]').value.trim(),
       contact: form.querySelector('input[name="contact"]').value.trim(),
       password: form.querySelector('input[name="password"]').value
-    };
+    }; 
 
     // Basic client-side validation
     if (!data.first || !data.last || !data.email || !data.password) {
@@ -49,13 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
       showMessage('Network error. Please try again later.', 'error');
     } finally {
       btn.disabled = false;
-    }
+      btn.textContent = originalBtnText || 'Register';
+    } 
   });
 
   function showMessage(text, type) {
     msg.textContent = text;
-    msg.className = 'form-message ' + (type === 'success' ? 'success' : 'error');
-  }
+    msg.className = 'form-message ' + (type === 'success' ? 'success' : (type === 'error' ? 'error' : 'info'));
+  } 
 
   function clearMessage() {
     msg.textContent = '';
