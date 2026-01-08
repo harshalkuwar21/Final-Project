@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Inventory</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+
+</head>
+<body>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="logo"> <img th:src="@{/images/logo.png}" alt="DK3 Cars Logo"></div>
+        <ul>
+            <li onclick="location.href='/dashboard'">
+                Dashboard
+            </li>
+
+            <li class="active" onclick="location.href='/showrooms'">
+                Inventory
+            </li>
+
+            <li onclick="location.href='/sales'">
+                Sales
+            </li>
+
+            <li onclick="location.href='/customers'">
+                Customers
+            </li>
+
+            <li onclick="location.href='/reports'">
+                Reports
+            </li>
+
+            <li onclick="location.href='/settings'">
+                Settings
+            </li>
+        </ul>
+
+    </aside>
+    <main class="main">
+
+        <h2>Showroom Inventory</h2>
+
+        <!-- ADD SHOWROOM FORM -->
+        <div class="panel">
+            <h3>Add Showroom</h3>
+
+            <input id="name" placeholder="Showroom Name">
+            <input id="city" placeholder="City">
+            <input type="file" id="image">
+            <button onclick="saveShowroom()">Save Showroom</button>
+        </div>
+
+        <!-- SHOWROOM LIST -->
+        <div class="panel">
+            <h3>Showrooms</h3>
+            <div id="showroomGrid" class="showroom-grid"></div>
+        </div>
+
+        <!-- CAR LIST -->
+        <div class="panel">
+            <h3 id="selectedTitle">Select a showroom</h3>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="carTable"></tbody>
+            </table>
+        </div>
+
+    </main>
+
+</div>
+
+<script src="/js/inventory.js"></script>
+</body>
+</html>
