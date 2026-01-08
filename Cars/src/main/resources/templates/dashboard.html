@@ -1,145 +1,140 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>Car Showroom Dashboard</title>
-<link rel="stylesheet" th:href="@{/css/dashboard.css}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>DK3 Cars | Admin Dashboard</title>
+
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 </head>
 <body>
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
+    <!-- ================= SIDEBAR ================= -->
     <aside class="sidebar">
+        <div class="logo"> <img th:src="@{/images/logo.png}" alt="DK3 Cars Logo"></div>
         <ul>
-            <img th:src="@{/images/logo.png}" alt="DK3 Cars Logo">
-            <li class="active">Dashboard</li>
-            <li>Inventory</li>
-            <li>Sales</li>
-            <li>Customers</li>
-            <li>Reports</li>
+            <li class="active" onclick="location.href='/dashboard'">
+                Dashboard
+            </li>
+
+            <li onclick="location.href='/showrooms'">
+                Showrooms
+            </li>
+
+            <li onclick="location.href='/sales'">
+                Sales
+            </li>
+
+            <li onclick="location.href='/customers'">
+                Customers
+            </li>
+
+            <li onclick="location.href='/reports'">
+                Reports
+            </li>
+
+            <li onclick="location.href='/settings'">
+                Settings
+            </li>
         </ul>
+
     </aside>
 
-    <!-- MAIN -->
+    <!-- ================= MAIN ================= -->
     <main class="main">
 
-        <!-- HEADER -->
+        <!-- ================= HEADER ================= -->
         <header class="topbar">
             <h2>Car Showroom Management</h2>
-            <div class="icons">
-                🔍 🔔
-            </div>
+            <div class="icons">🔍 🔔</div>
         </header>
 
-        <!-- KPI CARDS -->
+        <!-- ================= KPI CARDS ================= -->
         <div class="cards">
+
             <div class="card">
                 <span>Total Showroom</span>
-                <h3>320</h3>
+                <h3 id="totalCars">0</h3>
             </div>
-            <div class="card green">
+
+            <div class="card">
                 <span>Cars Sold</span>
-                <h3>185</h3>
+                <h3 id="soldCars">0</h3>
             </div>
-            <div class="card money">
+
+            <div class="card">
+                <span>Available Cars</span>
+                <h3 id="availableCars">0</h3>
+            </div>
+
+            <div class="card">
                 <span>Total Revenue</span>
-                <h3>$2,450,000</h3>
+                <h3 id="revenue">₹ 0</h3>
             </div>
+
         </div>
 
-        <!-- CONTENT GRID -->
+        <!-- ================= GRID ================= -->
         <div class="grid">
 
-            <!-- SOLD CARS TABLE -->
+            <!-- ================= SOLD CARS TABLE ================= -->
             <section class="panel wide">
                 <h3>Sold Cars</h3>
+
                 <table>
+                    <thead>
                     <tr>
                         <th>Car Model</th>
                         <th>Buyer Name</th>
                         <th>Sold Date</th>
                         <th>Status</th>
                     </tr>
-                    <tr>
-                        <td>Toyota Camry</td>
-                        <td>John Smith</td>
-                        <td>01/15/2024</td>
-                        <td><span class="paid">Paid</span></td>
-                    </tr>
-                    <tr>
-                        <td>BMW X5</td>
-                        <td>Emily Davis</td>
-                        <td>02/10/2024</td>
-                        <td><span class="paid">Paid</span></td>
-                    </tr>
-                    <tr>
-                        <td>Honda Civic</td>
-                        <td>Michael Brown</td>
-                        <td>02/25/2024</td>
-                        <td><span class="pending">Pending</span></td>
-                    </tr>
+                    </thead>
+
+                    <tbody id="salesTable">
+                    <!-- Dynamic Rows Here -->
+                    </tbody>
                 </table>
             </section>
 
-            <!-- CAR DETAILS -->
-            <section class="panel">
-                <h3>Car Details</h3>
-                <img th:src="@{/images/car.png}" class="car-img">
-                <ul class="details">
-                    <li><b>Price:</b> $38,500</li>
-                    <li><b>Engine:</b> 2.0L Turbo</li>
-                    <li><b>Fuel:</b> Petrol</li>
-                    <li><b>Transmission:</b> Automatic</li>
-                    <li><b>Mileage:</b> 18,000 Miles</li>
-                </ul>
-            </section>
+            <!-- ================= CAR DETAILS ================= -->
 
-            <!-- INVENTORY -->
+
+            <!-- ================= INVENTORY CHARTS ================= -->
+            <!-- ================= INVENTORY CHARTS ================= -->
             <section class="panel wide">
                 <h3>Inventory Overview</h3>
+
                 <div class="charts">
                     <div class="chart">
-                        <h4>Cars by Brand</h4>
-                        <div class="bars">
-                            <div style="height:80%"></div>
-                            <div style="height:55%"></div>
-                            <div style="height:65%"></div>
-                            <div style="height:40%"></div>
-                        </div>
-                        <p>Toyota Honda BMW Ford</p>
-                    </div>
-
-                    <div class="chart">
-                        <h4>Sales This Month</h4>
-                        <div class="bars">
-                            <div style="height:50%"></div>
-                            <div style="height:80%"></div>
-                            <div style="height:60%"></div>
-                            <div style="height:75%"></div>
-                        </div>
-                        <p>W1 W2 W3 W4</p>
+                        <h4>Cars By Brand</h4>
+                        <div class="bars" id="inventoryBars"></div>
+                        <p id="inventoryLabels"></p>
                     </div>
                 </div>
             </section>
 
-            <!-- TOP SELLING -->
+
+            <!-- ================= TOP SELLING ================= -->
+            <!-- ================= TOP SELLING ================= -->
             <section class="panel">
                 <h3>Top Selling Cars</h3>
-                <ol class="top-list">
-                    <li>Honda Civic</li>
-                    <li>Toyota Camry</li>
-                    <li>BMW X5</li>
-                    <li>Ford F-150</li>
-                </ol>
+                <ol id="topCars" class="top-list"></ol>
             </section>
+
 
         </div>
 
     </main>
 
 </div>
+
+<!-- ================= DASHBOARD SCRIPT ================= -->
+<script src="/js/dashboard.js"></script>
 
 </body>
 </html>

@@ -1,4 +1,8 @@
 package com.Dk3.Cars.repository;
 
-public interface ShowroomRepository {
+import com.Dk3.Cars.entity.Showroom;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ShowroomRepository extends JpaRepository<Showroom, Long> {
 }
+

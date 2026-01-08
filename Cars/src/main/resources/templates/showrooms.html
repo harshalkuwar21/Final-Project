@@ -16,7 +16,7 @@
             </li>
 
             <li class="active" onclick="location.href='/showrooms'">
-                Inventory
+                Showrooms
             </li>
 
             <li onclick="location.href='/sales'">
@@ -42,42 +42,61 @@
         <h2>Showroom Inventory</h2>
 
         <!-- ADD SHOWROOM FORM -->
-        <div class="panel">
-            <h3>Add Showroom</h3>
+        <!-- ================= ADD SHOWROOM SECTION ================= -->
+        <section class="panel add-showroom-panel">
+            <h3>Add New Showroom</h3>
 
-            <input id="name" placeholder="Showroom Name">
-            <input id="city" placeholder="City">
-            <input type="file" id="image">
-            <button onclick="saveShowroom()">Save Showroom</button>
-        </div>
+            <div class="add-showroom-form">
+
+                <div class="form-group">
+                    <label>Showroom Name</label>
+                    <input type="text" id="srName" placeholder="Enter showroom name">
+                </div>
+
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="srCity" placeholder="Enter city">
+                </div>
+
+                <div class="form-group">
+                    <label>Showroom Type</label>
+                    <select id="srType">
+                        <option value="Normal">Normal</option>
+                        <option value="Premium">Premium</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Showroom Image</label>
+                    <input type="file" id="srImage" accept="image/*" onchange="previewImage(event)">
+                </div>
+
+                <!-- IMAGE PREVIEW -->
+
+                <button class="btn-primary" onclick="saveShowroom()">
+                    + Add Showroom
+                </button>
+
+            </div>
+        </section>
 
         <!-- SHOWROOM LIST -->
-        <div class="panel">
+        <!-- ================= SHOWROOM SECTION ================= -->
+        <section class="panel">
             <h3>Showrooms</h3>
+
+            <div class="showroom-toolbar">
+                <input type="text" placeholder="Search showroom..."
+                       onkeyup="filterShowrooms(this.value)">
+            </div>
+
             <div id="showroomGrid" class="showroom-grid"></div>
-        </div>
-
-        <!-- CAR LIST -->
-        <div class="panel">
-            <h3 id="selectedTitle">Select a showroom</h3>
-
-            <table>
-                <thead>
-                <tr>
-                    <th>Model</th>
-                    <th>Brand</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <tbody id="carTable"></tbody>
-            </table>
-        </div>
+        </section>
 
     </main>
 
 </div>
 
-<script src="/js/inventory.js"></script>
+<script src="/js/showrooms.js"></script>
 </body>
 </html>

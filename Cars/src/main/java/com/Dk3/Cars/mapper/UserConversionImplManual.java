@@ -19,6 +19,7 @@ public class UserConversionImplManual implements UserConversion {
         user.setEmail(dto.getEmail());
         user.setContact(dto.getContact());
         user.setPassword(dto.getPassword());
+        user.setRole(dto.getRole());
         return user;
     }
 
@@ -32,6 +33,7 @@ public class UserConversionImplManual implements UserConversion {
         dto.setEmail(user.getEmail());
         dto.setContact(user.getContact());
         dto.setPassword(user.getPassword());
+        dto.setRole(user.getRole());
         return dto;
     }
 }

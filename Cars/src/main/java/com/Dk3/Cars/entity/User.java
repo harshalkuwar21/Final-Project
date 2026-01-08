@@ -26,4 +26,5 @@ public class User {
     private String contact;
     private String password;
     private boolean enabled = false;
-}
+    private String role = "ROLE_USER";
+} 

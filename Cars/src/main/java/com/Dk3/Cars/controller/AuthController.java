@@ -20,6 +20,12 @@ public class AuthController {
     public String dashboardpage() {
         return "dashboard";
     }
+    @GetMapping("/showrooms")
+    public String inventoryPage() {
+        return "showrooms";
+    }
+
+
 
 
 

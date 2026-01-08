@@ -1,44 +1,87 @@
 document.addEventListener("DOMContentLoaded", loadShowrooms);
+let showroomList = [];
 
-// ================= LOAD SHOWROOMS =================
 function loadShowrooms() {
     fetch("/api/dashboard/showrooms")
         .then(res => res.json())
         .then(data => {
-            const grid = document.getElementById("showroomGrid");
-            grid.innerHTML = "";
-
-            data.forEach(s => {
-                grid.innerHTML += `
-                    <div class="showroom-card" onclick="loadCars(${s.id}, '${s.name}')">
-                        <img src="${s.image}">
-                        <div class="info">
-                            <h4>${s.name}</h4>
-                            <p>${s.city}</p>
-                        </div>
-                    </div>
-                `;
-            });
+            showroomList = data;
+            renderShowrooms(data);
         });
 }
 
-// ================= SAVE SHOWROOM =================
-function saveShowroom() {
+function renderShowrooms(list) {
 
-    const form = new FormData();
-    form.append("name", document.getElementById("name").value);
-    form.append("city", document.getElementById("city").value);
-    form.append("image", document.getElementById("image").files[0]);
+    const grid = document.getElementById("showroomGrid");
+    grid.innerHTML = "";
+
+    list.forEach(s => {
+
+        const styleBadge =
+            s.name.toLowerCase().includes("premium")
+                ? "badge-premium"
+                : "badge-normal";
+
+        grid.innerHTML += `
+            <div class="showroom-card" onclick="loadCars(${s.id}, '${s.name}')">
+
+                <div class="image-box">
+                    <img src="${s.image}">
+                    <span class="badge ${styleBadge}">
+                        ${styleBadge === 'badge-premium' ? 'Premium' : 'Normal'}
+                    </span>
+                </div>
+
+                <div class="info">
+                    <h4>${s.name}</h4>
+                    <p>📍 ${s.city}</p>
+                    <small>View Cars →</small>
+                </div>
+
+            </div>
+        `;
+    });
+}
+
+function filterShowrooms(keyword) {
+    const filtered = showroomList.filter(s =>
+        s.name.toLowerCase().includes(keyword.toLowerCase()) ||
+        s.city.toLowerCase().includes(keyword.toLowerCase())
+    );
+    renderShowrooms(filtered);
+}
+
+// ================= SAVE SHOWROOM =================
+function saveShowroom(){
+
+    const name = document.getElementById("srName").value;
+    const city = document.getElementById("srCity").value;
+    const type = document.getElementById("srType").value;
+    const image = document.getElementById("srImage").files[0];
+
+    if(!name || !city || !image){
+        alert("Please fill all fields");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("city", city);
+    formData.append("type", type);
+    formData.append("image", image);
 
     fetch("/api/dashboard/showroom", {
         method: "POST",
-        body: form
+        body: formData
     })
-    .then(() => {
-        alert("Showroom added successfully!");
-        loadShowrooms();
+    .then(res => {
+        if(res.ok){
+            alert("Showroom added successfully!");
+            loadShowrooms();     // refresh showroom list
+        }
     });
 }
+
 
 // ================= LOAD CARS =================
 function loadCars(id, name) {
@@ -70,3 +113,8 @@ function loadCars(id, name) {
             });
         });
 }
+function previewImage(event){
+    const img = document.getElementById("previewImg");
+    img.src = URL.createObjectURL(event.target.files[0]);
+}
+

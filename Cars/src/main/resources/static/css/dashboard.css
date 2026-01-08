@@ -210,3 +210,180 @@ th,td{
         overflow-x: auto;
     }
 }
+/* ================= SHOWROOM GRID ================= */
+
+.showroom-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.showroom-card{
+    cursor:pointer;
+    border-radius:16px;
+    overflow:hidden;
+    background:linear-gradient(135deg,#5f2eea,#7f5af0);
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    transition:0.3s;
+}
+
+.showroom-card:hover{
+    transform:scale(1.03);
+}
+
+.showroom-card img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
+}
+
+.showroom-card .info{
+    padding:12px;
+    text-align:center;
+}
+/* ================= SHOWROOM UI ================= */
+
+.showroom-toolbar{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:12px;
+}
+
+.showroom-toolbar input{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+    width:260px;
+}
+
+/* GRID */
+.showroom-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:22px;
+}
+
+/* CARD */
+.showroom-card{
+    background:linear-gradient(145deg,#5f2eea,#7f5af0);
+    border-radius:18px;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow:0 15px 35px rgba(0,0,0,0.45);
+    transition:0.35s ease;
+}
+
+.showroom-card:hover{
+    transform:translateY(-6px) scale(1.02);
+}
+
+/* IMAGE */
+.image-box{
+    position:relative;
+    height:160px;
+}
+
+.image-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+/* BADGE */
+.badge{
+    position:absolute;
+    top:10px;
+    right:10px;
+    padding:4px 10px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.badge-premium{
+    background:#facc15;
+    color:#000;
+}
+
+.badge-normal{
+    background:#22c55e;
+    color:#fff;
+}
+
+/* INFO */
+.showroom-card .info{
+    padding:14px;
+}
+
+.showroom-card h4{
+    margin-bottom:6px;
+}
+
+.showroom-card small{
+    opacity:0.85;
+}
+/* ================= ADD SHOWROOM DESIGN ================= */
+
+.add-showroom-panel{
+    margin-bottom:30px;
+}
+
+.add-showroom-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    align-items:end;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.form-group label{
+    font-size:13px;
+    margin-bottom:6px;
+    opacity:0.9;
+}
+
+.form-group input,
+.form-group select{
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+}
+
+/* IMAGE PREVIEW */
+.image-preview{
+    grid-column:span 2;
+    text-align:center;
+}
+
+.image-preview img{
+    width:180px;
+    height:120px;
+    object-fit:cover;
+    border-radius:14px;
+    border:2px dashed rgba(255,255,255,0.4);
+}
+
+/* BUTTON */
+.btn-primary{
+    grid-column:span 2;
+    padding:12px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,#facc15,#f59e0b);
+    color:#000;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-primary:hover{
+    transform:translateY(-2px);
+    opacity:0.95;
+}
+

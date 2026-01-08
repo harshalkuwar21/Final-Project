@@ -29,6 +29,9 @@ public class UserService {
         user.setContact(userDto.getContact());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
+        // Set default role for newly registered users
+        user.setRole("ROLE_USER");
+
         // 🔴 IMPORTANT FOR EMAIL VERIFICATION
         user.setEnabled(false);
 
