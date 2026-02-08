@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <title>Showroom Vehicles - DK3 Cars</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/cars.css">
+    <style>
+        :root {
+            --primary: #6c4ef6;
+            --accent: #9f7bff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 18px 45px rgba(0, 0, 0, .15);
+            --bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
+        }
+
+        .navbar {
+            max-width: 1500px;
+            margin: 25px auto;
+            padding: 14px 28px;
+            background: var(--glass);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 20px;
+            z-index: 999;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .sidebar {
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar li:hover {
+            background: rgba(108, 78, 246, .1);
+            transform: translateX(6px);
+        }
+
+        .sidebar li.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+        }
+
+        .main {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .car-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .car-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .car-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .car-details h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .car-details p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .car-info-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+
+        .info-item {
+            font-size: 12px;
+        }
+
+        .info-label {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .car-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .car-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-available { color: #4caf50; font-weight: 600; }
+        .status-sold { color: #f44336; font-weight: 600; }
+        .status-other { color: #ff9800; font-weight: 600; }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/Dk3logo.jpeg" alt="logo" style="width: 60px; height: 60px; border-radius: 10px;">
+        DK3 Cars - Showroom Inventory
+    </div>
+    <div class="nav-icons">
+        <i class="fas fa-bell"></i>
+        <i class="fas fa-user-circle"></i>
+    </div>
+</header>
+
+<div class="container" style="display: flex; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px;">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li onclick="location.href='/cars'"><i class="fas fa-car"></i> All Vehicles</li>
+            <li class="active"><i class="fas fa-store"></i> Showroom View</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="breadcrumb">
+            <a href="/cars/all"><i class="fas fa-home"></i> All Vehicles</a> / <span th:text="'Showroom #' + ${showroomId}"></span>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2><i class="fas fa-store"></i> Vehicles in Showroom</h2>
+            <a href="/cars/add" class="btn" style="background: #6c4ef6; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;border: none;cursor: pointer;"><i class="fas fa-plus"></i> Add Vehicle</a>
+        </div>
+
+        <section class="panel">
+            <div id="carGrid" class="car-grid">
+                <div th:each="car : ${cars}" class="car-card">
+                    <img th:if="${car.imageUrls != null and !car.imageUrls.isEmpty()}"
+                         th:src="${car.imageUrls[0]}" alt="Car Image" class="car-image">
+                    <img th:unless="${car.imageUrls != null and !car.imageUrls.isEmpty()}"
+                         src="/images/placeholder-car.jpg" alt="Car Image" class="car-image">
+
+                    <div class="car-details">
+                        <h3 th:text="${car.brand + ' ' + car.model}"></h3>
+                        <p><strong>Variant:</strong> <span th:text="${car.variant ?: 'N/A'}"></span></p>
+                        <p><strong>Fuel:</strong> <span th:text="${car.fuelType}"></span></p>
+                        <p><strong>Transmission:</strong> <span th:text="${car.transmission ?: 'N/A'}"></span></p>
+                        <p><strong>Color:</strong> <span th:text="${car.color ?: 'N/A'}"></span></p>
+                        <p><strong>Price:</strong> ₹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
+
+                        <div class="car-info-group">
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div th:class="${'info-value ' + (car.status == 'Available' ? 'status-available' : car.status == 'Sold' ? 'status-sold' : 'status-other')}"
+                                     th:text="${car.status}"></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Stock</div>
+                                <div class="info-value" th:text="${car.stockQuantity}"></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">VIN</div>
+                                <div class="info-value" th:text="${car.vin ?: 'N/A'}"></div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Engine No</div>
+                                <div class="info-value" th:text="${car.engineNo ?: 'N/A'}"></div>
+                            </div>
+                        </div>
+
+                        <div th:if="${car.supplierInfo}" class="info-item" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                            <div class="info-label">Supplier</div>
+                            <div class="info-value" th:text="${car.supplierInfo}"></div>
+                        </div>
+
+                        <div th:if="${car.purchaseDate}" class="info-item" style="margin-top: 4px;">
+                            <div class="info-label">Purchase Date</div>
+                            <div class="info-value" th:text="${#calendars.format(car.purchaseDate, 'dd-MMM-yyyy')}"></div>
+                        </div>
+                    </div>
+
+                    <div class="car-actions">
+                        <a th:href="@{/cars/edit/{id}(id=${car.id})}" class="btn edit-btn" style="text-decoration: none; text-align: center;">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a th:href="@{/cars/delete/{id}(id=${car.id})}" class="btn delete-btn"
+                           onclick="return confirm('Are you sure?')"
+                           style="text-decoration: none; text-align: center;">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(cars)}" style="text-align: center; padding: 50px; color: #666;">
+                <i class="fas fa-car-side" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                <h3>No vehicles in this showroom</h3>
+                <p>Add a new vehicle to this showroom.</p>
+                <a href="/cars/add" class="btn edit-btn" style="text-decoration: none; margin-top: 10px; display: inline-block; padding: 10px 20px;">
+                    <i class="fas fa-plus"></i> Add Vehicle
+                </a>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/cars.js"></script>
+</body>
+</html>

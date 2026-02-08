@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Settings</title>
+    <link rel="stylesheet" href="/css/settings.css">
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="logo"> DK3 Cars
+    </div>
+    <div class="nav-icons">
+            <i class="fa fa-bell"></i>
+            <i class="fa fa-user-circle"></i>
+    </div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'">Dashboard</li>
+            <li onclick="location.href='/showrooms'">Showrooms</li>
+            <li onclick="location.href='/sales'">Sales</li>
+            <li onclick="location.href='/staff'">Manage Staff</li>
+            <li onclick="location.href='/reports'">Reports</li>
+            <li class="active" onclick="location.href='/settings'">Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h2>Application Settings</h2>
+
+        <section class="panel">
+            <h3>Add / Update Setting</h3>
+            <div class="form-row">
+                <input id="newName" placeholder="Setting name (e.g., siteTitle)">
+                <input id="newValue" placeholder="Value">
+                <button id="addBtn" class="btn-primary" onclick="saveSetting()">Add</button>
+                <span id="sMsg" style="margin-left:8px;color:#666"></span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h3>Current Settings</h3>
+            <div id="settingsWrapper">
+                <table class="settings-table">
+                    <thead><tr><th>Name</th><th>Value</th><th>Actions</th></tr></thead>
+                    <tbody id="settingsBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/settings.js"></script>
+</body>
+</html>

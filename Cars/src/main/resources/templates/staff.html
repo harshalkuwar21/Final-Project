@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Manage Staff</title>
+    <link rel="stylesheet" href="/css/staff.css">
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="logo"> DK3 Cars
+    </div>
+    <div class="nav-icons">
+            <i class="fa fa-bell"></i>
+            <i class="fa fa-user-circle"></i>
+    </div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'">Dashboard</li>
+            <li onclick="location.href='/showrooms'">Showrooms</li>
+            <li onclick="location.href='/sales'">Sales</li>
+            <li class="active" onclick="location.href='/staff'">Manage Staff</li>
+            <li onclick="location.href='/reports'">Reports</li>
+            <li onclick="location.href='/settings'">Settings</li>
+            
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h2>Staff Management</h2>
+
+        <section class="panel">
+            <h3>Add Staff</h3>
+            <div class="form-row">
+                <input id="sFirst" placeholder="First name">
+                <input id="sLast" placeholder="Last name">
+                <input id="sEmail" placeholder="Email">
+                <input id="sContact" placeholder="Contact">
+                <select id="sRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
+                <input id="sPassword" placeholder="Password (optional)">
+                <button id="sAddBtn" class="btn-primary" onclick="addStaff()">Add Staff</button>
+                <span id="sMsg" style="margin-left:8px;color:#666"></span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h3>Existing Staff</h3>
+            <div id="staffTableWrapper">
+                <table class="staff-table">
+                    <thead><tr><th>Name</th><th>Email</th><th>Contact</th><th>Role</th><th>Actions</th></tr></thead>
+                    <tbody id="staffBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideEdit()">✕</button>
+        <div class="modal-body">
+            <h3>Edit Staff</h3>
+            <input id="eFirst" placeholder="First">
+            <input id="eLast" placeholder="Last">
+            <input id="eContact" placeholder="Contact">
+            <select id="eRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
+            <label><input type="checkbox" id="eEnabled"> Enabled</label>
+            <input id="ePassword" placeholder="New password (optional)">
+            <div style="margin-top:8px;"><button class="btn-primary" id="eSaveBtn">Save</button> <button onclick="hideEdit()" class="btn-secondary">Cancel</button></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/staff.js"></script>
+</body>
+</html>

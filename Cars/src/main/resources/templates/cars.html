@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <title>Vehicle Management - DK3 Cars</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/cars.css">
+    <style>
+        :root {
+            --primary: #6c4ef6;
+            --accent: #9f7bff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 18px 45px rgba(0, 0, 0, .15);
+            --bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
+        }
+
+        .navbar {
+            max-width: 1500px;
+            margin: 25px auto;
+            padding: 14px 28px;
+            background: var(--glass);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 20px;
+            z-index: 999;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .sidebar {
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar li:hover {
+            background: rgba(108, 78, 246, .1);
+            transform: translateX(6px);
+        }
+
+        .sidebar li.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+        }
+
+        .main {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .toolbar input, .toolbar select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .car-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .car-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .car-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .car-details h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .car-details p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .car-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .car-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/Dk3logo.jpeg" alt="logo" style="width: 60px; height: 60px; border-radius: 10px;">
+        DK3 Cars - Vehicle Management
+    </div>
+    <div class="nav-icons">
+        <i class="fas fa-bell"></i>
+        <i class="fas fa-user-circle"></i>
+    </div>
+</header>
+
+<div class="container" style="display: flex; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px;">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li class="active" onclick="location.href='/cars'"><i class="fas fa-car"></i> Vehicle Management</li>
+            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
+            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
+            <li onclick="location.href='/testdrives'"><i class="fas fa-road"></i> Test Drives</li>
+            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
+            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
+            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
+            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2><i class="fas fa-car"></i> Vehicle Management</h2>
+            <a href="/cars/add" class="btn"><i class="fas fa-plus"></i> Add New Vehicle</a>
+        </div>
+
+        <div th:if="${searchKeyword}" style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+            Search results for: <strong th:text="${searchKeyword}"></strong>
+        </div>
+
+        <div th:if="${success}" style="background: #d4edda; color: #155724; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+            <i class="fas fa-check"></i> <span th:text="${success}"></span>
+        </div>
+
+        <section class="panel">
+            <div class="toolbar">
+                <form action="/cars/search" method="get" style="display: flex; gap: 10px; flex: 1;">
+                    <input id="search" name="keyword" placeholder="Search by brand, model, fuel type..." style="flex: 1;" />
+                    <button type="submit" class="btn" style="padding: 10px 15px;"><i class="fas fa-search"></i></button>
+                </form>
+                <select id="filter">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Sold">Sold</option>
+                    <option value="Reserved">Reserved</option>
+                    <option value="Under Maintenance">Under Maintenance</option>
+                </select>
+                <select id="fuelFilter">
+                    <option value="">All Fuel Types</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="EV">EV</option>
+                    <option value="CNG">CNG</option>
+                </select>
+            </div>
+
+            <div id="carGrid" class="car-grid">
+                <div th:each="car : ${cars}" class="car-card">
+                    <img th:if="${car.imageUrls != null and !car.imageUrls.isEmpty()}"
+                         th:src="${car.imageUrls[0]}" alt="Car Image" class="car-image">
+                    <img th:unless="${car.imageUrls != null and !car.imageUrls.isEmpty()}"
+                         src="/images/placeholder-car.jpg" alt="Car Image" class="car-image">
+
+                    <div class="car-details">
+                        <h3 th:text="${car.brand + ' ' + car.model}"></h3>
+                        <p><strong>Variant:</strong> <span th:text="${car.variant}"></span></p>
+                        <p><strong>Fuel:</strong> <span th:text="${car.fuelType}"></span></p>
+                        <p><strong>Transmission:</strong> <span th:text="${car.transmission}"></span></p>
+                        <p><strong>Color:</strong> <span th:text="${car.color}"></span></p>
+                        <p><strong>Price:</strong> ₹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                        <p><strong>Status:</strong>
+                            <span th:class="${car.status == 'Available' ? 'status-available' : car.status == 'Sold' ? 'status-sold' : 'status-other'}"
+                                  th:text="${car.status}"></span>
+                        </p>
+                        <p><strong>Stock:</strong> <span th:text="${car.stockQuantity}"></span></p>
+                    </div>
+
+                    <div class="car-actions">
+                        <a th:href="@{/cars/edit/{id}(id=${car.id})}" class="btn edit-btn" style="text-decoration: none; text-align: center;">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a th:href="@{/cars/delete/{id}(id=${car.id})}" class="btn delete-btn"
+                           onclick="return confirm('Are you sure you want to delete this vehicle?')"
+                           style="text-decoration: none; text-align: center;">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(cars)}" style="text-align: center; padding: 50px; color: #666;">
+                <i class="fas fa-car" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                <h3>No vehicles found</h3>
+                <p>Try adjusting your search criteria or add a new vehicle.</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/cars.js"></script>
+</body>
+</html>
+<div id="carModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideModal()">✕</button>
+        <div class="modal-body">
+            <img id="modalImg" src="/images/car.jpg" alt="car">
+            <div class="meta">
+                <h3 id="modalModel">Model</h3>
+                <p id="modalBrand">Brand</p>
+                <p id="modalPrice">Price</p>
+                <p id="modalAvailability">Availability</p>
+                <p id="modalDesc"></p>
+                <div class="actions">
+                    <button id="markSoldBtn" class="btn-primary">Mark as Sold</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/cars.js"></script>
+</body>
+</html>

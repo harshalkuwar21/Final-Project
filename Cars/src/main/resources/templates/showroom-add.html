@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Inventory</title>
+    <meta charset="utf-8">
+    <title>Add Showroom</title>
     <link rel="stylesheet" href="/css/showrooms.css">
 </head>
 <body>
 <header class="navbar">
     <div class="logo">
-        <img src="/images/logo.png">
+        <img src="/images/logo.png" alt="logo">
         DK3 Cars
     </div>
     <div class="nav-icons">
-        <i class="fa fa-bell"></i>
-        <i class="fa fa-user-circle"></i>
+            <i class="fa fa-bell"></i>
+            <i class="fa fa-user-circle"></i>
     </div>
 </header>
 
@@ -20,24 +21,16 @@
     <aside class="sidebar">
         <ul>
             <li onclick="location.href='/dashboard'">Dashboard</li>
-            <li class="active" onclick="location.href='/showrooms'">Showrooms</li>
-            <li onclick="location.href='/sales'">Sales</li>
-            <li onclick="location.href='/staff'">Manage Staff</li>
-            <li onclick="location.href='/reports'">Reports</li>
-            <li onclick="location.href='/settings'">Settings</li>
+            <li onclick="location.href='/showrooms'">Showrooms</li>
+            <li class="active">Add Showroom</li>
         </ul>
     </aside>
+
     <main class="main">
-
-        <h2>Showroom Inventory <a href="/showrooms/add" class="btn-link">+ Add Showroom</a></h2>
-
-        <!-- ADD SHOWROOM FORM -->
-        <!-- ================= ADD SHOWROOM SECTION ================= -->
-        <!-- <section class="panel add-showroom-panel">
+        <section class="panel add-showroom-panel">
             <h3>Add New Showroom</h3>
 
             <div class="add-showroom-form">
-
                 <div class="form-group">
                     <label>Showroom Name</label>
                     <input type="text" id="srName" placeholder="Enter showroom name">
@@ -62,32 +55,13 @@
                     <div class="preview-wrapper"><img id="previewImg" class="preview-img" alt="Preview" style="display:none"></div>
                 </div>
 
-               
-
-                <button class="btn-primary" onclick="saveShowroom()">
-                    + Add Showroom
-                </button>
-
+                <button id="srAddBtn" class="btn-primary" onclick="saveShowroom()">+ Add Showroom</button>
+                <div id="srStatus" style="margin-top:8px;color:#666"></div>
             </div>
-        </section> -->
-
-    
-        <!-- ================= SHOWROOM SECTION ================= -->
-        <section class="panel">
-            <h3>Showrooms</h3>
-
-            <div class="showroom-toolbar">
-                <input type="text" placeholder="Search showroom..."
-                       onkeyup="filterShowrooms(this.value)">
-            </div>
-
-            <div id="showroomGrid" class="showroom-grid"></div>
         </section>
-
     </main>
-
 </div>
 
-<script src="/js/showrooms.js"></script>
+<script src="/js/showroom-add.js"></script>
 </body>
 </html>

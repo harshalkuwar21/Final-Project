@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Profile</title>
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="logo"> DK3 Cars
+    </div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'">Dashboard</li>
+            <li onclick="location.href='/showrooms'">Showrooms</li>
+            <li onclick="location.href='/sales'">Sales</li>
+            <li onclick="location.href='/staff'">Manage Staff</li>
+            <li onclick="location.href='/reports'">Reports</li>
+            <li class="active" onclick="location.href='/settings'">Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h2>Your Profile</h2>
+        <section class="panel">
+            <div class="form-row" style="flex-direction:column">
+                <input id="pFirstPage" placeholder="First">
+                <input id="pLastPage" placeholder="Last">
+                <input id="pEmailPage" placeholder="Email">
+                <input id="pContactPage" placeholder="Contact">
+                <input id="pPasswordPage" placeholder="New password (optional)">
+                <div style="margin-top:8px;"><button class="btn" id="pSavePageBtn">Save</button> <span id="pMsg" style="margin-left:8px;color:#666"></span></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/js/profile.js"></script>
+</body>
+</html>
