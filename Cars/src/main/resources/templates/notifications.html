@@ -3,11 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <title>Notifications - DK3 Cars</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="/css/notifications.css">
 </head>
 <body>
-    <h1>Notifications</h1>
-    <p>View notifications here.</p>
-    <!-- Add notifications content -->
+
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png">
+        DK3 Cars
+    </div>
+    <div class="nav-icons">
+        <i onclick="location.href='/notifications'" class="fa fa-bell" id="notifIcon"></i>
+        <i class="fa fa-user-circle" id="userIcon"></i>
+    </div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
+            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
+            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
+            <li onclick="location.href='/testdrives'"><i class="fas fa-road"></i> Test Drives</li>
+            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
+            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
+            <li class="active" onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
+            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
+            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <div class="page-header">
+            <h1><i class="fas fa-bell"></i> Notifications</h1>
+            <div>
+                <button class="btn btn-secondary" onclick="markAllRead()">Mark All Read</button>
+                <button class="btn" onclick="openCreateModal()"><i class="fas fa-plus"></i> Create</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-bell" style="color:#7f5af0;"></i>
+                <h3 id="totalNotifications">0</h3>
+                <p>Total</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-envelope-open-text" style="color:#2dd36f;"></i>
+                <h3 id="unreadNotifications">0</h3>
+                <p>Unread</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-info-circle" style="color:#ff9f43;"></i>
+                <h3 id="recent24">0</h3>
+                <p>Last 24h</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="filter-section">
+                <input type="text" id="searchInput" placeholder="Search notifications...">
+                <select id="filterType">
+                    <option value="">All Types</option>
+                    <option value="INFO">Info</option>
+                    <option value="WARNING">Warning</option>
+                    <option value="ALERT">Alert</option>
+                    <option value="ERROR">Error</option>
+                </select>
+                <button class="btn btn-secondary" onclick="applyFilters()">Filter</button>
+                <button class="btn btn-secondary" onclick="clearFilters()">Reset</button>
+            </div>
+
+            <ul id="notificationsList" class="notifications-list">
+                <li class="empty">Loading notifications...</li>
+            </ul>
+        </div>
+    </main>
+</div>
+
+<!-- Create Modal -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="closeCreateModal()">&times;</button>
+        <h2>Create Notification</h2>
+        <div class="form-group">
+            <label>Title</label>
+            <input id="nTitle" />
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea id="nMessage"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            <select id="nType">
+                <option value="INFO">Info</option>
+                <option value="WARNING">Warning</option>
+                <option value="ALERT">Alert</option>
+                <option value="ERROR">Error</option>
+            </select>
+        </div>
+        <div class="action-buttons">
+            <button class="btn btn-secondary" onclick="closeCreateModal()">Cancel</button>
+            <button class="btn" onclick="createNotification()">Create</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/notifications.js"></script>
 </body>
 </html>

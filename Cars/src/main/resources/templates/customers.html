@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Customers</title>
+    <link rel="stylesheet" href="/css/customers.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; font-family: 'Poppins', sans-serif; }
+       
+        
+        main.main { flex: 1; padding: 0; }
+        main h2 { color: #333; margin-bottom: 24px; font-size: 28px; }
+        
+        .panel { background: rgba(255,255,255,0.95); padding: 28px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); margin-bottom: 24px; border: 1px solid rgba(108,78,246,0.1); }
+        .panel h3 { color: #333; margin-bottom: 18px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        .panel h3:before { content: ''; width: 4px; height: 20px; background: linear-gradient(135deg, #6c4ef6, #9f7bff); border-radius: 2px; }
+        
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
+        .form-row input, .form-row select { padding: 12px 16px; border: 2px solid #e9eef8; border-radius: 10px; font-size: 14px; transition: 0.3s; font-family: 'Poppins', sans-serif; }
+        .form-row input:focus, .form-row select:focus { outline: none; border-color: #6c4ef6; box-shadow: 0 0 0 3px rgba(108,78,246,0.1); }
+        
+        .btn { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #6c4ef6, #9f7bff); color: white; box-shadow: 0 4px 12px rgba(108,78,246,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(108,78,246,0.4); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary { background: #f0f0f8; color: #333; border: 1px solid #e0e0f0; }
+        .btn-secondary:hover { background: #e8e8f0; }
+        .btn-danger { background: #ff5722; color: white; }
+        .btn-danger:hover { background: #e64a19; transform: translateY(-2px); }
+        .btn-edit { background: #2196F3; color: white; font-size: 12px; padding: 8px 14px; }
+        .btn-edit:hover { background: #1976D2; }
+        
+        #msg { display: inline-block; padding: 8px 12px; border-radius: 6px; background: #e8f5e9; color: #2e7d32; font-size: 13px; }
+        
+        .customers-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .customers-table thead { background: linear-gradient(135deg, #f3f1ff, #f9f7ff); }
+        .customers-table th { padding: 14px 12px; text-align: left; font-weight: 600; color: #333; border: none; }
+        .customers-table td { padding: 14px 12px; border-bottom: 1px solid #f0f0f8; }
+        .customers-table tbody tr { transition: 0.3s; }
+        .customers-table tbody tr:hover { background: #fafbff; }
+        .customers-table td button { margin-right: 6px; font-size: 12px; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-body input, .modal-body select { width: 100%; padding: 12px 16px; margin-bottom: 12px; border: 2px solid #e9eef8; border-radius: 10px; font-family: 'Poppins', sans-serif; }
+        .modal-body input:focus, .modal-body select:focus { outline: none; border-color: #6c4ef6; box-shadow: 0 0 0 3px rgba(108,78,246,0.1); }
+        .close { float: right; font-size: 24px; font-weight: bold; color: #999; cursor: pointer; border: none; background: none; }
+        .close:hover { color: #333; }
+        .modal-body h3 { margin-bottom: 18px; color: #333; }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="logo"><img src="/images/logo.png" alt="logo"> DK3 Cars</div>
+    <div class="nav-icons"><i class="fa fa-bell"></i><i class="fa fa-user-circle"></i></div>
+</header>
+
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
+            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
+            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li class="active" onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
+            <li onclick="location.href='/testdrives'"><i class="fas fa-road"></i> Test Drives</li>
+            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
+            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
+            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
+            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <h2>Customers</h2>
+
+        <section class="panel">
+            <h3><i class="fas fa-user-plus"></i> Add New Customer</h3>
+            <div class="form-row">
+                <input id="name" placeholder="Full Name" required>
+                <input id="mobile" placeholder="Mobile Number" required>
+                <input id="email" type="email" placeholder="Email Address">
+                <input id="address" placeholder="Address">
+                <select id="leadSource"><option value="Walk-in">Walk-in</option><option value="Website">Website</option><option value="Referral">Referral</option></select>
+                <input id="nextFollowUpDate" type="date">
+                <button id="addBtn" class="btn btn-primary" onclick="addCustomer()"><i class="fas fa-plus"></i> Add Customer</button>
+                <span id="msg"></span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h3><i class="fas fa-list"></i> Customer List</h3>
+            <div id="customersWrapper">
+                <table class="customers-table" id="customersTable">
+                    <thead><tr><th><i class="fas fa-user"></i> Name</th><th><i class="fas fa-phone"></i> Mobile</th><th><i class="fas fa-envelope"></i> Email</th><th><i class="fas fa-tag"></i> Lead Source</th><th><i class="fas fa-calendar"></i> Follow-up</th><th><i class="fas fa-cogs"></i> Actions</th></tr></thead>
+                    <tbody id="customersBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Edit modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="hideEdit()">✕</button>
+        <div class="modal-body">
+            <h3><i class="fas fa-edit"></i> Edit Customer</h3>
+            <input id="eName" placeholder="Full Name" required>
+            <input id="eMobile" placeholder="Mobile Number" required>
+            <input id="eEmail" type="email" placeholder="Email Address">
+            <input id="eAddress" placeholder="Address">
+            <select id="eLeadSource"><option value="Walk-in">Walk-in</option><option value="Website">Website</option><option value="Referral">Referral</option></select>
+            <input id="eNextFollowUpDate" type="date">
+            <div style="margin-top:16px; display: flex; gap: 10px;"><button class="btn btn-primary" id="eSaveBtn"><i class="fas fa-save"></i> Save</button> <button onclick="hideEdit()" class="btn btn-secondary">Cancel</button></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/customers.js"></script>
+</body>
+</html>

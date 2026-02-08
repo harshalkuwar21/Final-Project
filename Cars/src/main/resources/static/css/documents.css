@@ -1,0 +1,359 @@
+/* ============================================
+   DOCUMENTS PAGE STYLES
+   ============================================ */
+
+:root {
+    --primary: #6c4ef6;
+    --accent: #9f7bff;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow: 0 18px 45px rgba(0, 0, 0, .15);
+    --bg: #f1f5f9;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+}
+
+/* ============================================
+   FILE PREVIEW STYLES
+   ============================================ */
+
+.file-preview {
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.file-preview-icon {
+    font-size: 48px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.file-info {
+    margin-bottom: 16px;
+}
+
+.file-info p {
+    margin: 6px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.file-info-label {
+    font-weight: 600;
+    color: #333;
+    display: inline-block;
+    min-width: 100px;
+}
+
+/* ============================================
+   DOCUMENT ACTIONS
+   ============================================ */
+
+.doc-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f3f4ff;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.action-icon:hover {
+    background: var(--primary);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.action-icon.delete:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+.action-icon.download:hover {
+    background: var(--success);
+    color: #fff;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    color: #ddd;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    margin-bottom: 20px;
+}
+
+/* ============================================
+   LOADING & STATUS INDICATORS
+   ============================================ */
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f4ff;
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-active::before {
+    content: '✓';
+    display: inline-block;
+}
+
+.status-expiring {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status-expiring::before {
+    content: '⚠';
+    display: inline-block;
+}
+
+.status-expired {
+    background: #fecaca;
+    color: #b91c1c;
+}
+
+.status-expired::before {
+    content: '✕';
+    display: inline-block;
+}
+
+/* ============================================
+   DOCUMENT TYPE STYLES
+   ============================================ */
+
+.doc-type-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f3f4ff;
+    color: var(--primary);
+}
+
+.doc-type-badge.rc {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.doc-type-badge.insurance {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.doc-type-badge.invoice {
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
+}
+
+.doc-type-badge.form {
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+}
+
+.doc-type-badge.id {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* ============================================
+   DOCUMENT LIST ITEM ENHANCEMENT
+   ============================================ */
+
+.document-row {
+    transition: all 0.3s ease;
+}
+
+.document-row:hover {
+    box-shadow: 0 4px 12px rgba(108, 78, 246, 0.1);
+}
+
+.document-row-highlight {
+    background: rgba(108, 78, 246, 0.05);
+}
+
+/* ============================================
+   UPLOAD AREA
+   ============================================ */
+
+.upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    background: #f9fafb;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upload-area:hover {
+    border-color: var(--primary);
+    background: rgba(108, 78, 246, 0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--primary);
+    background: rgba(108, 78, 246, 0.1);
+}
+
+.upload-icon {
+    font-size: 48px;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.upload-text {
+    color: #666;
+    font-size: 14px;
+}
+
+.upload-text strong {
+    color: var(--primary);
+}
+
+/* ============================================
+   NOTIFICATION STYLES
+   ============================================ */
+
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.toast-message.success {
+    border-left: 4px solid var(--success);
+}
+
+.toast-message.error {
+    border-left: 4px solid var(--error);
+}
+
+.toast-message.warning {
+    border-left: 4px solid var(--warning);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .file-preview {
+        padding: 16px;
+    }
+
+    .doc-actions {
+        flex-direction: column;
+    }
+
+    .action-icon {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .toast-message {
+        right: 10px;
+        left: 10px;
+        bottom: 10px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    .doc-type-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}

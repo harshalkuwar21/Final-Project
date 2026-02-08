@@ -22,11 +22,14 @@ function renderShowrooms(list) {
                 ? "badge-premium"
                 : "badge-normal";
 
+        // use encodeURIComponent to avoid quote issues in names
+        const encodedName = encodeURIComponent(s.name);
+
         grid.innerHTML += `
-            <div class="showroom-card" onclick="loadCars(${s.id}, '${s.name}')">
+            <div class="showroom-card" onclick="openCars(${s.id}, '${encodedName}')">
 
                 <div class="image-box">
-                    <img src="${s.image}">
+                    <img src="${s.image}" alt="${s.name}">
                     <span class="badge ${styleBadge}">
                         ${styleBadge === 'badge-premium' ? 'Premium' : 'Normal'}
                     </span>
@@ -35,7 +38,7 @@ function renderShowrooms(list) {
                 <div class="info">
                     <h4>${s.name}</h4>
                     <p>📍 ${s.city}</p>
-                    <small>View Cars →</small>
+                    <small onclick="event.stopPropagation(); loadCars(${s.id}, decodeURIComponent('${encodedName}'))" style="cursor:pointer;color:var(--accent)">View Cars →</small>
                 </div>
 
             </div>
@@ -49,6 +52,13 @@ function filterShowrooms(keyword) {
         s.city.toLowerCase().includes(keyword.toLowerCase())
     );
     renderShowrooms(filtered);
+}
+
+function openCars(id, encodedName){
+    const name = decodeURIComponent(encodedName || '');
+    // navigate to dedicated cars page with query params
+    const url = `/cars?showroomId=${id}&name=${encodeURIComponent(name)}`;
+    window.location.href = url;
 }
 
 // ================= SAVE SHOWROOM =================
@@ -98,9 +108,9 @@ function loadCars(id, name) {
 
             data.forEach(car => {
 
-                const status = car.sold
-                    ? `<span class="paid">Sold</span>`
-                    : `<span class="pending">Available</span>`;
+                const status = car.available
+                    ? `<span class="pending">Available</span>`
+                    : `<span class="paid">Sold</span>`;
 
                 table.innerHTML += `
                     <tr>

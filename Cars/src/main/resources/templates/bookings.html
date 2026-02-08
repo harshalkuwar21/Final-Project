@@ -5,10 +5,591 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookings Management - DK3 Cars</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/bookings.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Bookings Management CSS */
+    :root {
+    --primary: #6c4ef6;
+    --secondary: #9f7bff;
+    --success: #2dd36f;
+    --warning: #ff9f43;
+    --danger: #ff5722;
+    --info: #6759f7;
+    --light: #f8f9fa;
+    --dark: #343a40;
+
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+    --accent: #9f7bff;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow: 0 18px 45px rgba(0, 0, 0, .15);
+    --bg: #f1f5f9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+.navbar {
+            max-width: 1500px;
+            margin: 25px auto;
+            padding: 14px 28px;
+            background: var(--glass);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 20px;
+            z-index: 999;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
+        }
+
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+
+        .nav-links a {
+            margin: 0 16px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -4px;
+            height: 2px;
+            width: 0;
+            background: var(--primary);
+            transition: .3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 18px;
+        }
+
+        .nav-icons i {
+            font-size: 20px;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .nav-icons i:hover {
+            background: #f3f4ff;
+            color: var(--primary);
+            transform: scale(1.15);
+        }
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    gap: 24px;
+    padding-bottom: 40px;
+}
+
+.sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #fff, #f3f1ff);
+            border-radius: 28px;
+            padding: 24px 16px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sidebar li {
+            padding: 14px 18px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: .3s;
+            font-weight: 500;
+        }
+
+        .sidebar li i {
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .sidebar li:hover {
+            background: rgba(108, 78, 246, .1);
+            transform: translateX(6px);
+        }
+
+        .sidebar li.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+        }
+
+        .sidebar li.active i {
+            color: #fff;
+        }
+
+/* Header */
+.header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.header h1 i {
+    margin-right: 10px;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--secondary);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e74c3c;
+}
+
+/* Filters */
+.filters {
+    padding: 20px 30px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-group input {
+    min-width: 250px;
+}
+
+/* Table */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+thead {
+    background: var(--primary);
+    color: white;
+}
+
+thead th {
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+}
+
+tbody tr {
+    border-bottom: 1px solid #dee2e6;
+    transition: var(--transition);
+}
+
+tbody tr:hover {
+    background: #f8f9fa;
+}
+
+tbody td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-confirmed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-cancelled {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: var(--transition);
+}
+
+.edit-btn {
+    background: var(--info);
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #5a4fcf;
+}
+
+.delete-btn {
+    background: var(--danger);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #e74c3c;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    width: 90%;
+    max-width: 600px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-content.small {
+    max-width: 400px;
+}
+
+.modal-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary);
+}
+
+.close {
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(108, 78, 246, 0.25);
+}
+
+/* Modal Body and Footer */
+.modal-body {
+    padding: 20px 30px;
+}
+
+.modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .filters {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .filter-group {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .filter-group input {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Loading state */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+.main {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+    </style>
 </head>
 <body>
-    <div class="container">
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png">
+        DK3 Cars
+    </div>
+    <div class="nav-icons">
+        <i onclick="location.href='/showrooms'" class="fa fa-bell" id="notifIcon"></i>
+        <i class="fa fa-user-circle" id="userIcon"></i>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+     <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
+            <li class="active" onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
+            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
+            <li onclick="location.href='/testdrives'"><i class="fas fa-road"></i> Test Drives</li>
+            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
+            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
+            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
+            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+    <main class="main">
+
         <div class="header">
             <h1><i class="fas fa-calendar-check"></i> Bookings Management</h1>
             <button class="btn btn-primary" onclick="showAddModal()">
@@ -148,6 +729,7 @@
                 </div>
             </div>
         </div>
+        </main>
     </div>
 
     <script src="/js/bookings.js"></script>

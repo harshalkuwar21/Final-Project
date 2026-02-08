@@ -1,21 +1,25 @@
 package com.Dk3.Cars.restcontroller;
 
 import com.Dk3.Cars.entity.Car;
+import com.Dk3.Cars.entity.Sale;
 import com.Dk3.Cars.entity.Showroom;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.SaleRepository;
 import com.Dk3.Cars.repository.ShowroomRepository;
+import com.Dk3.Cars.service.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 import java.nio.file.*;
-import java.util.UUID;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
@@ -23,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardRestController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DashboardRestController.class);
 
     @Autowired
     private CarRepository carRepository;
@@ -33,6 +39,24 @@ public class DashboardRestController {
     @Autowired
     private ShowroomRepository showroomRepository;
 
+    @Autowired
+    private com.Dk3.Cars.repository.UserRepository userRepository;
+
+    @Autowired
+    private com.Dk3.Cars.repository.SettingRepository settingRepository;
+
+    @Autowired
+    private CarService carService;
+
+    @Autowired
+    private SaleService saleService;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private TestDriveService testDriveService;
+
     @GetMapping("/stats")
     public Map<String, Object> getStats() {
 
@@ -40,19 +64,53 @@ public class DashboardRestController {
 
         long totalShowroom = showroomRepository.count();
         long soldCars = carRepository.countBySold(true);
-        long availableCars = carRepository.countBySold(false);
+        long availableCars = carService.getTotalCarsInStock();
         Double revenue = carRepository.totalRevenue();
+
+        // New dashboard counts
+        long totalVehicles = carRepository.count();
+        long userRequests = userRepository.countByEnabled(false); // pending accounts
+        long activeBookings = bookingService.countBookingsByStatus("Pending") +
+                             bookingService.countBookingsByStatus("Confirmed");
+        long staffCount = userRepository.countByRoleNot("ROLE_USER");
+
+        // Today's metrics
+        long carsSoldToday = saleService.countTodaySales();
+        long testDrivesToday = testDriveService.countTodayScheduledTestDrives();
+
+        // Monthly/Yearly revenue
+        Double monthlyRevenue = saleService.getMonthlyRevenue(
+            java.time.LocalDate.now().getYear(),
+            java.time.LocalDate.now().getMonthValue()
+        );
+        Double yearlyRevenue = saleService.getYearlyRevenue(java.time.LocalDate.now().getYear());
+
+        // Low stock alerts
+        List<Object[]> lowStockModels = carService.getLowStockModels();
 
         map.put("totalShowroom", totalShowroom);
         map.put("soldCars", soldCars);
         map.put("availableCars", availableCars);
         map.put("revenue", revenue == null ? 0 : revenue);
 
+        map.put("totalVehicles", totalVehicles);
+        map.put("userRequests", userRequests);
+        map.put("activeBookings", activeBookings);
+        map.put("staffCount", staffCount);
+
+        map.put("carsSoldToday", carsSoldToday);
+        map.put("carsSoldThisMonth", saleService.countCurrentMonthSales());
+        map.put("carsSoldThisYear", saleService.countYearlySales(java.time.LocalDate.now().getYear()));
+        map.put("testDrivesToday", testDrivesToday);
+        map.put("monthlyRevenue", monthlyRevenue == null ? 0 : monthlyRevenue);
+        map.put("yearlyRevenue", yearlyRevenue == null ? 0 : yearlyRevenue);
+        map.put("lowStockAlerts", lowStockModels);
+
         return map;
     }
 
 
-    // ================== SOLD CARS ==================
+
     @GetMapping("/sales")
     public List<Map<String, Object>> getRecentSales() {
 
@@ -69,7 +127,7 @@ public class DashboardRestController {
                 .toList();
     }
 
-    // ================== TOP CARS ==================
+
     @GetMapping("/top-cars")
     public List<String> getTopCars() {
 
@@ -78,7 +136,7 @@ public class DashboardRestController {
                 .map(Car::getModel)
                 .toList();
     }
-    // ================= INVENTORY OVERVIEW =================
+
     @GetMapping("/inventory")
     public List<Map<String, Object>> getInventoryOverview() {
 
@@ -94,8 +152,6 @@ public class DashboardRestController {
     }
 
 
-    // ================= TOP SELLING CARS =================
-    // ================= TOP SELLING CARS =================
     @GetMapping("/top-selling")
     public List<Map<String, Object>> getTopSellingCars() {
 
@@ -112,10 +168,7 @@ public class DashboardRestController {
                 })
                 .toList();
     }
-// ================= INVENTORY PAGE DATA =================
 
-
-    // ================= SHOWROOM LIST =================
     @GetMapping("/showrooms")
     public List<Map<String, Object>> getShowrooms() {
 
@@ -132,25 +185,157 @@ public class DashboardRestController {
                 .toList();
     }
 
+    @GetMapping("/overview")
+    public Map<String, Object> getOverview() {
+        Map<String, Object> map = new HashMap<>();
+        long bookingsToday = 0;
+        try {
+            bookingsToday = saleRepository.countBySoldDate(java.time.LocalDate.now());
+        } catch (Exception ex) {
+            logger.warn("Could not read bookings today", ex);
+        }
+        long vehiclesAvailable = carRepository.countBySold(false);
+        long pendingReviews = 0;
+        try {
+            pendingReviews = saleRepository.countByStatus("PendingReview");
+        } catch (Exception ex) {
+            // default to 0
+        }
+        map.put("bookingsToday", bookingsToday);
+        map.put("vehiclesAvailable", vehiclesAvailable);
+        map.put("pendingReviews", pendingReviews);
+        return map;
+    }
 
-    // ================= CARS BY SHOWROOM =================
-    @GetMapping("/showrooms/{showroomId}/cars")
-    public List<Map<String, Object>> getCarsByShowroom(
-            @PathVariable Long showroomId) {
+    // New Chart Endpoints
+    @GetMapping("/charts/monthly-sales")
+    public List<Map<String, Object>> getMonthlySalesData() {
+        // This would return data for monthly sales bar chart
+        // For now, return sample data - in real implementation, query database
+        List<Map<String, Object>> data = new java.util.ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            Map<String, Object> month = new HashMap<>();
+            month.put("month", java.time.Month.of(i).name());
+            month.put("sales", Math.random() * 50 + 10); // Sample data
+            data.add(month);
+        }
+        return data;
+    }
 
-        return carRepository.findByShowroomId(showroomId)
+    @GetMapping("/charts/model-sales")
+    public List<Map<String, Object>> getModelSalesData() {
+        return carRepository.topSellingCars(PageRequest.of(0, 10))
                 .stream()
-                .map(car -> {
+                .map(row -> {
                     Map<String, Object> map = new HashMap<>();
-                    map.put("model", car.getModel());
-                    map.put("brand", car.getBrand());
-                    map.put("price", car.getPrice());
-                    map.put("sold", car.isSold());
+                    map.put("model", row[0]);
+                    map.put("count", row[1]);
                     return map;
                 })
                 .toList();
     }
-    // ================= ADD SHOWROOM =================
+
+    @GetMapping("/charts/revenue-trend")
+    public List<Map<String, Object>> getRevenueTrendData() {
+        // Sample revenue trend data - in real implementation, query by months
+        List<Map<String, Object>> data = new java.util.ArrayList<>();
+        for (int i = 1; i <= 12; i++) {
+            Map<String, Object> month = new HashMap<>();
+            month.put("month", java.time.Month.of(i).name().substring(0, 3));
+            month.put("revenue", Math.random() * 100000 + 50000); // Sample data
+            data.add(month);
+        }
+        return data;
+    }
+
+    @GetMapping("/staff")
+    public List<Map<String, Object>> getStaff() {
+        return userRepository.findByRoleNot("ROLE_USER")
+                .stream()
+                .map(u -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("userid", u.getUserid());
+                    m.put("first", u.getFirst());
+                    m.put("last", u.getLast());
+                    m.put("email", u.getEmail());
+                    m.put("contact", u.getContact());
+                    return m;
+                }).toList();
+    }
+
+    @DeleteMapping("/staff/{id}")
+    public Map<String, Object> deleteStaff(@PathVariable Long id) {
+        userRepository.deleteById(id);
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("ok", true);
+        return resp;
+    }
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @PostMapping("/staff")
+    public Map<String, Object> createStaff(@RequestBody Map<String, Object> body) {
+        String email = (String) body.get("email");
+        Map<String, Object> resp = new HashMap<>();
+        if (email == null || email.trim().isEmpty()) {
+            resp.put("ok", false);
+            resp.put("message", "Email is required");
+            return resp;
+        }
+        if (userRepository.existsByEmail(email)) {
+            resp.put("ok", false);
+            resp.put("message", "Email already exists");
+            return resp;
+        }
+
+        String first = (String) body.getOrDefault("first", "");
+        String last = (String) body.getOrDefault("last", "");
+        String contact = (String) body.getOrDefault("contact", "");
+        String pwd = (String) body.getOrDefault("password", "changeme123");
+        String role = (String) body.getOrDefault("role", "ROLE_STAFF");
+        boolean enabled = Boolean.parseBoolean(String.valueOf(body.getOrDefault("enabled", true)));
+
+        com.Dk3.Cars.entity.User u = new com.Dk3.Cars.entity.User();
+        u.setFirst(first);
+        u.setLast(last);
+        u.setEmail(email);
+        u.setContact(contact);
+        u.setPassword(passwordEncoder.encode(pwd));
+        u.setRole(role);
+        u.setEnabled(enabled);
+
+        userRepository.save(u);
+        resp.put("ok", true);
+        resp.put("userid", u.getUserid());
+        return resp;
+    }
+
+    @PutMapping("/staff/{id}")
+    public Map<String, Object> updateStaff(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        Map<String, Object> resp = new HashMap<>();
+        com.Dk3.Cars.entity.User u = userRepository.findById(id).orElse(null);
+        if (u == null) {
+            resp.put("ok", false);
+            resp.put("message", "User not found");
+            return resp;
+        }
+
+        if (body.containsKey("first")) u.setFirst((String) body.get("first"));
+        if (body.containsKey("last")) u.setLast((String) body.get("last"));
+        if (body.containsKey("contact")) u.setContact((String) body.get("contact"));
+        if (body.containsKey("role")) u.setRole((String) body.get("role"));
+        if (body.containsKey("enabled")) u.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
+        if (body.containsKey("password")) {
+            String pwd = (String) body.get("password");
+            if (pwd != null && !pwd.trim().isEmpty()) u.setPassword(passwordEncoder.encode(pwd));
+        }
+
+        userRepository.save(u);
+        resp.put("ok", true);
+        return resp;
+    }
+
     @PostMapping("/showroom")
     public Showroom saveShowroom(
             @RequestParam String name,
@@ -172,23 +357,584 @@ public class DashboardRestController {
         return showroomRepository.save(showroom);
     }
 
-    // ================= GET SHOWROOMS =================
-
-    // ================= GET CARS BY SHOWROOM =================
     @GetMapping("/showrooms/{id}/cars")
-    public List<Map<String, Object>> getCars(@PathVariable Long id) {
-
-        return carRepository.findByShowroomId(id)
+    public java.util.List<java.util.Map<String, Object>> getCarsByShowroom(@PathVariable Long id) {
+        return carRepository.findByShowroomIdOrderByIdDesc(id)
                 .stream()
                 .map(c -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("model", c.getModel());
-                    map.put("brand", c.getBrand());
-                    map.put("price", c.getPrice());
-                    map.put("sold", c.isSold());
-                    return map;
-                })
-                .toList();
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", c.getId());
+                    m.put("model", c.getModel());
+                    m.put("brand", c.getBrand());
+                    m.put("price", c.getPrice());
+                    m.put("available", c.isAvailable());
+                    m.put("image", c.getImageUrls());
+                    // placeholder for description or other fields
+                    m.put("description", "");
+                    return m;
+                }).toList();
+    }
+
+    @PostMapping("/cars/{id}/sell")
+    public java.util.Map<String, Object> sellCar(@PathVariable Long id) {
+        Car car = carRepository.findById(id).orElseThrow();
+        car.setSold(true);
+        carRepository.save(car);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        resp.put("ok", true);
+        return resp;
+    }
+
+        @PostMapping("/cars/add")
+        public java.util.Map<String, Object> addCar(
+            @RequestParam String brand,
+            @RequestParam String model,
+            @RequestParam(required = false) String variant,
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) String fuelType,
+            @RequestParam(required = false) String transmission,
+            @RequestParam Double price,
+            @RequestParam(required = false) String vin,
+            @RequestParam(required = false) String engineNo,
+            @RequestParam(required = false) String purchaseDate,
+            @RequestParam(required = false) String supplierInfo,
+            @RequestParam Long showroom,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false, defaultValue = "1") Integer stockQuantity,
+            @RequestParam(required = false) MultipartFile[] images) {
+
+        Car car = new Car();
+        car.setBrand(brand);
+        car.setModel(model);
+        car.setVariant(variant);
+        car.setColor(color);
+        car.setFuelType(fuelType);
+        car.setTransmission(transmission);
+        car.setPrice(price);
+        car.setVin(vin);
+        car.setEngineNo(engineNo);
+        car.setSupplierInfo(supplierInfo);
+        car.setStatus(status != null ? status : "Available");
+        car.setStockQuantity(stockQuantity);
+
+        if (showroom != null) {
+            Showroom sr = showroomRepository.findById(showroom).orElse(null);
+            car.setShowroom(sr);
+        }
+
+        if (purchaseDate != null && !purchaseDate.isEmpty()) {
+            try {
+                java.time.LocalDate date = java.time.LocalDate.parse(purchaseDate);
+                car.setPurchaseDate(date);
+            } catch (Exception e) {
+                logger.warn("Could not parse purchase date: " + purchaseDate);
+            }
+        }
+
+        Car savedCar = carRepository.save(car);
+
+        // handle images if any
+        if (images != null && images.length > 0) {
+            try {
+                String uploadDir = "uploads/cars/";
+                Files.createDirectories(Paths.get(uploadDir));
+                java.util.List<String> urls = new java.util.ArrayList<>();
+                for (MultipartFile img : images) {
+                    if (img == null || img.isEmpty()) continue;
+                    String original = img.getOriginalFilename();
+                    String fileName = UUID.randomUUID().toString() + "_" + (original == null ? "img" : original.replaceAll("\\s+", "_"));
+                    Path p = Paths.get(uploadDir + fileName);
+                    Files.write(p, img.getBytes());
+                    urls.add("/uploads/cars/" + fileName);
+                }
+                if (!urls.isEmpty()) {
+                    savedCar.setImageUrls(urls);
+                    carRepository.save(savedCar);
+                }
+            } catch (Exception ex) {
+                logger.warn("Failed to save uploaded images", ex);
+            }
+        }
+
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("success", true);
+        response.put("message", "Vehicle added successfully!");
+        response.put("carId", savedCar.getId());
+        response.put("redirectUrl", "/cars/showroom/" + showroom);
+        return response;
+    }
+
+    @GetMapping("/cars")
+    public java.util.List<java.util.Map<String, Object>> getAllCars() {
+        return carRepository.findAll()
+                .stream()
+                .map(c -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", c.getId());
+                    m.put("model", c.getModel());
+                    m.put("brand", c.getBrand());
+                    m.put("price", c.getPrice());
+                    m.put("available", c.isAvailable());
+                    m.put("image", c.getImageUrls());
+                    m.put("showroomId", c.getShowroom() != null ? c.getShowroom().getId() : null);
+                    return m;
+                }).toList();
+    }
+
+    @GetMapping("/sales/all")
+    public java.util.List<java.util.Map<String, Object>> getAllSales() {
+        return saleRepository.findAll()
+                .stream()
+                .map(s -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", s.getId());
+                    m.put("buyer", s.getBuyerName());
+                    m.put("date", s.getSoldDate());
+                    m.put("status", s.getStatus());
+                    Car c = s.getCar();
+                    if (c != null) {
+                        m.put("carId", c.getId());
+                        m.put("model", c.getModel());
+                        m.put("brand", c.getBrand());
+                    }
+                    return m;
+                }).toList();
+    }
+
+    @GetMapping("/sales/{id}")
+    public java.util.Map<String, Object> getSale(@PathVariable Long id) {
+        Sale s = saleRepository.findById(id).orElseThrow();
+        java.util.Map<String, Object> m = new java.util.HashMap<>();
+        m.put("id", s.getId());
+        m.put("buyer", s.getBuyerName());
+        m.put("date", s.getSoldDate());
+        m.put("status", s.getStatus());
+        Car c = s.getCar();
+        if (c != null) {
+            m.put("carId", c.getId());
+            m.put("model", c.getModel());
+            m.put("brand", c.getBrand());
+            m.put("price", c.getPrice());
+            m.put("image", c.getImageUrls());
+        }
+        return m;
+    }
+
+    @PostMapping("/sales")
+    public java.util.Map<String, Object> createSale(@RequestBody java.util.Map<String, Object> body) {
+        Long carId = body.get("carId") == null ? null : Long.valueOf(String.valueOf(body.get("carId")));
+        String buyer = (String) body.getOrDefault("buyer", "");
+        String status = (String) body.getOrDefault("status", "Paid");
+
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        if (carId == null) {
+            resp.put("ok", false);
+            resp.put("message", "carId is required");
+            return resp;
+        }
+        Car car = carRepository.findById(carId).orElse(null);
+        if (car == null) {
+            resp.put("ok", false);
+            resp.put("message", "Car not found");
+            return resp;
+        }
+
+        Sale s = new Sale();
+        s.setCar(car);
+        s.setBuyerName(buyer);
+        s.setStatus(status);
+        s.setSoldDate(java.time.LocalDate.now());
+        Sale saved = saleRepository.save(s);
+
+        // mark car sold if status indicates paid/completed
+        if ("Paid".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+            car.setSold(true);
+            carRepository.save(car);
+        }
+
+        resp.put("ok", true);
+        resp.put("id", saved.getId());
+        return resp;
+    }
+
+    @PutMapping("/sales/{id}")
+    public java.util.Map<String, Object> updateSale(@PathVariable Long id, @RequestBody java.util.Map<String, Object> body) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        Sale s = saleRepository.findById(id).orElse(null);
+        if (s == null) {
+            resp.put("ok", false);
+            resp.put("message", "Sale not found");
+            return resp;
+        }
+        if (body.containsKey("status")) {
+            String status = (String) body.get("status");
+            s.setStatus(status);
+            if ("Paid".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+                Car c = s.getCar(); if (c!=null){ c.setSold(true); carRepository.save(c); }
+            }
+        }
+        if (body.containsKey("buyer")) s.setBuyerName((String) body.get("buyer"));
+        saleRepository.save(s);
+        resp.put("ok", true);
+        return resp;
+    }
+
+    @DeleteMapping("/sales/{id}")
+    public java.util.Map<String, Object> deleteSale(@PathVariable Long id){
+        Sale s = saleRepository.findById(id).orElse(null);
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        if(s==null){ resp.put("ok", false); resp.put("message","Sale not found"); return resp; }
+        Car c = s.getCar();
+        saleRepository.deleteById(id);
+        if(c!=null){ c.setSold(false); carRepository.save(c); }
+        resp.put("ok", true);
+        return resp;
+    }
+
+    // ---------------- REPORTS -----------------
+
+    @GetMapping("/reports/summary")
+    public java.util.Map<String, Object> getReportsSummary() {
+        java.util.Map<String, Object> m = new java.util.HashMap<>();
+        long totalSales = saleRepository.count();
+        Double revenue = carRepository.totalRevenue();
+        long totalVehicles = carRepository.count();
+        long soldCars = carRepository.countBySold(true);
+        long availableCars = carRepository.countBySold(false);
+        long staffCount = userRepository.countByRoleNot("ROLE_USER");
+
+        m.put("totalSales", totalSales);
+        m.put("revenue", revenue == null ? 0 : revenue);
+        m.put("totalVehicles", totalVehicles);
+        m.put("soldCars", soldCars);
+        m.put("availableCars", availableCars);
+        m.put("staffCount", staffCount);
+        return m;
+    }
+
+    @GetMapping("/reports/sales")
+    public java.util.List<java.util.Map<String, Object>> getSalesInRange(@RequestParam String from, @RequestParam String to) {
+        java.time.LocalDate f = java.time.LocalDate.parse(from);
+        java.time.LocalDate t = java.time.LocalDate.parse(to);
+        return saleRepository.findAll()
+                .stream()
+                .filter(s -> s.getSoldDate() != null && ( !s.getSoldDate().isBefore(f) && !s.getSoldDate().isAfter(t) ))
+                .map(s -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("id", s.getId());
+                    m.put("buyer", s.getBuyerName());
+                    m.put("date", s.getSoldDate());
+                    m.put("status", s.getStatus());
+                    Car c = s.getCar();
+                    if(c!=null){ m.put("carId", c.getId()); m.put("model", c.getModel()); m.put("brand", c.getBrand()); m.put("price", c.getPrice()); }
+                    return m;
+                }).toList();
+    }
+
+    @GetMapping("/reports/revenue-by-year")
+    public java.util.List<java.util.Map<String, Object>> getRevenueByYear(@RequestParam int year) {
+        double[] months = new double[12];
+        saleRepository.findAll().forEach(s -> {
+            if (s.getSoldDate() == null) return;
+            if (s.getSoldDate().getYear() != year) return;
+            String status = s.getStatus() == null ? "" : s.getStatus();
+            if ("Paid".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+                Car c = s.getCar();
+                if (c != null) {
+                    int m = s.getSoldDate().getMonthValue() - 1;
+                    months[m] += c.getPrice();
+                }
+            }
+        });
+        java.util.List<java.util.Map<String, Object>> out = new java.util.ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            java.util.Map<String, Object> mm = new java.util.HashMap<>();
+            mm.put("month", i + 1);
+            mm.put("revenue", months[i]);
+            out.add(mm);
+        }
+        return out;
+    }
+
+    @GetMapping("/reports/top-brands")
+    public java.util.List<java.util.Map<String, Object>> getTopBrands(@RequestParam(defaultValue = "10") int limit) {
+        java.util.Map<String, Long> counts = new java.util.HashMap<>();
+        saleRepository.findAll().forEach(s -> {
+            String status = s.getStatus() == null ? "" : s.getStatus();
+            if ("Paid".equalsIgnoreCase(status) || "Completed".equalsIgnoreCase(status)) {
+                Car c = s.getCar();
+                if (c != null) counts.put(c.getBrand(), counts.getOrDefault(c.getBrand(), 0L) + 1);
+            }
+        });
+        return counts.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .limit(limit)
+                .map(e -> {
+                    java.util.Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("brand", e.getKey());
+                    m.put("sold", e.getValue());
+                    return m;
+                }).toList();
+    }
+
+    // ---------------- SETTINGS -----------------
+
+    @GetMapping("/settings")
+    public java.util.Map<String, String> getSettings() {
+        java.util.Map<String, String> out = new java.util.HashMap<>();
+        // provide some sensible defaults if not present
+        java.util.Map<String, String> defaults = java.util.Map.of(
+                "siteTitle", "DK3 Cars",
+                "contactEmail", "support@dk3cars.example",
+                "currency", "INR",
+                "maintenanceMode", "false"
+        );
+
+        settingRepository.findAll().forEach(s -> out.put(s.getName(), s.getValue()));
+        defaults.forEach((k, v) -> out.putIfAbsent(k, v));
+        return out;
+    }
+
+    @PutMapping("/settings")
+    public java.util.Map<String, Object> updateSettings(@RequestBody java.util.Map<String, Object> body) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        body.forEach((k, v) -> {
+            String val = v == null ? "" : String.valueOf(v);
+            var opt = settingRepository.findByName(k);
+            com.Dk3.Cars.entity.Setting s;
+            if (opt.isPresent()) {
+                s = opt.get();
+                s.setValue(val);
+            } else {
+                s = new com.Dk3.Cars.entity.Setting();
+                s.setName(k);
+                s.setValue(val);
+            }
+            settingRepository.save(s);
+        });
+        resp.put("ok", true);
+        resp.put("saved", body.keySet());
+        return resp;
+    }
+
+    @DeleteMapping("/settings/{name}")
+    public java.util.Map<String, Object> deleteSetting(@PathVariable String name) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        var opt = settingRepository.findByName(name);
+        if (opt.isPresent()) {
+            settingRepository.delete(opt.get());
+            resp.put("ok", true);
+            resp.put("deleted", name);
+        } else {
+            resp.put("ok", false);
+            resp.put("error", "not found");
+        }
+        return resp;
+    }
+
+    // more granular CRUD
+    @GetMapping("/settings/list")
+    public java.util.List<com.Dk3.Cars.entity.Setting> listSettings() {
+        return settingRepository.findAll();
+    }
+
+    @PostMapping("/settings")
+    public java.util.Map<String, Object> createSetting(@RequestBody java.util.Map<String, String> body) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        String name = body.getOrDefault("name", "").trim();
+        String value = body.getOrDefault("value", "");
+        if (name.isEmpty()) {
+            resp.put("ok", false);
+            resp.put("error", "name required");
+            return resp;
+        }
+        if (settingRepository.findByName(name).isPresent()) {
+            resp.put("ok", false);
+            resp.put("error", "exists");
+            return resp;
+        }
+        com.Dk3.Cars.entity.Setting s = new com.Dk3.Cars.entity.Setting();
+        s.setName(name);
+        s.setValue(value);
+        settingRepository.save(s);
+        resp.put("ok", true);
+        resp.put("setting", s);
+        return resp;
+    }
+
+    @PutMapping("/settings/{id}")
+    public java.util.Map<String, Object> updateSettingById(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        var opt = settingRepository.findById(id);
+        if (opt.isEmpty()) {
+            resp.put("ok", false);
+            resp.put("error", "not found");
+            return resp;
+        }
+        com.Dk3.Cars.entity.Setting s = opt.get();
+        String newName = body.getOrDefault("name", s.getName()).trim();
+        String newVal = body.getOrDefault("value", s.getValue());
+        if (!newName.equals(s.getName()) && settingRepository.findByName(newName).isPresent()) {
+            resp.put("ok", false);
+            resp.put("error", "name exists");
+            return resp;
+        }
+        s.setName(newName);
+        s.setValue(newVal);
+        settingRepository.save(s);
+        resp.put("ok", true);
+        resp.put("setting", s);
+        return resp;
+    }
+
+    @DeleteMapping("/settings/id/{id}")
+    public java.util.Map<String, Object> deleteSettingById(@PathVariable Long id) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        var opt = settingRepository.findById(id);
+        if (opt.isPresent()) {
+            settingRepository.delete(opt.get());
+            resp.put("ok", true);
+            resp.put("deletedId", id);
+        } else {
+            resp.put("ok", false);
+            resp.put("error", "not found");
+        }
+        return resp;
+    }
+
+    // ===== CAR MANAGEMENT API ENDPOINTS =====
+
+
+
+    @GetMapping("/cars/{id}")
+    public Map<String, Object> getCarById(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Car car = carRepository.findById(id).orElse(null);
+
+            if (car == null) {
+                response.put("success", false);
+                response.put("message", "Car not found");
+                return response;
+            }
+
+            response.put("success", true);
+            response.put("car", car);
+            return response;
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error retrieving car: " + e.getMessage());
+            return response;
+        }
+    }
+
+
+
+    @DeleteMapping("/cars/{id}")
+    public Map<String, Object> deleteCar(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Car car = carRepository.findById(id).orElse(null);
+
+            if (car == null) {
+                response.put("success", false);
+                response.put("message", "Car not found");
+                return response;
+            }
+
+            carService.deleteCar(id);
+
+            response.put("success", true);
+            response.put("message", "Vehicle deleted successfully!");
+            response.put("deletedId", id);
+            return response;
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error deleting car: " + e.getMessage());
+            return response;
+        }
+    }
+
+    @PostMapping("/cars/{id}/mark-sold")
+    public Map<String, Object> markCarSold(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Car car = carRepository.findById(id).orElse(null);
+
+            if (car == null) {
+                response.put("success", false);
+                response.put("message", "Car not found");
+                return response;
+            }
+
+            car.setStatus("Sold");
+            car.setSold(true);
+            carService.saveCar(car);
+
+            response.put("success", true);
+            response.put("message", "Vehicle marked as sold!");
+            response.put("car", car);
+            return response;
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error marking car as sold: " + e.getMessage());
+            return response;
+        }
+    }
+
+    @PostMapping("/cars/{id}/mark-available")
+    public Map<String, Object> markCarAvailable(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Car car = carRepository.findById(id).orElse(null);
+
+            if (car == null) {
+                response.put("success", false);
+                response.put("message", "Car not found");
+                return response;
+            }
+
+            car.setStatus("Available");
+            car.setSold(false);
+            carService.saveCar(car);
+
+            response.put("success", true);
+            response.put("message", "Vehicle marked as available!");
+            response.put("car", car);
+            return response;
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error marking car as available: " + e.getMessage());
+            return response;
+        }
+    }
+
+    @GetMapping("/cars/search")
+    public Map<String, Object> searchCars(@RequestParam(value = "keyword") String keyword) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            List<Car> cars = carService.searchCars(keyword);
+
+            response.put("success", true);
+            response.put("total", cars.size());
+            response.put("cars", cars);
+            return response;
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error searching cars: " + e.getMessage());
+            return response;
+        }
     }
 
 }
+

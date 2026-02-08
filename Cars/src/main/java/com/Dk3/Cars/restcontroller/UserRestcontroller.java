@@ -2,7 +2,6 @@ package com.Dk3.Cars.restcontroller;
 
 import com.Dk3.Cars.dto.UserDto;
 import com.Dk3.Cars.entity.User;
-import com.Dk3.Cars.mapper.UserConversion;
 import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.service.EmailService;
 import com.Dk3.Cars.service.UserService;
@@ -10,7 +9,9 @@ import com.Dk3.Cars.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,8 +23,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/user")
 public class UserRestcontroller {
-    @Autowired
-    private UserConversion userConversion;
     @Autowired
     private UserService userService;
     @Autowired
@@ -96,5 +95,59 @@ public class UserRestcontroller {
         response.put("message", "Login successful");
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile() {
+        // return the first admin/staff user, or fallback to any user
+        java.util.List<User> staff = userRepository.findByRoleNot("ROLE_USER");
+        User u = null;
+        if (!staff.isEmpty()) u = staff.get(0);
+        else u = userRepository.findAll().stream().findFirst().orElse(null);
+        if (u == null) return ResponseEntity.status(404).body(java.util.Map.of("ok", false, "error", "no user"));
+        java.util.Map<String, Object> m = new java.util.HashMap<>();
+        m.put("id", u.getUserid());
+        m.put("first", u.getFirst());
+        m.put("last", u.getLast());
+        m.put("email", u.getEmail());
+        m.put("contact", u.getContact());
+        m.put("role", u.getRole());
+        m.put("enabled", u.isEnabled());
+        return ResponseEntity.ok(m);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody java.util.Map<String, String> body) {
+        java.util.Map<String, Object> resp = new java.util.HashMap<>();
+        String idStr = body.get("id");
+        if (idStr == null) {
+            resp.put("ok", false);
+            resp.put("error", "id required");
+            return ResponseEntity.badRequest().body(resp);
+        }
+        Long id = Long.parseLong(idStr);
+        var opt = userRepository.findById(id);
+        if (opt.isEmpty()) {
+            resp.put("ok", false); resp.put("error","not found"); return ResponseEntity.status(404).body(resp);
+        }
+        User u = opt.get();
+        String first = body.getOrDefault("first", u.getFirst());
+        String last = body.getOrDefault("last", u.getLast());
+        String email = body.getOrDefault("email", u.getEmail());
+        String contact = body.getOrDefault("contact", u.getContact());
+        String password = body.get("password");
+
+        if (!email.equals(u.getEmail()) && userRepository.existsByEmail(email)) {
+            resp.put("ok", false); resp.put("error","email exists"); return ResponseEntity.badRequest().body(resp);
+        }
+
+        u.setFirst(first); u.setLast(last); u.setEmail(email); u.setContact(contact);
+        if (password != null && !password.isBlank()) {
+            u.setPassword(passwordEncoder.encode(password));
+        }
+        userRepository.save(u);
+        resp.put("ok", true);
+        resp.put("user", java.util.Map.of("id", u.getUserid(), "first", u.getFirst(), "last", u.getLast(), "email", u.getEmail(), "contact", u.getContact()));
+        return ResponseEntity.ok(resp);
     }
 }

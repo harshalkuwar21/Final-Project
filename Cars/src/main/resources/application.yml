@@ -2,6 +2,13 @@ spring:
   application:
     name: Cars
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 150MB
+      file-size-threshold: 2MB
+
 
   datasource:
     url: jdbc:mysql://localhost:3306/Dk3Cars?createDatabaseIfNotExist=true
@@ -29,6 +36,12 @@ spring:
           connectiontimeout: 5000
           timeout: 3000
           writetimeout: 5000
-
 server:
+  tomcat:
+    max-swallow-size: 150MB
+    max-http-form-post-size: 157286400
+    basedir: target/tomcat
+    threads:
+      max: 200
+      min-spare: 10
   port: 9094
