@@ -23,7 +23,7 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
 
                 // redirect after success
                 setTimeout(() => {
-                    window.location.href = "/dashboard";
+                    window.location.href = data.redirectUrl || "/dashboard";
                 }, 1000);
 
             } else {

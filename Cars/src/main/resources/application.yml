@@ -38,6 +38,7 @@ spring:
           writetimeout: 5000
 server:
   tomcat:
+    max-part-count: 50
     max-swallow-size: 150MB
     max-http-form-post-size: 157286400
     basedir: target/tomcat

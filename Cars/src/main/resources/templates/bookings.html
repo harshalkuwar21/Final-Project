@@ -332,6 +332,16 @@ tbody tr:last-child {
     color: #721c24;
 }
 
+.status-waiting {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
 /* Actions */
 .actions {
     display: flex;
@@ -574,17 +584,17 @@ tbody tr:last-child {
     <!-- SIDEBAR -->
      <aside class="sidebar">
         <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
-            <li class="active" onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
-            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Return to Dashboard</li>
+            <!-- <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
+            <li class="active" onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li> -->
+            <!-- <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
             <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
             <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
             <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
             <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
             <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
             <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li> -->
         </ul>
     </aside>
     <main class="main">
@@ -602,7 +612,9 @@ tbody tr:last-child {
                 <select id="statusFilter" onchange="filterBookings()">
                     <option value="">All Status</option>
                     <option value="Pending">Pending</option>
+                    <option value="Waiting">Waiting</option>
                     <option value="Confirmed">Confirmed</option>
+                    <option value="Rejected">Rejected</option>
                     <option value="Cancelled">Cancelled</option>
                 </select>
             </div>
@@ -678,7 +690,9 @@ tbody tr:last-child {
                         <label for="status">Status:</label>
                         <select id="status" name="status" required>
                             <option value="Pending">Pending</option>
+                            <option value="Waiting">Waiting</option>
                             <option value="Confirmed">Confirmed</option>
+                            <option value="Rejected">Rejected</option>
                             <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>

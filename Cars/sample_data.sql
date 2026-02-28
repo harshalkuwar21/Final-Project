@@ -10,8 +10,9 @@ INSERT INTO customer (id, name, mobile, email, address, lead_source, notes, next
 (5, 'Vikram Singh', '+91-9876543214', 'vikram.singh@email.com', '654 Koramangala, Bangalore, Karnataka', 'Website', 'Interested in electric vehicles', '2026-02-18');
 
 -- Sample Showroom (required for cars)
-INSERT INTO showroom (id, name, city, image_url) VALUES
-(1, 'DK3 Cars Bangalore Central', 'Bangalore', '/images/showroom1.jpg');
+INSERT INTO showroom (id, name, city, manager_name, image_url) VALUES
+(1, 'DK3 Cars Bangalore Central', 'Bangalore', 'Sandeep Kulkarni', '/images/showroom1.jpg'),
+(2, 'DK3 Cars Pune West', 'Pune', 'Neha Deshmukh', '/images/showroom2.jpg');
 
 -- Sample Cars
 INSERT INTO car (id, brand, model, variant, fuel_type, transmission, color, price, status, vin, engine_no, purchase_date, supplier_info, sold, stock_quantity, showroom_id) VALUES
@@ -56,3 +57,49 @@ INSERT INTO booking (id, customer_id, car_id, sales_executive_id, status, bookin
 (9, 6, 9, 1, 'Pending', 1400000.00, 'Credit Card', '2026-03-05', '2026-01-16'),
 (10, 7, 10, 2, 'Confirmed', 500000.00, 'Cash', '2026-02-12', '2026-01-16'),
 (11, 8, 1, 3, 'Pending', 3500000.00, 'Bank Transfer', '2026-03-10', '2026-01-17');
+
+-- Sample Sales
+INSERT INTO sale (id, customer_id, car_id, sales_executive_id, buyer_name, sold_date, selling_price, discount, gst_amount, total_amount, payment_mode, status) VALUES
+(1, 1, 1, 1, 'Rajesh Kumar', '2026-01-20', 3500000.00, 50000.00, 630000.00, 4080000.00, 'Bank Transfer', 'Paid'),
+(2, 3, 3, 3, 'Amit Patel', '2026-01-22', 1800000.00, 20000.00, 324000.00, 2104000.00, 'UPI', 'Paid');
+
+-- Sample Payments
+INSERT INTO payment (id, sale_id, booking_id, amount, payment_method, payment_date, status, transaction_id) VALUES
+(1, 1, 1, 1500000.00, 'Bank Transfer', '2026-01-20', 'Completed', 'TXN-SALE-0001'),
+(2, 1, NULL, 2580000.00, 'Bank Transfer', '2026-01-21', 'Completed', 'TXN-SALE-0002'),
+(3, 2, 3, 2104000.00, 'UPI', '2026-01-22', 'Completed', 'TXN-SALE-0003'),
+(4, NULL, 2, 50000.00, 'Card', '2026-01-18', 'Pending', 'TXN-BKG-0004');
+
+-- Sample Test Drives
+INSERT INTO test_drive (id, customer_id, car_id, sales_executive_id, status, scheduled_date_time, completed_date_time, feedback, converted_to_sale) VALUES
+(1, 2, 2, 2, 'Scheduled', '2026-02-05 11:00:00', NULL, NULL, false),
+(2, 4, 4, 4, 'Completed', '2026-01-25 15:00:00', '2026-01-25 16:00:00', 'Smooth drive and comfortable seats.', false),
+(3, 5, 5, 1, 'Cancelled', '2026-01-26 10:00:00', NULL, 'Customer rescheduled.', false);
+
+-- Sample Documents
+INSERT INTO document (id, document_type, file_name, file_path, file_url, car_id, customer_id, expiry_date, upload_date) VALUES
+(1, 'Invoice', 'invoice-1.pdf', 'uploads/docs/invoice-1.pdf', '/uploads/docs/invoice-1.pdf', 1, 1, NULL, '2026-01-20'),
+(2, 'Insurance', 'insurance-2.pdf', 'uploads/docs/insurance-2.pdf', '/uploads/docs/insurance-2.pdf', 2, 2, '2027-01-20', '2026-01-21'),
+(3, 'CustomerID', 'aadhar-3.pdf', 'uploads/docs/aadhar-3.pdf', '/uploads/docs/aadhar-3.pdf', NULL, 3, NULL, '2026-01-18');
+
+-- Sample Service Records
+INSERT INTO service_record (id, car_id, service_date, service_type, description, cost, serviced_by, next_service_date, warranty_expiry_date) VALUES
+(1, 1, '2026-02-01', 'Regular', 'First service after delivery', 3500.00, 'DK3 Service Center', '2026-08-01', '2029-01-20'),
+(2, 3, '2026-02-10', 'Repair', 'Brake pad replacement', 7200.00, 'City Auto Works', '2026-08-10', '2028-01-22');
+
+-- Sample Notifications
+INSERT INTO notification (id, title, message, type, read_flag, link, created_at) VALUES
+(1, 'New Booking Request', 'Booking #11 requires approval.', 'INFO', false, '/staff-dashboard', '2026-02-02 09:15:00'),
+(2, 'Payment Pending', 'Payment for booking #2 is still pending.', 'WARNING', false, '/bookings', '2026-02-03 10:45:00'),
+(3, 'Service Reminder', 'Service due for car VIN001TOY2026.', 'ALERT', true, '/documents', '2026-02-04 08:30:00');
+
+-- Sample Settings
+INSERT INTO setting (id, name, value) VALUES
+(1, 'company.name', 'DK3 Cars'),
+(2, 'currency', 'INR'),
+(3, 'support.email', 'support@dk3cars.com');
+
+-- Sample Verification Tokens
+INSERT INTO verification_token (id, token, user_id, expiry_date) VALUES
+(1, 'VERIF-TOKEN-USER-001', 1, '2026-03-01 00:00:00'),
+(2, 'VERIF-TOKEN-USER-002', 2, '2026-03-05 00:00:00');

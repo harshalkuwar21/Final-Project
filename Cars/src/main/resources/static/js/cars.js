@@ -1,15 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
-    const showroomId = params.get('showroomId');
+    let showroomId = params.get('showroomId');
+
+    if (!showroomId) {
+        const match = window.location.pathname.match(/\/cars\/showroom\/(\d+)/);
+        showroomId = match ? match[1] : null;
+    }
+
     const showroomName = params.get('name') ? decodeURIComponent(params.get('name')) : '';
-    if (showroomName) document.getElementById('title').innerText = `Cars in ${showroomName}`;
+    const titleEl = document.getElementById('title');
+    if (showroomName && titleEl) titleEl.innerText = `Cars in ${showroomName}`;
 
     window.CARS_STATE = { showroomId: showroomId };
 
-    loadCars();
+    if (showroomId) {
+        loadCars();
+    }
 
-    document.getElementById('search').addEventListener('input', (e) => filterCars(e.target.value));
-    document.getElementById('sort').addEventListener('change', (e)=>{ sortCars(e.target.value); });
+    const searchEl = document.getElementById('search');
+    if (searchEl) {
+        searchEl.addEventListener('input', (e) => filterCars(e.target.value));
+    }
+
+    const sortEl = document.getElementById('sort');
+    if (sortEl) {
+        sortEl.addEventListener('change', (e)=>{ sortCars(e.target.value); });
+    }
 });
 
 let carList = [];
@@ -17,7 +33,11 @@ let filteredList = [];
 
 function loadCars(){
     const id = window.CARS_STATE.showroomId;
-    if(!id){document.getElementById('carGrid').innerHTML = '<p style="color:#666">No showroom selected.</p>'; return}
+    if(!id){
+        const grid = document.getElementById('carGrid');
+        if (grid) grid.innerHTML = '<p style="color:#666">No showroom selected.</p>';
+        return;
+    }
 
     fetch(`/api/dashboard/showrooms/${id}/cars`)
         .then(r => r.json())

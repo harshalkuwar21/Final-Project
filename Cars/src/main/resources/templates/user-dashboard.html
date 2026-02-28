@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DK3 Cars - User Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #f4f7ff, #ece9ff);
+            color: #1f2937;
+        }
+        .card {
+            width: min(92vw, 680px);
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 14px 35px rgba(31, 41, 55, 0.12);
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 28px;
+        }
+        p {
+            margin: 0 0 22px;
+            color: #4b5563;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            border: none;
+            cursor: pointer;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        .btn-primary {
+            background: #6c4ef6;
+            color: #fff;
+        }
+        .btn-light {
+            background: #eef2ff;
+            color: #3730a3;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>User Dashboard</h1>
+    <p>You are logged in as a user account.</p>
+    <div class="actions">
+        <button class="btn btn-primary" onclick="location.href='/profile'">Profile</button>
+        <button class="btn btn-light" onclick="location.href='/booking-request'">Book a Car</button>
+        <button class="btn btn-light" onclick="location.href='/bookings'">Bookings</button>
+        <button class="btn btn-light" onclick="location.href='/login'">Back to Login</button>
+    </div>
+</div>
+</body>
+</html>

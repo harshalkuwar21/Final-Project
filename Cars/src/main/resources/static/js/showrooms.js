@@ -55,9 +55,8 @@ function filterShowrooms(keyword) {
 }
 
 function openCars(id, encodedName){
-    const name = decodeURIComponent(encodedName || '');
-    // navigate to dedicated cars page with query params
-    const url = `/cars?showroomId=${id}&name=${encodeURIComponent(name)}`;
+    // navigate to dedicated showroom cars page
+    const url = `/cars/showroom/${id}`;
     window.location.href = url;
 }
 

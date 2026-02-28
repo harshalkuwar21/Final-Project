@@ -3,6 +3,7 @@ package com.Dk3.Cars.controller;
 import com.Dk3.Cars.entity.Booking;
 import com.Dk3.Cars.service.BookingService;
 import com.Dk3.Cars.service.CarService;
+import com.Dk3.Cars.repository.CustomerRepository;
 import com.Dk3.Cars.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,9 +28,13 @@ public class BookingsController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @GetMapping
     public String bookingsPage(Model model) {
 
+        model.addAttribute("customers", customerRepository.findAll());
         model.addAttribute("cars", carService.getAvailableCars());
         model.addAttribute("salesExecutives", userRepository.findActiveSalesExecutives());
         return "bookings";
@@ -47,6 +52,9 @@ public class BookingsController {
         Map<String, Object> response = new HashMap<>();
         try {
             Booking booking = new Booking();
+            if (bookingData.get("customerId") != null) {
+                booking.setCustomer(customerRepository.findById(Long.valueOf(bookingData.get("customerId").toString())).orElse(null));
+            }
             booking.setCar(carService.getCarById(Long.valueOf(bookingData.get("carId").toString())).orElse(null));
             
             // Handle sales executive assignment
@@ -83,7 +91,9 @@ public class BookingsController {
                 return response;
             }
 
-     
+            if (bookingData.containsKey("customerId")) {
+                booking.setCustomer(customerRepository.findById(Long.valueOf(bookingData.get("customerId").toString())).orElse(null));
+            }
             if (bookingData.containsKey("carId")) {
                 booking.setCar(carService.getCarById(Long.valueOf(bookingData.get("carId").toString())).orElse(null));
             }

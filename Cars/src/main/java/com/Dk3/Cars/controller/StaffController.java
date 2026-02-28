@@ -22,7 +22,7 @@ public class StaffController {
 
     @GetMapping("/list")
     public String listStaff(Model model) {
-        List<User> staff = userRepository.findByRoleNot("ROLE_USER");
+        List<User> staff = userRepository.findByRole("ROLE_STAFF");
         model.addAttribute("staff", staff);
         return "staff";
     }

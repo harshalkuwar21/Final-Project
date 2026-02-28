@@ -250,7 +250,7 @@ public class DashboardRestController {
 
     @GetMapping("/staff")
     public List<Map<String, Object>> getStaff() {
-        return userRepository.findByRoleNot("ROLE_USER")
+        return userRepository.findByRole("ROLE_STAFF")
                 .stream()
                 .map(u -> {
                     Map<String, Object> m = new HashMap<>();

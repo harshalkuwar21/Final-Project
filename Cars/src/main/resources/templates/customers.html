@@ -62,8 +62,8 @@
 <div class="container">
     <aside class="sidebar">
         <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i>Return to Dashboard</li>
+            <!-- <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
             <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
             <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
             <li class="active" onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
@@ -72,7 +72,7 @@
             <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
             <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
             <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li> -->
         </ul>
     </aside>
 
@@ -82,12 +82,10 @@
         <section class="panel">
             <h3><i class="fas fa-user-plus"></i> Add New Customer</h3>
             <div class="form-row">
-                <input id="name" placeholder="Full Name" required>
-                <input id="mobile" placeholder="Mobile Number" required>
+                <input id="first" placeholder="First Name" required>
+                <input id="last" placeholder="Last Name" required>
+                <input id="contact" placeholder="Mobile Number" required>
                 <input id="email" type="email" placeholder="Email Address">
-                <input id="address" placeholder="Address">
-                <select id="leadSource"><option value="Walk-in">Walk-in</option><option value="Website">Website</option><option value="Referral">Referral</option></select>
-                <input id="nextFollowUpDate" type="date">
                 <button id="addBtn" class="btn btn-primary" onclick="addCustomer()"><i class="fas fa-plus"></i> Add Customer</button>
                 <span id="msg"></span>
             </div>
@@ -97,7 +95,7 @@
             <h3><i class="fas fa-list"></i> Customer List</h3>
             <div id="customersWrapper">
                 <table class="customers-table" id="customersTable">
-                    <thead><tr><th><i class="fas fa-user"></i> Name</th><th><i class="fas fa-phone"></i> Mobile</th><th><i class="fas fa-envelope"></i> Email</th><th><i class="fas fa-tag"></i> Lead Source</th><th><i class="fas fa-calendar"></i> Follow-up</th><th><i class="fas fa-cogs"></i> Actions</th></tr></thead>
+                    <thead><tr><th><i class="fas fa-user"></i> Name</th><th><i class="fas fa-phone"></i> Mobile</th><th><i class="fas fa-envelope"></i> Email</th><th><i class="fas fa-user-tag"></i> Role</th><th><i class="fas fa-cogs"></i> Actions</th></tr></thead>
                     <tbody id="customersBody"></tbody>
                 </table>
             </div>
@@ -111,12 +109,10 @@
         <button class="close" onclick="hideEdit()">✕</button>
         <div class="modal-body">
             <h3><i class="fas fa-edit"></i> Edit Customer</h3>
-            <input id="eName" placeholder="Full Name" required>
-            <input id="eMobile" placeholder="Mobile Number" required>
+            <input id="eFirst" placeholder="First Name" required>
+            <input id="eLast" placeholder="Last Name" required>
+            <input id="eContact" placeholder="Mobile Number" required>
             <input id="eEmail" type="email" placeholder="Email Address">
-            <input id="eAddress" placeholder="Address">
-            <select id="eLeadSource"><option value="Walk-in">Walk-in</option><option value="Website">Website</option><option value="Referral">Referral</option></select>
-            <input id="eNextFollowUpDate" type="date">
             <div style="margin-top:16px; display: flex; gap: 10px;"><button class="btn btn-primary" id="eSaveBtn"><i class="fas fa-save"></i> Save</button> <button onclick="hideEdit()" class="btn btn-secondary">Cancel</button></div>
         </div>
     </div>

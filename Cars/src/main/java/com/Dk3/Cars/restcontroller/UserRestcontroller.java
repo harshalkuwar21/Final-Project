@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +62,8 @@ public class UserRestcontroller {
     }
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, String> request,
+            HttpSession session) {
 
         Map<String, String> response = new HashMap<>();
 
@@ -93,14 +95,39 @@ public class UserRestcontroller {
 
         response.put("status", "success");
         response.put("message", "Login successful");
+        response.put("role", user.getRole());
+
+        String redirectUrl;
+        if ("ROLE_ADMIN".equals(user.getRole())) {
+            redirectUrl = "/dashboard";
+        } else if ("ROLE_USER".equals(user.getRole())) {
+            redirectUrl = "/user-dashboard";
+        } else {
+            redirectUrl = "/staff-dashboard";
+        }
+
+        session.setAttribute("USER_ID", user.getUserid());
+        session.setAttribute("USER_EMAIL", user.getEmail());
+        session.setAttribute("USER_ROLE", user.getRole());
+
+        response.put("redirectUrl", redirectUrl);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(java.util.Map.of(
+                "status", "success",
+                "message", "Logged out successfully"
+        ));
     }
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
         // return the first admin/staff user, or fallback to any user
-        java.util.List<User> staff = userRepository.findByRoleNot("ROLE_USER");
+        java.util.List<User> staff = userRepository.findByRole("ROLE_STAFF");
         User u = null;
         if (!staff.isEmpty()) u = staff.get(0);
         else u = userRepository.findAll().stream().findFirst().orElse(null);

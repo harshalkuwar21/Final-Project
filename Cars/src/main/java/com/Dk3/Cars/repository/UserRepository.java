@@ -15,8 +15,8 @@ public interface UserRepository extends JpaRepository<User,Long> {
     long countByRoleNot(String role);
 
     // find users who are not regular users (staff/admin)
-    List<User> findByRoleNot(String role);
-
+    // List<User> findByRole(String role);
+    List<User> findByUserid(Long userid);
     // New methods for staff management
     List<User> findByRole(String role);
     List<User> findByActive(boolean active);
