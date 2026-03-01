@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #0a8f79;
+            --accent: #e53935;
+            --glass: rgba(255, 255, 255, 0.95);
+            --border: #7b7777;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Poppins, sans-serif; }
+        body { background: radial-gradient(circle at top, #e6f7f4, #eef3f6); }
+        .header { max-width: 1200px; margin: 20px auto; padding: 16px 26px; background: rgba(255,255,255,.96); border-radius: 22px; position: sticky; top: 16px; z-index: 1200; box-shadow: 0 25px 55px rgba(0,0,0,.25); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+        .brand { display: flex; align-items: center; gap: 14px; cursor: pointer; }
+        .brand img { width: 100px; height: 100px; border-radius: 14px; }
+        .logo-text { font-size: 22px; font-weight: 800; color: #000; }
+        .logo-text span { display: block; font-size: 11px; font-weight: 500; color: #666; }
+        .nav { display: flex; gap: 26px; }
+        .nav a { position: relative; font-size: 15px; font-weight: 600; color: #444; text-decoration: none; padding: 6px 0; }
+        .nav a::after { content: ""; position: absolute; left: 0; bottom: -8px; width: 0; height: 3px; border-radius: 6px; background: linear-gradient(135deg, #7b2ff7, #a855f7); transition: .35s; }
+        .nav a:hover, .nav a.active { color: #7b2ff7; }
+        .nav a:hover::after, .nav a.active::after { width: 100%; }
+        .nav-actions { display: flex; align-items: center; gap: 16px; }
+        .nav-actions i { font-size: 18px; cursor: pointer; color: #333; padding: 8px; border-radius: 50%; transition: .3s; }
+        .nav-actions i:hover { background: #f3f4ff; color: #7b2ff7; transform: scale(1.15); }
+        .contact-btn { padding: 10px 22px; border-radius: 20px; border: none; background: linear-gradient(135deg, #7b2ff7, #a855f7); color: #fff; font-weight: 600; cursor: pointer; }
+        .section { max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--glass); border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,.12); }
+        .title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+        .overview-grid { display: grid; grid-template-columns: 1.4fr .9fr; gap: 36px; }
+        .carousel { position: relative; height: 300px; border-radius: 22px; overflow: hidden; background: #f7f9fb; cursor: pointer; }
+        .carousel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: .6s; }
+        .carousel img.active { opacity: 1; }
+        .carousel-nav { position: absolute; top: 50%; width: 100%; display: flex; justify-content: space-between; padding: 0 14px; transform: translateY(-50%); }
+        .carousel-nav button { background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; padding: 10px 14px; cursor: pointer; }
+        .carousel-dots { text-align: center; margin-top: 14px; }
+        .carousel-dots span { width: 12px; height: 12px; background: #ccc; border-radius: 50%; display: inline-block; margin: 0 4px; cursor: pointer; }
+        .carousel-dots span.active { background: var(--primary); }
+        .price-panel { padding: 34px; border-radius: 26px; background: #fff; border: 2px dashed var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,.1); }
+        .price { font-size: 34px; font-weight: 700; }
+        .price span { display: block; font-size: 14px; color: #666; margin-top: 6px; }
+        .emi { margin: 18px 0; padding: 14px; background: #f4fffc; border-radius: 14px; font-weight: 500; }
+        .btn { width: 100%; padding: 14px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; font-weight: 600; cursor: pointer; }
+        .spec-grid,.mileage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 18px; }
+        .spec,.mileage { padding: 18px; border-radius: 18px; text-align: center; border: 2px solid var(--border); }
+        .details-table { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .details-tr { display: grid; grid-template-columns: 1fr 1.5fr; border-bottom: 1px solid var(--border); }
+        .details-tr:last-child { border-bottom: none; }
+        .details-th { padding: 14px 18px; background: #f7f9fb; font-weight: 600; color: #555; }
+        .details-td { padding: 14px 18px; font-weight: 600; color: #222; }
+        .variant-box { border: 1px solid var(--border); border-radius: 20px; }
+        .variant-row { display: grid; grid-template-columns: 1.5fr .6fr; padding: 20px; border-bottom: 1px solid var(--border); }
+        .variant-row:last-child { border-bottom: none; }
+        .variant-row p { font-size: 14px; color: #666; }
+        .variant-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+        .variant-filters button { padding: 10px 16px; border-radius: 12px; border: 1px solid #b7b5b5; background: #fff; cursor: pointer; }
+
+        .review-wrapper { display: grid; grid-template-columns: .7fr 1.3fr; gap: 30px; align-items: center; }
+        .review-summary { text-align: center; }
+        .review-score-big { font-size: 64px; font-weight: 700; }
+        .stars { color: #f39c12; }
+        .review-breakdown .review-row { display: grid; grid-template-columns: 140px 1fr 45px; align-items: center; margin-bottom: 12px; gap: 10px; }
+        .bar { height: 8px; background: #eee; border-radius: 10px; }
+        .bar div { height: 100%; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--accent)); }
+
+        .faq-item { padding: 16px; border-radius: 14px; border: 1px solid #ddd; margin-bottom: 12px; }
+        .faq-q { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; }
+        .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; color: #555; }
+        .faq-item.open .faq-a { max-height: 200px; margin-top: 10px; }
+
+        .color-dots { display: flex; justify-content: center; gap: 12px; margin: 10px 0; }
+        .color-dots span { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #aaa; cursor: pointer; }
+        .color-dots span.active { border: 3px solid var(--primary); }
+        .image-grid { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; }
+        .img-item { flex: 0 0 auto; width: 220px; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,.12); cursor: pointer; }
+        .img-item img { width: 100%; height: 140px; object-fit: cover; }
+        .lightbox,.img-lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: none; align-items: center; justify-content: center; z-index: 3000; }
+        .lightbox.active,.img-lightbox.active { display: flex; }
+        .lightbox img,.img-lightbox img { max-width: 90%; max-height: 90%; }
+        .close-btn { position: absolute; top: 30px; right: 40px; font-size: 42px; color: #fff; cursor: pointer; }
+        .footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; gap: 4px; z-index: 1000; }
+        .footer button { flex: 1; padding: 16px; border: none; color: #fff; font-weight: 600; cursor: pointer; }
+        .contact { background: var(--primary); }
+        .offer { background: var(--accent); }
+        @media(max-width: 900px) { .overview-grid { grid-template-columns: 1fr; } .nav { display: none; } }
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="header-inner">
+        <div class="brand" onclick="location.href='/user-dashboard'">
+            <img src="/images/logo.png" alt="DK3 Cars">
+            <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>
+        </div>
+        <nav class="nav">
+            <a href="#overview" class="active">Overview</a>
+            <a href="#mileage">Mileage</a>
+            <a href="#variants">Variants</a>
+            <a href="#images">Images</a>
+        </nav>
+        <div class="nav-actions">
+            <i class="fa-regular fa-heart"></i>
+            <i class="fa-solid fa-location-dot"></i>
+            <button class="contact-btn" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
+        </div>
+    </div>
+</header>
+
+<section class="section" id="overview">
+    <div class="title" id="carTitle">Car Details</div>
+    <div class="overview-grid">
+        <div>
+            <div class="carousel" onclick="openLightbox()">
+                <div id="carouselContainer"></div>
+                <div class="carousel-nav">
+                    <button onclick="event.stopPropagation();prev()">&#10094;</button>
+                    <button onclick="event.stopPropagation();next()">&#10095;</button>
+                </div>
+            </div>
+            <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+        <div class="price-panel">
+            <h2 id="priceTitle">Price</h2>
+            <div class="price" id="carPrice">Rs 0<span id="onRoadText">On-Road</span></div>
+            <div class="emi" id="emiText">EMI Rs 0 - for 5 Years</div>
+            <button class="btn" id="buyNowBtn">Book Now</button>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="details">
+    <div class="details-table">
+        <div class="details-tr"><div class="details-th">Version</div><div class="details-td" id="detailVersion">-</div></div>
+        <div class="details-tr"><div class="details-th">City</div><div class="details-td" id="detailCity">-</div></div>
+    </div>
+</section>
+
+<section class="section" id="specs">
+    <div class="title">Key Specifications</div>
+    <div class="spec-grid" id="specGrid"></div>
+</section>
+
+<section class="section" id="mileage">
+    <div class="title">Mileage</div>
+    <div class="mileage-grid" id="mileageGrid"></div>
+</section>
+
+<section class="section" id="variants">
+    <div class="title" id="variantTitle">Variants</div>
+    <div class="variant-filters" id="variantFilters"></div>
+    <div class="variant-box">
+        <div id="variantRows"></div>
+    </div>
+</section>
+
+<section class="section" id="colors">
+    <div class="title" id="colorsTitle">Colours</div>
+    <p style="margin-bottom:20px;color:#707070" id="colorsSubtitle">Available colors for this car.</p>
+    <div class="color-wrapper">
+        <img id="carColorImg" src="/images/car.jpg" alt="Car Color" style="width:100%; max-width:600px; border-radius:10px; margin-bottom:15px;">
+        <div class="color-dots" id="colorDots"></div>
+        <div id="colorName" style="font-weight:700; font-size:16px;">-</div>
+    </div>
+</section>
+
+<section class="section" id="reviews">
+    <div class="title" id="reviewsTitle">User Reviews</div>
+    <div class="review-wrapper">
+        <div class="review-summary">
+            <div class="review-score-big" id="reviewScoreBig">4.5/5</div>
+            <div class="stars">★★★★</div>
+        </div>
+        <div class="review-breakdown" id="reviewBreakdown"></div>
+    </div>
+</section>
+
+<section class="section" id="faq">
+    <div class="title">FAQs</div>
+    <div id="faqList"></div>
+</section>
+
+<section class="section" id="images">
+    <div class="title" id="imagesTitle">Images</div>
+    <div class="image-grid" id="imageGrid"></div>
+    <div class="img-lightbox" id="imgLightbox"><span class="close-btn" onclick="closeImg()">&times;</span><img id="lightboxImg" alt="car"></div>
+</section>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')"><img id="lightImg" alt="car"></div>
+
+<div class="footer">
+    <button class="contact" onclick="location.href='/user-panel/showrooms'">Contact Dealer</button>
+    <button class="offer" id="offerBtn">Get Offers</button>
+</div>
+
+<script>
+    let imgs = [];
+    let dots = [];
+    let index = 0;
+    let currentCarId = null;
+
+    function formatINR(value) {
+        return "Rs " + Number(value || 0).toLocaleString("en-IN");
+    }
+
+    function show(n) {
+        if (!imgs.length) return;
+        imgs.forEach(i => i.classList.remove("active"));
+        dots.forEach(d => d.classList.remove("active"));
+        imgs[n].classList.add("active");
+        dots[n].classList.add("active");
+        index = n;
+    }
+
+    function next() { if (imgs.length) show((index + 1) % imgs.length); }
+    function prev() { if (imgs.length) show((index - 1 + imgs.length) % imgs.length); }
+
+    function openLightbox() {
+        if (!imgs.length) return;
+        document.getElementById("lightImg").src = imgs[index].src;
+        document.getElementById("lightbox").classList.add("active");
+    }
+
+    function closeImg() { document.getElementById("imgLightbox").classList.remove("active"); }
+
+    function bindGalleryLightbox() {
+        const galleryImages = document.querySelectorAll(".img-item img");
+        const imgLightbox = document.getElementById("imgLightbox");
+        const lightboxImg = document.getElementById("lightboxImg");
+        galleryImages.forEach(img => {
+            img.addEventListener("click", () => {
+                lightboxImg.src = img.src;
+                imgLightbox.classList.add("active");
+            });
+        });
+        imgLightbox.addEventListener("click", (e) => { if (e.target === imgLightbox) closeImg(); });
+    }
+
+    function buildCarousel(imageUrls) {
+        const container = document.getElementById("carouselContainer");
+        const dotsWrap = document.getElementById("carouselDots");
+        const urls = imageUrls && imageUrls.length ? imageUrls : ["/images/car.jpg"];
+
+        container.innerHTML = urls.map((u, i) => `<img class="${i === 0 ? "active" : ""}" src="${u}" alt="car">`).join("");
+        dotsWrap.innerHTML = urls.map((_, i) => `<span class="${i === 0 ? "active" : ""}" onclick="show(${i})"></span>`).join("");
+
+        imgs = Array.from(container.querySelectorAll("img"));
+        dots = Array.from(dotsWrap.querySelectorAll("span"));
+        index = 0;
+    }
+
+    function populateSpecs(car) {
+        const specGrid = document.getElementById("specGrid");
+        const specs = [
+            { k: "Price", v: formatINR(car.price) },
+            { k: "Fuel Type", v: car.fuelType || "N/A" },
+            { k: "Transmission", v: car.transmission || "N/A" },
+            { k: "Mileage", v: car.mileage || "N/A" },
+            { k: "Color", v: car.color || "N/A" },
+            { k: "Stock", v: String(car.stockQuantity ?? "N/A") }
+        ];
+        specGrid.innerHTML = specs.map(s => `<div class="spec"><b>${s.k}</b><br><br>${s.v}</div>`).join("");
+    }
+
+    function populateMileage(car) {
+        const mileageGrid = document.getElementById("mileageGrid");
+        const rows = [];
+        if (car.mileageDetails) {
+            car.mileageDetails.split("|").forEach(r => {
+                const p = r.split(":");
+                if (p.length >= 2) rows.push({label: p[0].trim(), value: p.slice(1).join(":").trim()});
+            });
+        }
+        if (!rows.length) {
+            rows.push({label: `${car.fuelType || "Fuel"} - ${car.transmission || "Transmission"}`, value: car.mileage || "N/A"});
+        }
+        mileageGrid.innerHTML = rows.map(r => `<div class="mileage"><b>${r.label}</b><p>${r.value}</p></div>`).join("");
+    }
+
+    function populateImages(imageUrls, title) {
+        const grid = document.getElementById("imageGrid");
+        const urls = imageUrls && imageUrls.length ? imageUrls : ["/images/car.jpg"];
+        document.getElementById("imagesTitle").textContent = `${title} Images`;
+        grid.innerHTML = urls.map(u => `<div class="img-item"><img src="${u}" alt="${title}"></div>`).join("");
+        bindGalleryLightbox();
+    }
+
+    function populateVariants(car, carName) {
+        const filters = document.getElementById("variantFilters");
+        const rowsBox = document.getElementById("variantRows");
+        const variants = [];
+        if (car.variantDetails) {
+            car.variantDetails.split("|").forEach(v => {
+                const p = v.split("~");
+                if (p.length >= 3) variants.push({name: p[0].trim(), info: p[1].trim(), price: Number(p[2].trim())});
+            });
+        }
+        if (!variants.length) {
+            variants.push({name: car.variant || carName, info: `${car.fuelType || "Fuel"} - ${car.transmission || "Transmission"} - ${car.mileage || "N/A"}`, price: car.price || 0});
+        }
+        const fuelTags = (car.fuelOptions || car.fuelType || "Fuel").split(/[,/&|]/).map(s => s.trim()).filter(Boolean);
+        const transTags = (car.transmissionOptions || car.transmission || "Transmission").split(/[,/&|]/).map(s => s.trim()).filter(Boolean);
+        const tags = [...new Set([...fuelTags, ...transTags])];
+        filters.innerHTML = tags.map(t => `<button>${t}</button>`).join("");
+        rowsBox.innerHTML = variants.map(v => `<div class="variant-row"><div><h4>${v.name}</h4><p>${v.info}</p></div><b>${formatINR(v.price)}</b></div>`).join("");
+    }
+
+    function populateColors(car, carName) {
+        const dots = document.getElementById("colorDots");
+        const img = document.getElementById("carColorImg");
+        const name = document.getElementById("colorName");
+        document.getElementById("colorsTitle").textContent = `${carName} Colours`;
+        const colors = [];
+        if (car.colorOptions) {
+            car.colorOptions.split("|").forEach(c => {
+                const p = c.split("~");
+                if (p.length >= 3) colors.push({name: p[0].trim(), hex: p[1].trim(), image: p[2].trim()});
+            });
+        }
+        if (!colors.length) {
+            const firstImage = (car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : "/images/car.jpg";
+            colors.push({name: car.color || "Default", hex: "#444", image: firstImage});
+        }
+        img.src = colors[0].image;
+        name.textContent = colors[0].name;
+        dots.innerHTML = colors.map((c, i) => `<span class="${i===0?"active":""}" style="background:${c.hex}" onclick="changeColor(${i})"></span>`).join("");
+        window.__colorState = colors;
+    }
+
+    function changeColor(idx) {
+        const colors = window.__colorState || [];
+        if (!colors[idx]) return;
+        document.getElementById("carColorImg").src = colors[idx].image;
+        document.getElementById("colorName").textContent = colors[idx].name;
+        document.querySelectorAll("#colorDots span").forEach((s, i) => s.classList.toggle("active", i === idx));
+    }
+
+    function populateReviews(car, carName) {
+        document.getElementById("reviewsTitle").textContent = `${carName} User Reviews`;
+        const score = car.reviewScore ?? 4.5;
+        document.getElementById("reviewScoreBig").textContent = `${score.toFixed(1)}/5`;
+        const rows = [
+            {k:"Exterior", v: car.reviewExterior ?? 4.7},
+            {k:"Performance", v: car.reviewPerformance ?? 4.6},
+            {k:"Value", v: car.reviewValue ?? 4.5},
+            {k:"Fuel Economy", v: car.reviewFuelEconomy ?? 4.2},
+            {k:"Comfort", v: car.reviewComfort ?? 4.8}
+        ];
+        document.getElementById("reviewBreakdown").innerHTML = rows.map(r => `
+            <div class="review-row"><span>${r.k}</span><div class="bar"><div style="width:${(r.v/5)*100}%"></div></div><b>${r.v.toFixed(1)}</b></div>
+        `).join("");
+    }
+
+    function toggleFAQ(el) {
+        const item = el.parentElement;
+        item.classList.toggle("open");
+        el.querySelector("span").textContent = item.classList.contains("open") ? "−" : "+";
+    }
+
+    function populateFaq(car) {
+        const box = document.getElementById("faqList");
+        const rows = [];
+        if (car.faqDetails) {
+            car.faqDetails.split("|").forEach(f => {
+                const p = f.split("~");
+                if (p.length >= 2) rows.push({q: p[0].trim(), a: p.slice(1).join("~").trim()});
+            });
+        }
+        if (!rows.length) {
+            rows.push({q: "What is the on road price?", a: "On road price varies by city and taxes."});
+            rows.push({q: "How many airbags does this car get?", a: "Airbag count depends on selected variant."});
+        }
+        box.innerHTML = rows.map(r => `
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFAQ(this)">${r.q}<span>+</span></div>
+                <div class="faq-a">${r.a}</div>
+            </div>
+        `).join("");
+    }
+
+    function applyCarData(car) {
+        const carName = `${car.brand || ""} ${car.model || ""}`.trim() || "Car";
+        document.title = `${carName} - Car Detail`;
+        document.getElementById("carTitle").textContent = carName;
+        document.getElementById("priceTitle").textContent = `${carName} Price`;
+        document.getElementById("carPrice").innerHTML = `${formatINR(car.price)}<span id="onRoadText">On-Road ${car.showroom?.city || "Nashik"}</span>`;
+        document.getElementById("emiText").textContent = `EMI ${formatINR((car.price || 0) / 60)} - for 5 Years`;
+        document.getElementById("detailVersion").textContent = car.variant || `${car.transmission || "Standard"} ${car.fuelType || "Fuel"}`;
+        document.getElementById("detailCity").textContent = car.showroom?.city || "Nashik";
+        document.getElementById("variantTitle").textContent = `${carName} Variants`;
+        buildCarousel(car.imageUrls || []);
+        populateSpecs(car);
+        populateMileage(car);
+        populateVariants(car, carName);
+        populateColors(car, carName);
+        populateReviews(car, carName);
+        populateFaq(car);
+        populateImages(car.imageUrls || [], carName);
+        document.getElementById("buyNowBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
+        document.getElementById("offerBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
+    }
+
+    async function loadCar() {
+        const params = new URLSearchParams(location.search);
+        const carId = params.get("carId");
+        currentCarId = carId;
+        if (!carId) {
+            alert("Missing carId in URL");
+            location.href = "/user-panel/cars";
+            return;
+        }
+        try {
+            const res = await fetch(`/user-panel/api/cars/${carId}`);
+            const data = await res.json();
+            if (!data.ok || !data.car) throw new Error("Car not found");
+            applyCarData(data.car);
+        } catch (e) {
+            alert("Unable to load car details.");
+            location.href = "/user-panel/cars";
+        }
+    }
+
+    setInterval(next, 4000);
+    loadCar();
+</script>
+</body>
+</html>

@@ -9,17 +9,27 @@ import com.Dk3.Cars.service.VerificationTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpSession;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -125,12 +135,13 @@ public class UserRestcontroller {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile() {
-        // return the first admin/staff user, or fallback to any user
-        java.util.List<User> staff = userRepository.findByRole("ROLE_STAFF");
-        User u = null;
-        if (!staff.isEmpty()) u = staff.get(0);
-        else u = userRepository.findAll().stream().findFirst().orElse(null);
+    public ResponseEntity<?> getProfile(HttpSession session) {
+        Object userIdObj = session.getAttribute("USER_ID");
+        if (userIdObj == null) {
+            return ResponseEntity.status(401).body(Map.of("ok", false, "error", "Not logged in"));
+        }
+        Long userId = Long.valueOf(String.valueOf(userIdObj));
+        User u = userRepository.findById(userId).orElse(null);
         if (u == null) return ResponseEntity.status(404).body(java.util.Map.of("ok", false, "error", "no user"));
         java.util.Map<String, Object> m = new java.util.HashMap<>();
         m.put("id", u.getUserid());
@@ -138,21 +149,20 @@ public class UserRestcontroller {
         m.put("last", u.getLast());
         m.put("email", u.getEmail());
         m.put("contact", u.getContact());
+        m.put("profilePhotoUrl", u.getProfilePhotoUrl());
         m.put("role", u.getRole());
         m.put("enabled", u.isEnabled());
         return ResponseEntity.ok(m);
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody java.util.Map<String, String> body) {
+    public ResponseEntity<?> updateProfile(@RequestBody java.util.Map<String, String> body, HttpSession session) {
         java.util.Map<String, Object> resp = new java.util.HashMap<>();
-        String idStr = body.get("id");
-        if (idStr == null) {
-            resp.put("ok", false);
-            resp.put("error", "id required");
-            return ResponseEntity.badRequest().body(resp);
+        Object userIdObj = session.getAttribute("USER_ID");
+        if (userIdObj == null) {
+            return ResponseEntity.status(401).body(Map.of("ok", false, "error", "Not logged in"));
         }
-        Long id = Long.parseLong(idStr);
+        Long id = Long.valueOf(String.valueOf(userIdObj));
         var opt = userRepository.findById(id);
         if (opt.isEmpty()) {
             resp.put("ok", false); resp.put("error","not found"); return ResponseEntity.status(404).body(resp);
@@ -174,7 +184,107 @@ public class UserRestcontroller {
         }
         userRepository.save(u);
         resp.put("ok", true);
-        resp.put("user", java.util.Map.of("id", u.getUserid(), "first", u.getFirst(), "last", u.getLast(), "email", u.getEmail(), "contact", u.getContact()));
+        resp.put("user", java.util.Map.of(
+                "id", u.getUserid(),
+                "first", u.getFirst(),
+                "last", u.getLast(),
+                "email", u.getEmail(),
+                "contact", u.getContact(),
+                "profilePhotoUrl", u.getProfilePhotoUrl()
+        ));
         return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/profile/photo")
+    public ResponseEntity<?> uploadProfilePhoto(@RequestPart("photo") MultipartFile photo, HttpSession session) {
+        Object userIdObj = session.getAttribute("USER_ID");
+        if (userIdObj == null) {
+            return ResponseEntity.status(401).body(Map.of("ok", false, "error", "Not logged in"));
+        }
+        Long userId = Long.valueOf(String.valueOf(userIdObj));
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+        }
+        if (photo == null || photo.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Photo is required"));
+        }
+        try {
+            String url = saveFile(photo, "uploads/profile");
+            user.setProfilePhotoUrl(url);
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("ok", true, "profilePhotoUrl", url));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(Map.of("ok", false, "error", "Unable to upload photo"));
+        }
+    }
+
+    @PostMapping("/forgot-password/send-otp")
+    public ResponseEntity<?> sendForgotPasswordOtp(@RequestBody Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        if (email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "Email is required"));
+        }
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "message", "Email not found"));
+        }
+        String otp = String.valueOf((int) (100000 + Math.random() * 900000));
+        user.setResetOtp(otp);
+        user.setResetOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+        emailService.sendOtpEmail(email, otp);
+        return ResponseEntity.ok(Map.of("ok", true, "message", "OTP sent to your email"));
+    }
+
+    @PostMapping("/forgot-password/verify-otp")
+    public ResponseEntity<?> verifyOtpAndResetPassword(@RequestBody Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        String otp = body.getOrDefault("otp", "").trim();
+        String newPassword = body.getOrDefault("newPassword", "").trim();
+        if (email.isBlank() || otp.isBlank() || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "Email, OTP, and new password are required"));
+        }
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "message", "Email not found"));
+        }
+        if (user.getResetOtp() == null || user.getResetOtpExpiry() == null || user.getResetOtpExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "OTP expired. Request new OTP"));
+        }
+        if (!otp.equals(user.getResetOtp())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "Invalid OTP"));
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetOtp(null);
+        user.setResetOtpExpiry(null);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("ok", true, "message", "Password reset successful"));
+    }
+
+    @DeleteMapping("/forgot-password/clear-otp")
+    public ResponseEntity<?> clearOtp(@RequestParam String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "message", "Email not found"));
+        }
+        user.setResetOtp(null);
+        user.setResetOtpExpiry(null);
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    private String saveFile(MultipartFile file, String folderPath) throws IOException {
+        Path folder = Path.of(folderPath);
+        Files.createDirectories(folder);
+        String original = file.getOriginalFilename() == null ? "file" : file.getOriginalFilename();
+        String ext = "";
+        int dot = original.lastIndexOf('.');
+        if (dot >= 0) ext = original.substring(dot);
+        String fileName = UUID.randomUUID() + ext;
+        Path target = folder.resolve(fileName);
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+        return "/" + folderPath.replace("\\", "/") + "/" + fileName;
     }
 }

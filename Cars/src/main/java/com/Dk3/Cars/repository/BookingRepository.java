@@ -9,7 +9,12 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByStatus(String status);
+    List<Booking> findByWorkflowStatus(String workflowStatus);
+    List<Booking> findByCarShowroomIdOrderByBookingDateDesc(Long showroomId);
+    List<Booking> findByWorkflowStatusAndCarShowroomId(String workflowStatus, Long showroomId);
     List<Booking> findByCustomerId(Long customerId);
+    List<Booking> findByCustomerEmailOrderByBookingDateDesc(String email);
+    List<Booking> findByCustomerIdOrderByBookingDateDesc(Long customerId);
     List<Booking> findBySalesExecutiveUserid(Long salesExecutiveId);
 
     @Query("SELECT b FROM Booking b WHERE b.expectedDeliveryDate <= ?1 AND b.status = 'Confirmed'")

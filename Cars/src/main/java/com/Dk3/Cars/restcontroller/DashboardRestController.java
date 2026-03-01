@@ -461,6 +461,21 @@ public class DashboardRestController {
             @RequestParam(required = false) String fuelType,
             @RequestParam(required = false) String transmission,
             @RequestParam Double price,
+            @RequestParam(required = false) String engineCc,
+            @RequestParam(required = false) String safetyRating,
+            @RequestParam(required = false) String seatingCapacity,
+            @RequestParam(required = false) String fuelOptions,
+            @RequestParam(required = false) String transmissionOptions,
+            @RequestParam(required = false) String mileageDetails,
+            @RequestParam(required = false) String variantDetails,
+            @RequestParam(required = false) String colorOptions,
+            @RequestParam(required = false) Double reviewScore,
+            @RequestParam(required = false) Double reviewExterior,
+            @RequestParam(required = false) Double reviewPerformance,
+            @RequestParam(required = false) Double reviewValue,
+            @RequestParam(required = false) Double reviewFuelEconomy,
+            @RequestParam(required = false) Double reviewComfort,
+            @RequestParam(required = false) String faqDetails,
             @RequestParam(required = false) String vin,
             @RequestParam(required = false) String engineNo,
             @RequestParam(required = false) String purchaseDate,
@@ -499,6 +514,21 @@ public class DashboardRestController {
         car.setFuelType(fuelType);
         car.setTransmission(transmission);
         car.setPrice(price);
+        car.setEngineCc(engineCc);
+        car.setSafetyRating(safetyRating);
+        car.setSeatingCapacity(seatingCapacity);
+        car.setFuelOptions(fuelOptions);
+        car.setTransmissionOptions(transmissionOptions);
+        car.setMileageDetails(mileageDetails);
+        car.setVariantDetails(variantDetails);
+        car.setColorOptions(colorOptions);
+        car.setReviewScore(reviewScore);
+        car.setReviewExterior(reviewExterior);
+        car.setReviewPerformance(reviewPerformance);
+        car.setReviewValue(reviewValue);
+        car.setReviewFuelEconomy(reviewFuelEconomy);
+        car.setReviewComfort(reviewComfort);
+        car.setFaqDetails(faqDetails);
         car.setVin(vin);
         car.setEngineNo(engineNo);
         car.setSupplierInfo(supplierInfo);

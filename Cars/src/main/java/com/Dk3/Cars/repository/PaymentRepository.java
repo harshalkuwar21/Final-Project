@@ -10,6 +10,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findBySaleId(Long saleId);
     List<Payment> findByBookingId(Long bookingId);
+    List<Payment> findByBookingCustomerEmailOrderByPaymentDateDesc(String email);
     List<Payment> findByStatus(String status);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentDate >= ?1 AND p.paymentDate <= ?2 AND p.status = 'Completed'")

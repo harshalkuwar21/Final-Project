@@ -277,6 +277,26 @@
                     <input name="price" type="number" step="0.01" required>
                 </div>
                 <div class="form-group">
+                    <label>Engine CC (Required)</label>
+                    <input name="engineCc" type="text" placeholder="e.g. 1482 cc" required>
+                </div>
+                <div class="form-group">
+                    <label>Safety Rating (Required)</label>
+                    <input name="safetyRating" type="text" placeholder="e.g. 5 Star" required>
+                </div>
+                <div class="form-group">
+                    <label>Seating Capacity (Required)</label>
+                    <input name="seatingCapacity" type="text" placeholder="e.g. 6 & 7 Seater" required>
+                </div>
+                <div class="form-group">
+                    <label>Fuel Options</label>
+                    <input name="fuelOptions" type="text" placeholder="Petrol & Diesel">
+                </div>
+                <div class="form-group">
+                    <label>Transmission Options</label>
+                    <input name="transmissionOptions" type="text" placeholder="Manual, IMT, Automatic">
+                </div>
+                <div class="form-group">
                     <label>Status</label>
                     <select name="status">
                         <option value="Available">Available</option>
@@ -316,6 +336,46 @@
                 <div class="form-group">
                     <label>Supplier Info</label>
                     <input name="supplierInfo" type="text">
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Mileage Details</label>
+                    <input name="mileageDetails" type="text" placeholder="Petrol (Manual):16 kmpl|Diesel (Manual):19.54 kmpl">
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Variant Details</label>
+                    <input name="variantDetails" type="text" placeholder="HTE~Petrol 1.5L Manual 7 STR~1311000|HTK Plus~Diesel 1.5L Manual~1904000">
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Options</label>
+                    <input name="colorOptions" type="text" placeholder="Intense Red~#ff2b2b~https://...jpg|White~#dfe4ea~https://...jpg">
+                </div>
+                <div class="form-group">
+                    <label>Review Score (0-5)</label>
+                    <input name="reviewScore" type="number" min="0" max="5" step="0.1" value="4.5">
+                </div>
+                <div class="form-group">
+                    <label>Review Exterior (0-5)</label>
+                    <input name="reviewExterior" type="number" min="0" max="5" step="0.1" value="4.7">
+                </div>
+                <div class="form-group">
+                    <label>Review Performance (0-5)</label>
+                    <input name="reviewPerformance" type="number" min="0" max="5" step="0.1" value="4.6">
+                </div>
+                <div class="form-group">
+                    <label>Review Value (0-5)</label>
+                    <input name="reviewValue" type="number" min="0" max="5" step="0.1" value="4.5">
+                </div>
+                <div class="form-group">
+                    <label>Review Fuel Economy (0-5)</label>
+                    <input name="reviewFuelEconomy" type="number" min="0" max="5" step="0.1" value="4.2">
+                </div>
+                <div class="form-group">
+                    <label>Review Comfort (0-5)</label>
+                    <input name="reviewComfort" type="number" min="0" max="5" step="0.1" value="4.8">
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Details</label>
+                    <input name="faqDetails" type="text" placeholder="What is on-road price?~Depends on city and taxes.|How many airbags?~Based on selected variant.">
                 </div>
                 <div class="form-group form-group-full">
                     <label>Images</label>

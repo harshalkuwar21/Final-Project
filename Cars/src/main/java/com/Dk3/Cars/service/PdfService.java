@@ -1,6 +1,7 @@
 package com.Dk3.Cars.service;
 
 import com.Dk3.Cars.entity.Sale;
+import com.Dk3.Cars.entity.Booking;
 import com.itextpdf.html2pdf.ConverterProperties;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.itextpdf.kernel.pdf.PdfDocument;
@@ -87,5 +88,41 @@ public class PdfService {
            .append("</body></html>");
 
         return html.toString();
+    }
+
+    public byte[] generateBookingDocumentPdf(Booking booking, String title, String bodyText) throws IOException {
+        String html = """
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 28px; color: #1f2937; }
+                        h1 { color: #111827; margin-bottom: 6px; }
+                        .meta { margin: 14px 0; padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; }
+                        p { line-height: 1.6; }
+                    </style>
+                </head>
+                <body>
+                    <h1>%s</h1>
+                    <div class='meta'>
+                        <p><strong>Booking ID:</strong> #%s</p>
+                        <p><strong>Customer:</strong> %s</p>
+                        <p><strong>Car:</strong> %s %s</p>
+                    </div>
+                    <p>%s</p>
+                </body>
+                </html>
+                """.formatted(
+                title,
+                booking.getId(),
+                booking.getFullName() != null ? booking.getFullName() : "N/A",
+                booking.getCar() != null ? booking.getCar().getBrand() : "N/A",
+                booking.getCar() != null ? booking.getCar().getModel() : "N/A",
+                bodyText
+        );
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ConverterProperties properties = new ConverterProperties();
+        HtmlConverter.convertToPdf(html, outputStream, properties);
+        return outputStream.toByteArray();
     }
 }

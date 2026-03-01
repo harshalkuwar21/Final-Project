@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Cars</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f8ff; color: #13223b; }
+        .wrap { max-width: 1200px; margin: 20px auto; padding: 0 14px; }
+        .top, .filters, .compare { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 20px rgba(19,34,59,.1); }
+        .top { display: flex; justify-content: space-between; align-items: center; }
+        .filters { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 10px; }
+        input, select, button { padding: 10px; border-radius: 8px; border: 1px solid #dbe5f5; font-size: 14px; }
+        button { background: #005bbb; border: none; color: #fff; cursor: pointer; }
+        .grid { margin-top: 14px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 8px 18px rgba(19,34,59,.09); overflow: hidden; }
+        .card img { width: 100%; height: 190px; object-fit: cover; background: #eef3fc; }
+        .content { padding: 12px; }
+        .content h3 { margin: 0 0 6px; }
+        .line { color: #5f6f87; font-size: 13px; margin: 3px 0; }
+        .actions { margin-top: 10px; display: flex; gap: 8px; }
+        .actions a, .actions button { flex: 1; text-align: center; text-decoration: none; padding: 9px; border-radius: 8px; font-size: 13px; }
+        .btn-light { background: #eef5ff; color: #004a9a; border: 1px solid #c9dcff; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h2>View All Cars</h2>
+        <a href="/user-dashboard">Back to Dashboard</a>
+    </div>
+
+    <div class="filters">
+        <input id="brand" placeholder="Brand (e.g. Hyundai)">
+        <select id="fuelType">
+            <option value="">All Fuel Type</option>
+            <option>Petrol</option>
+            <option>Diesel</option>
+            <option>EV</option>
+            <option>CNG</option>
+        </select>
+        <input id="minPrice" type="number" placeholder="Min Price">
+        <input id="maxPrice" type="number" placeholder="Max Price">
+        <button onclick="loadCars()">Search Cars</button>
+    </div>
+
+    <div class="compare" style="margin-top:14px;">
+        <strong>Compare Cars:</strong>
+        <button onclick="compareSelected()">Compare Selected</button>
+        <div id="compareResult" style="margin-top:10px; font-size:13px;"></div>
+    </div>
+
+    <div id="carsGrid" class="grid"></div>
+</div>
+
+<script>
+    async function loadCars() {
+        const params = new URLSearchParams();
+        ["brand","fuelType","minPrice","maxPrice"].forEach(id => {
+            const v = document.getElementById(id).value.trim();
+            if (v) params.append(id, v);
+        });
+        const res = await fetch("/user-panel/api/cars?" + params.toString());
+        const data = await res.json();
+        const grid = document.getElementById("carsGrid");
+        if (!data.ok || !data.cars.length) {
+            grid.innerHTML = "<div>No cars found.</div>";
+            return;
+        }
+        grid.innerHTML = data.cars.map(car => `
+            <div class="card">
+                <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="car">
+                <div class="content">
+                    <h3>${car.brand || ""} ${car.model || ""}</h3>
+                    <div class="line"><strong>Price:</strong> Rs ${car.price || "-"}</div>
+                    <div class="line"><strong>Fuel:</strong> ${car.fuelType || "-"}</div>
+                    <div class="line"><strong>Transmission:</strong> ${car.transmission || "-"}</div>
+                    <div class="line"><strong>Mileage:</strong> ${car.mileage || "-"}</div>
+                    <div class="line"><strong>Showroom:</strong> ${car.showroom ? car.showroom.name : "-"}</div>
+                    <div style="margin-top:8px;"><label><input type="checkbox" class="cmp" value="${car.id}"> Add to compare</label></div>
+                    <div class="actions">
+                        <a href="/user-panel/car-details?carId=${car.id}" class="btn-light">View Details</a>
+                        <a href="/user-panel/buy-now?carId=${car.id}" style="background:#005bbb;color:#fff;">Buy Now</a>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    async function compareSelected() {
+        const ids = Array.from(document.querySelectorAll(".cmp:checked")).map(x => x.value);
+        if (ids.length < 2) return alert("Select at least 2 cars.");
+        const body = new URLSearchParams();
+        ids.forEach(id => body.append("carIds", id));
+        const res = await fetch("/user-panel/api/compare", { method: "POST", body });
+        const data = await res.json();
+        const box = document.getElementById("compareResult");
+        if (!data.ok) {
+            box.textContent = data.error || "Cannot compare now.";
+            return;
+        }
+        box.innerHTML = "<strong>Comparison:</strong><br>" + data.cars.map(c =>
+            `${c.brand} ${c.model}: Price Rs ${c.price}, Fuel ${c.fuelType}, Transmission ${c.transmission}, Mileage ${c.mileage || "-"}`).join("<br>");
+    }
+
+    loadCars();
+</script>
+</body>
+</html>

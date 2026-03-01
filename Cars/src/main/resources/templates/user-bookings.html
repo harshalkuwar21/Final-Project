@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f4f8ff; color: #13223b; }
+        .wrap { max-width: 1100px; margin: 20px auto; padding: 0 14px; }
+        .panel { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 18px rgba(19,34,59,.09); margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid #e6edf8; padding: 9px; font-size: 14px; text-align: left; }
+        th { color: #5f6f87; }
+        .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+        .pending { background: #fff3cd; color: #7a5a00; }
+        .approved { background: #d1fae5; color: #065f46; }
+        .rejected { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="panel" style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Booking Status & Payment History</h2>
+        <a href="/user-dashboard">Back to Dashboard</a>
+    </div>
+    <div class="panel">
+        <h3>My Bookings</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Booking ID</th>
+                <th>Car</th>
+                <th>Status</th>
+                <th>Delivery Date</th>
+                <th>Documents</th>
+            </tr>
+            </thead>
+            <tbody id="bookingsBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+        </table>
+    </div>
+    <div class="panel">
+        <h3>Payment History</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Payment ID</th>
+                <th>Booking ID</th>
+                <th>Amount</th>
+                <th>Mode</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+            <tbody id="paymentsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function badgeClass(status) {
+        const s = (status || "").toLowerCase();
+        if (s.includes("approved") || s.includes("confirmed") || s.includes("delivered")) return "approved";
+        if (s.includes("reject")) return "rejected";
+        return "pending";
+    }
+
+    async function loadBookings() {
+        const res = await fetch("/user-panel/api/bookings");
+        const data = await res.json();
+        const body = document.getElementById("bookingsBody");
+        if (!data.ok || !data.bookings.length) {
+            body.innerHTML = "<tr><td colspan='5'>No bookings found.</td></tr>";
+            return;
+        }
+        body.innerHTML = data.bookings.map(b => `
+            <tr>
+                <td>#${b.id}</td>
+                <td>${b.car ? (b.car.brand + " " + b.car.model) : "-"}</td>
+                <td><span class="badge ${badgeClass(b.workflowStatus || b.status)}">${b.workflowStatus || b.status || "-"}</span></td>
+                <td>${b.expectedDeliveryDate || "-"}</td>
+                <td>
+                    ${b.bookingReceiptUrl ? `<a href="${b.bookingReceiptUrl}" target="_blank">Receipt</a> ` : ""}
+                    ${b.proformaInvoiceUrl ? `<a href="${b.proformaInvoiceUrl}" target="_blank">Invoice</a> ` : ""}
+                    ${b.allotmentLetterUrl ? `<a href="${b.allotmentLetterUrl}" target="_blank">Allotment</a> ` : ""}
+                    ${b.deliveryConfirmationLetterUrl ? `<a href="${b.deliveryConfirmationLetterUrl}" target="_blank">Delivery</a>` : ""}
+                    ${!(b.bookingReceiptUrl || b.proformaInvoiceUrl || b.allotmentLetterUrl || b.deliveryConfirmationLetterUrl) ? "-" : ""}
+                </td>
+            </tr>
+        `).join("");
+    }
+
+    async function loadPayments() {
+        const res = await fetch("/user-panel/api/payments");
+        const data = await res.json();
+        const body = document.getElementById("paymentsBody");
+        if (!data.ok || !data.payments.length) {
+            body.innerHTML = "<tr><td colspan='6'>No payments found.</td></tr>";
+            return;
+        }
+        body.innerHTML = data.payments.map(p => `
+            <tr>
+                <td>#${p.id}</td>
+                <td>${p.booking ? ("#" + p.booking.id) : "-"}</td>
+                <td>Rs ${p.amount || 0}</td>
+                <td>${p.paymentMethod || "-"}</td>
+                <td>${p.status || "-"}</td>
+                <td>${p.paymentDate || "-"}</td>
+            </tr>
+        `).join("");
+    }
+
+    loadBookings();
+    loadPayments();
+</script>
+</body>
+</html>
+

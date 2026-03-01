@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -24,6 +25,10 @@ public class User {
     private String contact;
     @JsonIgnore
     private String password;
+    private String profilePhotoUrl;
+    @JsonIgnore
+    private String resetOtp;
+    private LocalDateTime resetOtpExpiry;
     private boolean enabled = false;
     private String role = "ROLE_USER"; // ROLE_ADMIN, ROLE_SALES_EXECUTIVE, ROLE_MANAGER, ROLE_ACCOUNTANT
 

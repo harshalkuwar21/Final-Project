@@ -15,6 +15,10 @@ public class Showroom {
 
     private String name;
     private String city;
+    private String address;
+    private String contactNumber;
+    private String mapUrl;
+    private String workingHours;
     private String managerName;
     private String imageUrl;   // example: /images/showrooms/nashik.jpg
 

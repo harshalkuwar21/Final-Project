@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buy Now</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f7ff; color: #13223b; }
+        .wrap { max-width: 900px; margin: 20px auto; padding: 0 14px; }
+        .top, .card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 20px rgba(19,34,59,.08); }
+        .top { display: flex; justify-content: space-between; align-items: center; }
+        .steps { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+        .step { padding: 7px 10px; border-radius: 999px; background: #e6eefc; font-size: 13px; }
+        .step.active { background: #005bbb; color: #fff; }
+        .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+        input, select, textarea, button { width: 100%; padding: 10px; border: 1px solid #d6e3f8; border-radius: 8px; font-size: 14px; }
+        textarea { min-height: 70px; }
+        .hidden { display: none; }
+        .actions { margin-top: 12px; display: flex; gap: 8px; }
+        .actions button { cursor: pointer; border: none; }
+        .primary { background: #005bbb; color: #fff; }
+        .light { background: #edf4ff; color: #004a9a; }
+        .msg { margin-top: 10px; font-size: 14px; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h2>Buy Now Process</h2>
+        <a href="/user-dashboard">Back to Dashboard</a>
+    </div>
+    <div class="steps">
+        <div class="step active" id="s1">Step 1 Personal Details</div>
+        <div class="step" id="s2">Step 2 Payment</div>
+        <div class="step" id="s3">Step 3 Delivery</div>
+    </div>
+    <div class="card">
+        <form id="buyNowForm" enctype="multipart/form-data">
+            <div id="step1">
+                <div class="grid">
+                    <div><label>Car ID</label><input name="carId" id="carId" required></div>
+                    <div><label>Full Name</label><input name="fullName" required></div>
+                    <div><label>Date of Birth</label><input type="date" name="dob" required></div>
+                    <div><label>Gender</label><select name="gender" required><option>Male</option><option>Female</option><option>Other</option></select></div>
+                    <div><label>Aadhaar Number</label><input name="aadhaarNumber" required></div>
+                    <div><label>PAN Number</label><input name="panNumber" required></div>
+                    <div><label>City</label><input name="city" required></div>
+                    <div><label>State</label><input name="state" required></div>
+                    <div><label>PIN Code</label><input name="pinCode" required></div>
+                    <div><label>Aadhaar Photo</label><input type="file" name="aadhaarPhoto" required></div>
+                    <div><label>PAN Photo</label><input type="file" name="panPhoto" required></div>
+                    <div><label>Signature Upload</label><input type="file" name="signaturePhoto" required></div>
+                    <div><label>Passport Photo</label><input type="file" name="passportPhoto" required></div>
+                </div>
+                <div style="margin-top:10px;"><label>Address</label><textarea name="address" required></textarea></div>
+            </div>
+
+            <div id="step2" class="hidden">
+                <div class="grid">
+                    <div><label>Booking Amount</label><input name="bookingAmount" type="number" value="10000" required></div>
+                    <div><label>Payment Mode</label>
+                        <select name="paymentMode" required>
+                            <option>UPI</option><option>Credit Card</option><option>Debit Card</option><option>Net Banking</option>
+                        </select>
+                    </div>
+                    <div><label>Transaction ID</label><input name="transactionId" required></div>
+                    <div><label>Payment Screenshot</label><input type="file" name="paymentScreenshot" required></div>
+                </div>
+            </div>
+
+            <div id="step3" class="hidden">
+                <div class="grid">
+                    <div><label>Preferred Delivery Date</label><input type="date" name="expectedDeliveryDate" required></div>
+                    <div><label>Time Slot</label>
+                        <select name="deliveryTimeSlot" required>
+                            <option>10:00 AM - 12:00 PM</option>
+                            <option>12:00 PM - 02:00 PM</option>
+                            <option>02:00 PM - 04:00 PM</option>
+                            <option>04:00 PM - 06:00 PM</option>
+                        </select>
+                    </div>
+                    <div><label>Delivery Type</label>
+                        <select name="deliveryType" required>
+                            <option>Showroom Pickup</option>
+                            <option>Home Delivery</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" class="light" id="prevBtn" onclick="prevStep()" disabled>Previous</button>
+                <button type="button" class="light" id="nextBtn" onclick="nextStep()">Next</button>
+                <button type="submit" class="primary hidden" id="submitBtn">Submit Booking</button>
+            </div>
+            <div id="msg" class="msg"></div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let step = 1;
+    function setStep() {
+        [1,2,3].forEach(i => {
+            document.getElementById("step"+i).classList.toggle("hidden", i !== step);
+            document.getElementById("s"+i).classList.toggle("active", i === step);
+        });
+        document.getElementById("prevBtn").disabled = step === 1;
+        document.getElementById("nextBtn").classList.toggle("hidden", step === 3);
+        document.getElementById("submitBtn").classList.toggle("hidden", step !== 3);
+    }
+    function nextStep() { if (step < 3) { step++; setStep(); } }
+    function prevStep() { if (step > 1) { step--; setStep(); } }
+    setStep();
+
+    const carIdFromQuery = new URLSearchParams(location.search).get("carId");
+    if (carIdFromQuery) document.getElementById("carId").value = carIdFromQuery;
+
+    document.getElementById("buyNowForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("msg");
+        msg.textContent = "Submitting booking...";
+        msg.style.color = "#004a9a";
+        const formData = new FormData(e.target);
+        try {
+            const res = await fetch("/user-panel/api/buy-now", { method: "POST", body: formData });
+            const data = await res.json();
+            if (data.ok) {
+                msg.style.color = "green";
+                msg.textContent = `Booking submitted successfully. Booking ID: #${data.bookingId}`;
+                e.target.reset();
+                step = 1; setStep();
+            } else {
+                msg.style.color = "red";
+                msg.textContent = data.error || "Submission failed";
+            }
+        } catch (err) {
+            msg.style.color = "red";
+            msg.textContent = "Network error";
+        }
+    });
+</script>
+</body>
+</html>
+

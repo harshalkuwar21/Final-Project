@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Axenova Infotech</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:#f7f7f7;
+color:#222;
+}
+
+/* NAVBAR */
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 8%;
+background:white;
+position:sticky;
+top:0;
+z-index:1000;
+box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+.logo{
+font-size:26px;
+font-weight:700;
+color:#7c9a2e;
+}
+
+nav ul{
+display:flex;
+gap:30px;
+list-style:none;
+}
+
+nav a{
+text-decoration:none;
+color:#333;
+font-weight:500;
+}
+
+nav a:hover{
+color:#7c9a2e;
+}
+
+/* HERO */
+
+.hero{
+height:90vh;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+
+background:
+radial-gradient(circle at 20% 40%, #f6f0c3 0%, transparent 50%),
+radial-gradient(circle at 70% 60%, #dff1e8 0%, transparent 50%),
+radial-gradient(circle at 90% 20%, #dbe9f5 0%, transparent 50%);
+}
+
+.hero h1{
+font-size:60px;
+}
+
+.hero p{
+font-size:22px;
+margin-top:10px;
+color:#7c9a2e;
+}
+
+.hero button{
+margin-top:30px;
+padding:14px 35px;
+border-radius:30px;
+border:none;
+background:#7c9a2e;
+color:white;
+cursor:pointer;
+font-size:16px;
+transition:0.3s;
+}
+
+.hero button:hover{
+transform:scale(1.05);
+}
+
+/* SECTION */
+
+section{
+padding:100px 10%;
+}
+
+.section-title{
+text-align:center;
+font-size:36px;
+margin-bottom:50px;
+}
+
+/* SERVICES */
+
+.services{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:30px;
+}
+
+.card{
+background:white;
+padding:30px;
+border-radius:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+transition:0.4s;
+}
+
+.card:hover{
+transform:translateY(-10px);
+}
+
+.card h3{
+color:#7c9a2e;
+margin-bottom:10px;
+}
+
+/* VISION & GOAL */
+
+.info-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:30px;
+}
+
+.info{
+background:linear-gradient(135deg,#f6f0c3,#dff1e8,#dbe9f5);
+padding:40px;
+border-radius:20px;
+}
+
+/* PORTFOLIO */
+
+.portfolio{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:30px;
+}
+
+.project{
+height:200px;
+border-radius:20px;
+background:#eaf2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+}
+
+/* CONTACT */
+
+.contact{
+text-align:center;
+}
+
+.contact input,
+.contact textarea{
+width:60%;
+padding:12px;
+margin:10px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+.contact button{
+padding:12px 30px;
+border:none;
+background:#7c9a2e;
+color:white;
+border-radius:10px;
+cursor:pointer;
+}
+
+/* FOOTER */
+
+footer{
+background:#111;
+color:white;
+text-align:center;
+padding:30px;
+}
+
+@media(max-width:768px){
+
+.hero h1{
+font-size:40px;
+}
+
+.info-grid{
+grid-template-columns:1fr;
+}
+
+.contact input,
+.contact textarea{
+width:90%;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<nav>
+
+<div class="logo">AXENOVA</div>
+
+<ul>
+
+<li><a href="#home">Home</a></li>
+<li><a href="#services">Services</a></li>
+<li><a href="#vision">Vision</a></li>
+<li><a href="#portfolio">Portfolio</a></li>
+<li><a href="#contact">Contact</a></li>
+
+</ul>
+
+</nav>
+
+<!-- HERO -->
+
+<section class="hero" id="home">
+
+<div>
+
+<h1>Welcome to Axenova</h1>
+
+<p>Where Creativity Meets Strategy</p>
+
+<button onclick="scrollToSection('services')">Explore Services</button>
+
+</div>
+
+</section>
+
+<!-- SERVICES -->
+
+<section id="services">
+
+<h2 class="section-title">Our Services</h2>
+
+<div class="services">
+
+<div class="card">
+<h3>Web Development</h3>
+<p>Modern responsive websites for startups and businesses.</p>
+</div>
+
+<div class="card">
+<h3>Software Development</h3>
+<p>Custom scalable software systems.</p>
+</div>
+
+<div class="card">
+<h3>Graphic Designing</h3>
+<p>Creative design solutions for brands.</p>
+</div>
+
+<div class="card">
+<h3>Video Editing</h3>
+<p>Professional video production for marketing.</p>
+</div>
+
+<div class="card">
+<h3>Branding</h3>
+<p>Build strong digital identity for companies.</p>
+</div>
+
+</div>
+
+</section>
+
+<!-- VISION -->
+
+<section id="vision">
+
+<h2 class="section-title">Vision & Goal</h2>
+
+<div class="info-grid">
+
+<div class="info">
+
+<h3>Our Vision</h3>
+
+<p>To create innovative websites and applications that help businesses grow digitally.</p>
+
+</div>
+
+<div class="info">
+
+<h3>Our Goal</h3>
+
+<p>To help companies expand globally using modern technology solutions.</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- PORTFOLIO -->
+
+<section id="portfolio">
+
+<h2 class="section-title">Our Work</h2>
+
+<div class="portfolio">
+
+<div class="project">Project 1</div>
+<div class="project">Project 2</div>
+<div class="project">Project 3</div>
+
+</div>
+
+</section>
+
+<!-- CONTACT -->
+
+<section id="contact">
+
+<h2 class="section-title">Contact Us</h2>
+
+<div class="contact">
+
+<input type="text" placeholder="Your Name"><br>
+
+<input type="email" placeholder="Your Email"><br>
+
+<textarea rows="5" placeholder="Your Message"></textarea><br>
+
+<button>Send Message</button>
+
+</div>
+
+</section>
+
+<footer>
+
+<p>© 2026 Axenova Infotech Pvt. Ltd.</p>
+
+</footer>
+
+<script>
+
+function scrollToSection(id){
+
+document.getElementById(id).scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+</script>
+
+</body>
+
+</html>

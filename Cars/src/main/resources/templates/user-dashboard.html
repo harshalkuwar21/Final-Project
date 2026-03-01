@@ -3,65 +3,346 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DK3 Cars - User Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>DK3 Cars | User Dashboard</title>
     <style>
+        :root {
+            --bg: #ece9f6;
+            --panel: #f7f6fc;
+            --text: #141b34;
+            --muted: #5c6177;
+            --primary: #6c3cff;
+            --primary-2: #7f4dff;
+            --line: #e5e3ef;
+            --white: #ffffff;
+        }
+        * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: "Poppins", sans-serif;
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, #f4f7ff, #ece9ff);
-            color: #1f2937;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(180deg, #e9e6f4, #f2f1f8);
+            color: var(--text);
         }
-        .card {
-            width: min(92vw, 680px);
-            background: #ffffff;
-            border-radius: 18px;
-            padding: 30px;
-            box-shadow: 0 14px 35px rgba(31, 41, 55, 0.12);
+        .page { max-width: 1120px; margin: 28px auto; padding: 0 14px 40px; }
+        .nav {
+            background: var(--white);
+            border-radius: 14px 14px 0 0;
+            padding: 12px 18px;
+            display: flex; align-items: center; justify-content: space-between;
         }
-        h1 {
-            margin: 0 0 10px;
-            font-size: 28px;
+        .brand { display: flex; align-items: center; gap: 10px; font-size: 26px; font-weight: 800; }
+        .brand img { width: 58px; height: 36px; object-fit: contain; }
+        .menu { display: flex; gap: 24px; font-size: 15px; }
+        .menu a { color: #232838; text-decoration: none; padding-bottom: 4px; border-bottom: 2px solid transparent; }
+        .menu a.active { color: var(--primary); border-color: var(--primary); }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .icon-btn {
+            width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line);
+            display: grid; place-items: center; background: var(--white); cursor: pointer; color: #2f3550;
         }
-        p {
-            margin: 0 0 22px;
-            color: #4b5563;
+        .btn-main {
+            border: none; border-radius: 12px; padding: 10px 22px;
+            background: linear-gradient(120deg, var(--primary), var(--primary-2));
+            color: #fff; font-weight: 700; cursor: pointer;
         }
-        .actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            border: none;
+        .btn-logout {
+            border: 1px solid #d9deef;
+            border-radius: 12px;
+            padding: 10px 16px;
+            background: #fff;
+            color: #253059;
+            font-weight: 700;
             cursor: pointer;
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-weight: 600;
         }
-        .btn-primary {
-            background: #6c4ef6;
+        .hero {
+            position: relative; min-height: 560px; border-radius: 0 0 14px 14px; overflow: hidden;
+            background: url('/images/background.jpg') center/cover no-repeat;
+        }
+        .hero::before {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(90deg, rgba(20,27,52,.78) 0%, rgba(20,27,52,.48) 42%, rgba(20,27,52,.08) 100%);
+        }
+        .hero-content {
+            position: relative; z-index: 1; padding: 72px 54px 0;
+            width: min(620px, 100%);
             color: #fff;
         }
-        .btn-light {
-            background: #eef2ff;
-            color: #3730a3;
+        .hero h1 { margin: 0; line-height: 1.08; font-size: clamp(36px, 5.2vw, 62px); }
+        .hero p { margin: 14px 0 0; font-size: 31px; line-height: 1.3; max-width: 540px; opacity: .95; }
+        .hero-actions { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .hero-btn {
+            padding: 11px 26px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer;
+        }
+        .hero-btn.primary { background: linear-gradient(120deg, var(--primary), var(--primary-2)); color: #fff; }
+        .hero-btn.light { background: rgba(255,255,255,.9); color: #212844; }
+        .brand-row { margin-top: 26px; display: flex; gap: 16px; flex-wrap: wrap; }
+        .chip {
+            border-radius: 999px; padding: 8px 12px; font-weight: 700; letter-spacing: .4px;
+            color: #fff; border: 1px solid rgba(255,255,255,.26); background: rgba(255,255,255,.08);
+        }
+        .search-panel {
+            position: relative; z-index: 2; margin: -62px auto 0;
+            width: calc(100% - 84px);
+            background: var(--panel);
+            border: 1px solid #dcd8eb;
+            border-radius: 18px;
+            box-shadow: 0 18px 40px rgba(16, 22, 49, .14);
+            overflow: hidden;
+        }
+        .search-top { padding: 18px 24px; }
+        .search-top h2 { margin: 0 0 12px; font-size: 40px; }
+        .search-grid {
+            display: grid; gap: 10px;
+            grid-template-columns: 1fr 1fr 1fr 190px;
+        }
+        .search-grid select, .search-grid button {
+            border-radius: 12px; height: 44px; font-size: 15px; border: 1px solid #d9d6e8;
+            padding: 0 12px; background: #fff;
+        }
+        .search-grid button {
+            border: none; color: #fff; font-weight: 700; cursor: pointer;
+            background: linear-gradient(120deg, var(--primary), var(--primary-2));
+        }
+        .stats {
+            border-top: 1px solid #e2deed;
+            background: #f2f0f9;
+            display: grid; grid-template-columns: repeat(4, 1fr);
+        }
+        .stat { padding: 16px 18px; border-right: 1px solid #ddd9ea; }
+        .stat:last-child { border-right: none; }
+        .stat .v { font-size: 28px; font-weight: 800; color: #1b2141; }
+        .stat .k { color: var(--muted); font-size: 15px; }
+        .section {
+            margin-top: 22px; background: #f3f1f9; border-radius: 18px; border: 1px solid #ddd9ea;
+            padding: 20px;
+        }
+        .section h3 { margin: 0 0 14px; font-size: 42px; }
+        .cards {
+            display: grid; gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .car-card {
+            background: #fff; border-radius: 14px; border: 1px solid #e1deec; overflow: hidden;
+            box-shadow: 0 8px 16px rgba(16, 24, 54, .08);
+        }
+        .car-thumb { position: relative; height: 180px; overflow: hidden; }
+        .car-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .tag {
+            position: absolute; left: 10px; top: 10px; border-radius: 8px;
+            background: linear-gradient(120deg, #365eff, var(--primary));
+            color: #fff; font-size: 12px; font-weight: 700; padding: 5px 10px;
+        }
+        .car-body { padding: 12px; }
+        .car-name { font-size: 23px; font-weight: 700; }
+        .price { margin-top: 4px; font-weight: 800; font-size: 40px; }
+        .meta { margin-top: 8px; color: #55607c; font-size: 21px; line-height: 1.6; min-height: 48px; }
+        .card-btn {
+            margin-top: 10px; width: 100%; height: 40px; border-radius: 10px;
+            border: none; color: #fff; font-weight: 700; cursor: pointer;
+            background: linear-gradient(120deg, #3e63ff, var(--primary));
+        }
+        .card-actions {
+            margin-top: 10px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 1fr 1fr;
+        }
+        .card-btn.secondary {
+            background: #eef1fb;
+            color: #253059;
+            border: 1px solid #d9deef;
+        }
+        .feature-grid {
+            display: grid; gap: 12px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .feature {
+            background: #fff; border: 1px solid #e1deec; border-radius: 12px;
+            padding: 14px; min-height: 140px;
+        }
+        .feature h4 { margin: 0 0 8px; font-size: 28px; }
+        .feature p { margin: 0; color: #5a637d; font-size: 23px; line-height: 1.45; }
+        @media (max-width: 980px) {
+            .menu { display: none; }
+            .search-grid { grid-template-columns: 1fr 1fr; }
+            .cards { grid-template-columns: 1fr; }
+            .feature-grid { grid-template-columns: 1fr 1fr; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .stat:nth-child(2) { border-right: none; }
+        }
+        @media (max-width: 640px) {
+            .hero-content { padding: 40px 18px 0; }
+            .search-panel { width: calc(100% - 18px); margin-top: -38px; }
+            .search-grid { grid-template-columns: 1fr; }
+            .stats { grid-template-columns: 1fr; }
+            .stat { border-right: none; border-bottom: 1px solid #ddd9ea; }
+            .stat:last-child { border-bottom: none; }
+            .feature-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-<div class="card">
-    <h1>User Dashboard</h1>
-    <p>You are logged in as a user account.</p>
-    <div class="actions">
-        <button class="btn btn-primary" onclick="location.href='/profile'">Profile</button>
-        <button class="btn btn-light" onclick="location.href='/booking-request'">Book a Car</button>
-        <button class="btn btn-light" onclick="location.href='/bookings'">Bookings</button>
-        <button class="btn btn-light" onclick="location.href='/login'">Back to Login</button>
-    </div>
+<div class="page">
+    <header class="nav">
+        <div class="brand">
+            <img src="/images/logo.png" alt="DK3 Cars">
+            <span>DK3 CARS</span>
+        </div>
+        <nav class="menu">
+            <a class="active" href="/user-dashboard">Home</a>
+            <a href="/user-panel/cars">Inventory</a>
+            <a href="/user-panel/bookings">Services</a>
+            <a href="/user-panel/showrooms">Contact</a>
+        </nav>
+        <div class="nav-right">
+            <button class="icon-btn" title="Search">S</button>
+            <button class="icon-btn" title="Wishlist">W</button>
+            <button class="icon-btn" title="Share">SH</button>
+            <button class="btn-main" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
+            <button class="btn-logout" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Streamlining<br>Car Showroom<br>Management</h1>
+            <p>Efficient, Smart, Reliable Solutions to Manage Your Car Dealership</p>
+            <div class="hero-actions">
+                <button class="hero-btn primary" onclick="location.href='/user-panel/cars'">View Inventory</button>
+                <button class="hero-btn light" onclick="location.href='/user-panel/showrooms'">Contact Sales</button>
+            </div>
+            <div class="brand-row">
+                <span class="chip">BMW</span>
+                <span class="chip">HYUNDAI</span>
+                <span class="chip">TATA</span>
+                <span class="chip">MERCEDES</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="search-panel">
+        <div class="search-top">
+            <h2>Search Inventory</h2>
+            <div class="search-grid">
+                <select id="brandFilter"><option value="">All Car Brands</option></select>
+                <select id="priceFilter">
+                    <option value="">Price Range</option>
+                    <option value="0-1000000">Up to Rs 10 Lakh</option>
+                    <option value="1000000-2000000">Rs 10 - 20 Lakh</option>
+                    <option value="2000000-5000000">Rs 20 - 50 Lakh</option>
+                    <option value="5000000-999999999">Above Rs 50 Lakh</option>
+                </select>
+                <select id="fuelFilter">
+                    <option value="">Fuel Type</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="EV">EV</option>
+                    <option value="CNG">CNG</option>
+                </select>
+                <button id="searchBtn">Search Now</button>
+            </div>
+        </div>
+        <div class="stats">
+            <div class="stat"><div class="v" id="statStock">0+</div><div class="k">Cars in Stock</div></div>
+            <div class="stat"><div class="v" id="statBrands">0+</div><div class="k">Brands Available</div></div>
+            <div class="stat"><div class="v" id="statCustomers">1000+</div><div class="k">Happy Customers</div></div>
+            <div class="stat"><div class="v">24/7</div><div class="k">Customer Support</div></div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h3>Featured Cars</h3>
+        <div class="cards" id="featuredCars">
+            <div class="car-card"><div class="car-body">Loading featured cars...</div></div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h3>Manage Your Showroom with Ease</h3>
+        <div class="feature-grid">
+            <div class="feature"><h4>Book a Car</h4><p>Submit complete booking details with documents and track each stage.</p></div>
+            <div class="feature"><h4>Test Drive</h4><p>Schedule your preferred test drive slot before final decision.</p></div>
+            <div class="feature"><h4>Payment History</h4><p>Review all your transactions and booking receipts in one place.</p></div>
+            <div class="feature"><h4>Delivery Status</h4><p>Track order progress from pending to delivered with live updates.</p></div>
+        </div>
+    </section>
 </div>
+
+<script>
+    let allCars = [];
+    function money(v) { return v == null ? "N/A" : "Rs " + Number(v).toLocaleString("en-IN"); }
+    function cardTag(index) { return index === 0 ? "Best Seller" : (index === 1 ? "Deal of the Week" : "Luxury Choice"); }
+    function carFeatures(car) {
+        const f = [];
+        if (car.fuelType) f.push(car.fuelType);
+        if (car.transmission) f.push(car.transmission);
+        if (car.mileage) f.push(car.mileage);
+        if (car.showroom && car.showroom.name) f.push(car.showroom.name);
+        return f.slice(0, 4);
+    }
+    function renderFeatured(cars) {
+        const box = document.getElementById("featuredCars");
+        if (!cars.length) { box.innerHTML = '<div class="car-card"><div class="car-body">No cars available.</div></div>'; return; }
+        box.innerHTML = cars.slice(0, 3).map((car, i) => `
+            <article class="car-card">
+                <div class="car-thumb">
+                    <span class="tag">${cardTag(i)}</span>
+                    <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="${car.brand || ''}">
+                </div>
+                <div class="car-body">
+                    <div class="car-name">${car.brand || ''} ${car.model || ''}</div>
+                    <div class="price">${money(car.price)}</div>
+                    <div class="meta">${carFeatures(car).join(" · ") || "Smart infotainment · Safety · Comfort"}</div>
+                    <div class="card-actions">
+                        <button class="card-btn secondary" onclick="location.href='/user-panel/car-details?carId=${car.id}&car=${encodeURIComponent((car.brand || '') + ' ' + (car.model || ''))}'">View Details</button>
+                        <button class="card-btn" onclick="location.href='/user-panel/buy-now?carId=${car.id}'">Book Car</button>
+                    </div>
+                </div>
+            </article>
+        `).join("");
+    }
+    function applyFilterAndRender() {
+        const brand = document.getElementById("brandFilter").value;
+        const fuel = document.getElementById("fuelFilter").value;
+        const price = document.getElementById("priceFilter").value;
+        let list = [...allCars];
+        if (brand) list = list.filter(c => (c.brand || "").toLowerCase() === brand.toLowerCase());
+        if (fuel) list = list.filter(c => (c.fuelType || "").toLowerCase() === fuel.toLowerCase());
+        if (price) {
+            const [min, max] = price.split("-").map(Number);
+            list = list.filter(c => Number(c.price || 0) >= min && Number(c.price || 0) <= max);
+        }
+        renderFeatured(list);
+    }
+    async function loadDashboard() {
+        try {
+            const [dashRes, carsRes] = await Promise.all([fetch("/user-panel/api/dashboard"), fetch("/user-panel/api/cars?includeAll=true")]);
+            const dash = await dashRes.json();
+            const carsData = await carsRes.json();
+            if (Array.isArray(carsData)) {
+                allCars = carsData;
+            } else if (carsData && carsData.ok && Array.isArray(carsData.cars)) {
+                allCars = carsData.cars;
+            } else {
+                allCars = [];
+            }
+            const brands = [...new Set(allCars.map(c => c.brand).filter(Boolean))];
+            document.getElementById("brandFilter").innerHTML = '<option value="">All Car Brands</option>' + brands.map(b => `<option value="${b}">${b}</option>`).join("");
+            document.getElementById("statStock").textContent = `${dash.availableCars || allCars.length || 0}+`;
+            document.getElementById("statBrands").textContent = `${brands.length}+`;
+            renderFeatured(allCars);
+        } catch (e) {
+            document.getElementById("featuredCars").innerHTML = '<div class="car-card"><div class="car-body">Unable to load dashboard data.</div></div>';
+        }
+    }
+    document.getElementById("searchBtn").addEventListener("click", applyFilterAndRender);
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+        try {
+            await fetch("/user/logout", { method: "POST" });
+        } finally {
+            location.href = "/login";
+        }
+    });
+    loadDashboard();
+</script>
 </body>
 </html>

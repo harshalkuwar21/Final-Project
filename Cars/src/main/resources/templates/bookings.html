@@ -342,6 +342,21 @@ tbody tr:last-child {
     color: #721c24;
 }
 
+.status-payment-verified {
+    background: #ffe8cc;
+    color: #9a3412;
+}
+
+.status-approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-delivered {
+    background: #dcfce7;
+    color: #166534;
+}
+
 /* Actions */
 .actions {
     display: flex;
@@ -612,10 +627,13 @@ tbody tr:last-child {
                 <select id="statusFilter" onchange="filterBookings()">
                     <option value="">All Status</option>
                     <option value="Pending">Pending</option>
+                    <option value="Payment Verified">Payment Verified</option>
                     <option value="Waiting">Waiting</option>
+                    <option value="Approved">Approved</option>
                     <option value="Confirmed">Confirmed</option>
                     <option value="Rejected">Rejected</option>
                     <option value="Cancelled">Cancelled</option>
+                    <option value="Delivered">Delivered</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -637,6 +655,7 @@ tbody tr:last-child {
                         <th>Payment Mode</th>
                         <th>Expected Delivery</th>
                         <th>Booking Date</th>
+                        <th>Documents</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
