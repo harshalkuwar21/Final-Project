@@ -18,7 +18,19 @@ function renderCustomers(list){
     list.forEach(c => {
         const tr = document.createElement('tr');
         const fullName = `${c.first || ''} ${c.last || ''}`.trim();
-        tr.innerHTML = `<td>${escapeHtml(fullName)}</td><td>${escapeHtml(c.contact||'')}</td><td>${escapeHtml(c.email||'')}</td><td>${escapeHtml(c.role||'')}</td><td><button class="btn btn-edit" onclick="showEdit(${c.userid})"><i class="fas fa-edit"></i> Edit</button> <button class="btn btn-danger" onclick="deleteCustomer(${c.userid})"><i class="fas fa-trash"></i> Delete</button></td>`;
+        const enabled = !!c.enabled;
+        const active = c.active !== false;
+        const accountBadge = enabled
+            ? '<span class="status-chip status-ok">Enabled</span>'
+            : '<span class="status-chip status-bad">Blocked</span>';
+        const activeBadge = active
+            ? '<span class="status-chip status-ok">Active</span>'
+            : '<span class="status-chip status-bad">Inactive</span>';
+        const fraudAction = enabled || active
+            ? `<button class="btn btn-danger" onclick="markFraud(${c.userid})"><i class="fas fa-user-slash"></i> Fraud Block</button>`
+            : `<button class="btn btn-secondary" onclick="activateCustomer(${c.userid})"><i class="fas fa-user-check"></i> Activate</button>`;
+
+        tr.innerHTML = `<td>${escapeHtml(fullName)}</td><td>${escapeHtml(c.contact||'')}</td><td>${escapeHtml(c.email||'')}</td><td>${escapeHtml(c.role||'')}</td><td>${accountBadge} ${activeBadge}</td><td><button class="btn btn-edit" onclick="showEdit(${c.userid})"><i class="fas fa-edit"></i> Edit</button> ${fraudAction} <button class="btn btn-danger" onclick="deleteCustomer(${c.userid})"><i class="fas fa-trash"></i> Delete</button></td>`;
         body.appendChild(tr);
     });
 }
@@ -50,6 +62,39 @@ function deleteCustomer(id){
     fetch('/api/customers/'+id, { method: 'DELETE' })
         .then(()=> loadCustomers())
         .catch(err => console.error(err));
+}
+
+function markFraud(id){
+    if(!confirm('Mark this user as fraud? This will block and inactivate the account.')) return;
+    fetch(`/api/customers/${id}/fraud-block`, { method: 'PUT' })
+        .then(async r => {
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.ok === false) {
+                alert(data.message || 'Failed to block user');
+                return;
+            }
+            loadCustomers();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to block user');
+        });
+}
+
+function activateCustomer(id){
+    fetch(`/api/customers/${id}/activate`, { method: 'PUT' })
+        .then(async r => {
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok || data.ok === false) {
+                alert(data.message || 'Failed to activate user');
+                return;
+            }
+            loadCustomers();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to activate user');
+        });
 }
 
 function showEdit(id){

@@ -224,6 +224,10 @@
             <a href="/cars/add" class="btn" style="background: #6c4ef6; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;border: none;cursor: pointer;"><i class="fas fa-plus"></i> Add Vehicle</a>
         </div>
 
+        <div th:if="${showroomAllocationError}" style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; margin-bottom:16px;">
+            <span th:text="${showroomAllocationError}"></span>
+        </div>
+
         <section class="panel">
             <div id="carGrid" class="car-grid">
                 <div th:each="car : ${cars}" class="car-card">

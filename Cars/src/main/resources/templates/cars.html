@@ -216,6 +216,14 @@
             <a href="/cars/add" class="btn"><i class="fas fa-plus"></i> Add New Vehicle</a>
         </div>
 
+        <div th:if="${staffShowroomId}" style="background:#eef2ff; color:#3730a3; padding:10px; border-radius:8px; margin-bottom:16px;">
+            Staff scope: showing vehicles for <strong th:text="${staffShowroomName != null ? staffShowroomName : ('Showroom #' + staffShowroomId)}"></strong>
+        </div>
+
+        <div th:if="${error}" style="background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; margin-bottom:16px;">
+            <span th:text="${error}"></span>
+        </div>
+
         <div th:if="${searchKeyword}" style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
             Search results for: <strong th:text="${searchKeyword}"></strong>
         </div>

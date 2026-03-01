@@ -47,6 +47,7 @@ public class CustomersRestController {
         u.setContact(body.get("contact") == null ? null : String.valueOf(body.get("contact")).trim());
         u.setRole("ROLE_USER");
         u.setEnabled(true);
+        u.setActive(true);
         String password = body.get("password") == null ? null : String.valueOf(body.get("password"));
         if (password == null || password.isBlank()) {
             u.setPassword(passwordEncoder.encode("changeme123"));
@@ -74,7 +75,12 @@ public class CustomersRestController {
             if (body.containsKey("email")) existing.setEmail(email);
             if (body.containsKey("contact")) existing.setContact(body.get("contact") == null ? null : String.valueOf(body.get("contact")).trim());
             existing.setRole("ROLE_USER");
-            existing.setEnabled(true);
+            if (body.containsKey("enabled")) {
+                existing.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
+            }
+            if (body.containsKey("active")) {
+                existing.setActive(Boolean.parseBoolean(String.valueOf(body.get("active"))));
+            }
             User saved = userRepository.save(existing);
             resp.put("ok", true);
             resp.put("user", saved);
@@ -89,5 +95,51 @@ public class CustomersRestController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         userRepository.deleteById(id);
+    }
+
+    @PutMapping("/{id}/fraud-block")
+    public ResponseEntity<?> fraudBlock(@PathVariable Long id) {
+        Map<String, Object> resp = new HashMap<>();
+        return userRepository.findById(id).map(existing -> {
+            if (!"ROLE_USER".equals(existing.getRole())) {
+                resp.put("ok", false);
+                resp.put("message", "Only customer users can be blocked");
+                return ResponseEntity.badRequest().body(resp);
+            }
+
+            existing.setEnabled(false);
+            existing.setActive(false);
+            User saved = userRepository.save(existing);
+            resp.put("ok", true);
+            resp.put("user", saved);
+            return ResponseEntity.ok(resp);
+        }).orElseGet(() -> {
+            resp.put("ok", false);
+            resp.put("message", "User not found");
+            return ResponseEntity.status(404).body(resp);
+        });
+    }
+
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<?> activate(@PathVariable Long id) {
+        Map<String, Object> resp = new HashMap<>();
+        return userRepository.findById(id).map(existing -> {
+            if (!"ROLE_USER".equals(existing.getRole())) {
+                resp.put("ok", false);
+                resp.put("message", "Only customer users can be activated");
+                return ResponseEntity.badRequest().body(resp);
+            }
+
+            existing.setEnabled(true);
+            existing.setActive(true);
+            User saved = userRepository.save(existing);
+            resp.put("ok", true);
+            resp.put("user", saved);
+            return ResponseEntity.ok(resp);
+        }).orElseGet(() -> {
+            resp.put("ok", false);
+            resp.put("message", "User not found");
+            return ResponseEntity.status(404).body(resp);
+        });
     }
 }

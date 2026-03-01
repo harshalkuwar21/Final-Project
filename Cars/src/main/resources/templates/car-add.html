@@ -301,12 +301,17 @@
                     <label>Stock Quantity</label>
                     <input name="stockQuantity" type="number" min="1" value="1">
                 </div>
-                <div class="form-group">
+                <div class="form-group" th:if="${!isStaffUser}">
                     <label>Showroom</label>
                     <select name="showroom" required>
                         <option value="">Select showroom</option>
                         <option th:each="sr : ${showrooms}" th:value="${sr.id}" th:text="${sr.name}"></option>
                     </select>
+                </div>
+                <div class="form-group" th:if="${isStaffUser}">
+                    <label>Assigned Showroom</label>
+                    <input type="text" th:value="${assignedShowroomName}" readonly>
+                    <input type="hidden" name="showroom" th:value="${assignedShowroomId}">
                 </div>
                 <div class="form-group">
                     <label>Supplier Info</label>
@@ -316,7 +321,10 @@
                     <label>Images</label>
                     <input name="images" type="file" multiple>
                 </div>
-                <button id="carAddBtn" class="btn-primary" type="submit">+ Add Vehicle</button>
+                <div class="form-group form-group-full" th:if="${showroomAllocationError}" style="color:#b91c1c; font-weight:600;">
+                    <span th:text="${showroomAllocationError}"></span>
+                </div>
+                <button id="carAddBtn" class="btn-primary" type="submit" th:disabled="${showroomAllocationError != null}">+ Add Vehicle</button>
                 <div id="carAddStatus" class="form-group-full" style="color:#666"></div>
             </form>
         </section>

@@ -34,6 +34,7 @@ public class User {
     private double salesTarget;
     private String department;
     private boolean active = true;
+    private Long showroomId;
 
     @PrePersist
     private void prePersist() {

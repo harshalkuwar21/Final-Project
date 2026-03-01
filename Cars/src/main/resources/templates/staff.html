@@ -47,6 +47,7 @@
                 <input id="sEmail" placeholder="Email">
                 <input id="sContact" placeholder="Contact">
                 <select id="sRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
+                <select id="sShowroomId"><option value="">No Showroom</option></select>
                 <input id="sPassword" placeholder="Password (optional)">
                 <button id="sAddBtn" class="btn-primary" onclick="addStaff()">Add Staff</button>
                 <span id="sMsg" style="margin-left:8px;color:#666"></span>
@@ -57,7 +58,7 @@
             <h3>Existing Staff</h3>
             <div id="staffTableWrapper">
                 <table class="staff-table">
-                    <thead><tr><th>Name</th><th>Email</th><th>Contact</th><th>Role</th><th>Actions</th></tr></thead>
+                    <thead><tr><th>Name</th><th>Email</th><th>Contact</th><th>Role</th><th>Showroom</th><th>Actions</th></tr></thead>
                     <tbody id="staffBody"></tbody>
                 </table>
             </div>
@@ -75,6 +76,7 @@
             <input id="eLast" placeholder="Last">
             <input id="eContact" placeholder="Contact">
             <select id="eRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
+            <select id="eShowroomId"><option value="">No Showroom</option></select>
             <label><input type="checkbox" id="eEnabled"> Enabled</label>
             <input id="ePassword" placeholder="New password (optional)">
             <div style="margin-top:8px;"><button class="btn-primary" id="eSaveBtn">Save</button> <button onclick="hideEdit()" class="btn-secondary">Cancel</button></div>

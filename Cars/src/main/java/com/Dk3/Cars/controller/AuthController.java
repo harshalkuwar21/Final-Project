@@ -25,7 +25,7 @@ public class AuthController {
         return "register";
     }
 
-    @GetMapping("/login")
+    @GetMapping({"/login", "/"})
     public String loginPage(HttpSession session) {
         String role = (String) session.getAttribute(SESSION_ROLE);
         if (role != null) {

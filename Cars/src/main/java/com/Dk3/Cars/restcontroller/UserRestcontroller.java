@@ -47,7 +47,7 @@ public class UserRestcontroller {
             String token = tokenService.createToken(user);
 
             // Send email
-            emailService.sendVerificationEmail(user.getEmail(), "http://localhost:9094/verify?token=" + token);
+            emailService.sendVerificationEmail(user.getEmail(), "https://7mf91x75-9094.inc1.devtunnels.ms/verify?token=" + token);
 
             response.put("success", true);
             response.put("message", "Registration successful. Please verify your email.");

@@ -3,6 +3,7 @@ package com.Dk3.Cars.restcontroller;
 import com.Dk3.Cars.entity.Car;
 import com.Dk3.Cars.entity.Sale;
 import com.Dk3.Cars.entity.Showroom;
+import com.Dk3.Cars.entity.User;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.SaleRepository;
 import com.Dk3.Cars.repository.ShowroomRepository;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.servlet.http.HttpSession;
 
 
 
@@ -56,6 +58,26 @@ public class DashboardRestController {
 
     @Autowired
     private TestDriveService testDriveService;
+
+    private boolean isStaffRole(String role) {
+        return role != null && !"ROLE_ADMIN".equals(role) && !"ROLE_USER".equals(role);
+    }
+
+    private User getSessionUser(HttpSession session) {
+        Object userIdObj = session.getAttribute("USER_ID");
+        if (userIdObj == null) return null;
+        Long userId = Long.valueOf(String.valueOf(userIdObj));
+        return userRepository.findById(userId).orElse(null);
+    }
+
+    private boolean canAccessCar(HttpSession session, Car car) {
+        String role = (String) session.getAttribute("USER_ROLE");
+        if (!isStaffRole(role)) return true;
+        User sessionUser = getSessionUser(session);
+        Long staffShowroomId = sessionUser == null ? null : sessionUser.getShowroomId();
+        Long carShowroomId = car != null && car.getShowroom() != null ? car.getShowroom().getId() : null;
+        return staffShowroomId != null && staffShowroomId.equals(carShowroomId);
+    }
 
     @GetMapping("/stats")
     public Map<String, Object> getStats() {
@@ -259,6 +281,10 @@ public class DashboardRestController {
                     m.put("last", u.getLast());
                     m.put("email", u.getEmail());
                     m.put("contact", u.getContact());
+                    m.put("showroomId", u.getShowroomId());
+                    String showroomName = u.getShowroomId() == null ? null :
+                            showroomRepository.findById(u.getShowroomId()).map(Showroom::getName).orElse(null);
+                    m.put("showroomName", showroomName);
                     return m;
                 }).toList();
     }
@@ -295,6 +321,13 @@ public class DashboardRestController {
         String pwd = (String) body.getOrDefault("password", "changeme123");
         String role = (String) body.getOrDefault("role", "ROLE_STAFF");
         boolean enabled = Boolean.parseBoolean(String.valueOf(body.getOrDefault("enabled", true)));
+        Long showroomId = body.get("showroomId") == null || String.valueOf(body.get("showroomId")).isBlank()
+                ? null : Long.valueOf(String.valueOf(body.get("showroomId")));
+        if (showroomId != null && showroomRepository.findById(showroomId).isEmpty()) {
+            resp.put("ok", false);
+            resp.put("message", "Invalid showroomId");
+            return resp;
+        }
 
         com.Dk3.Cars.entity.User u = new com.Dk3.Cars.entity.User();
         u.setFirst(first);
@@ -304,6 +337,7 @@ public class DashboardRestController {
         u.setPassword(passwordEncoder.encode(pwd));
         u.setRole(role);
         u.setEnabled(enabled);
+        u.setShowroomId(showroomId);
 
         userRepository.save(u);
         resp.put("ok", true);
@@ -326,6 +360,20 @@ public class DashboardRestController {
         if (body.containsKey("contact")) u.setContact((String) body.get("contact"));
         if (body.containsKey("role")) u.setRole((String) body.get("role"));
         if (body.containsKey("enabled")) u.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
+        if (body.containsKey("showroomId")) {
+            String showroomVal = String.valueOf(body.get("showroomId"));
+            if (showroomVal == null || showroomVal.isBlank() || "null".equalsIgnoreCase(showroomVal)) {
+                u.setShowroomId(null);
+            } else {
+                Long parsedShowroomId = Long.valueOf(showroomVal);
+                if (showroomRepository.findById(parsedShowroomId).isEmpty()) {
+                    resp.put("ok", false);
+                    resp.put("message", "Invalid showroomId");
+                    return resp;
+                }
+                u.setShowroomId(parsedShowroomId);
+            }
+        }
         if (body.containsKey("password")) {
             String pwd = (String) body.get("password");
             if (pwd != null && !pwd.trim().isEmpty()) u.setPassword(passwordEncoder.encode(pwd));
@@ -358,8 +406,21 @@ public class DashboardRestController {
     }
 
     @GetMapping("/showrooms/{id}/cars")
-    public java.util.List<java.util.Map<String, Object>> getCarsByShowroom(@PathVariable Long id) {
-        return carRepository.findByShowroomIdOrderByIdDesc(id)
+    public java.util.List<java.util.Map<String, Object>> getCarsByShowroom(@PathVariable Long id, HttpSession session) {
+        Long targetShowroomId = id;
+        String role = (String) session.getAttribute("USER_ROLE");
+        if (isStaffRole(role)) {
+            User sessionUser = getSessionUser(session);
+            if (sessionUser == null || sessionUser.getShowroomId() == null) {
+                return java.util.Collections.emptyList();
+            }
+            if (!sessionUser.getShowroomId().equals(id)) {
+                return java.util.Collections.emptyList();
+            }
+            targetShowroomId = sessionUser.getShowroomId();
+        }
+
+        return carRepository.findByShowroomIdOrderByIdDesc(targetShowroomId)
                 .stream()
                 .map(c -> {
                     java.util.Map<String, Object> m = new java.util.HashMap<>();
@@ -376,8 +437,14 @@ public class DashboardRestController {
     }
 
     @PostMapping("/cars/{id}/sell")
-    public java.util.Map<String, Object> sellCar(@PathVariable Long id) {
+    public java.util.Map<String, Object> sellCar(@PathVariable Long id, HttpSession session) {
         Car car = carRepository.findById(id).orElseThrow();
+        if (!canAccessCar(session, car)) {
+            java.util.Map<String, Object> denied = new java.util.HashMap<>();
+            denied.put("ok", false);
+            denied.put("message", "Access denied for this vehicle");
+            return denied;
+        }
         car.setSold(true);
         carRepository.save(car);
         java.util.Map<String, Object> resp = new java.util.HashMap<>();
@@ -398,10 +465,31 @@ public class DashboardRestController {
             @RequestParam(required = false) String engineNo,
             @RequestParam(required = false) String purchaseDate,
             @RequestParam(required = false) String supplierInfo,
-            @RequestParam Long showroom,
+            @RequestParam(required = false) Long showroom,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "1") Integer stockQuantity,
-            @RequestParam(required = false) MultipartFile[] images) {
+            @RequestParam(required = false) MultipartFile[] images,
+            HttpSession session) {
+
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        String role = (String) session.getAttribute("USER_ROLE");
+        Long effectiveShowroomId = showroom;
+
+        if (isStaffRole(role)) {
+            User sessionUser = getSessionUser(session);
+            if (sessionUser == null || sessionUser.getShowroomId() == null) {
+                response.put("success", false);
+                response.put("message", "No showroom allocated to this staff account.");
+                return response;
+            }
+            effectiveShowroomId = sessionUser.getShowroomId();
+        }
+
+        if (effectiveShowroomId == null) {
+            response.put("success", false);
+            response.put("message", "Showroom is required.");
+            return response;
+        }
 
         Car car = new Car();
         car.setBrand(brand);
@@ -417,10 +505,8 @@ public class DashboardRestController {
         car.setStatus(status != null ? status : "Available");
         car.setStockQuantity(stockQuantity);
 
-        if (showroom != null) {
-            Showroom sr = showroomRepository.findById(showroom).orElse(null);
-            car.setShowroom(sr);
-        }
+        Showroom sr = showroomRepository.findById(effectiveShowroomId).orElse(null);
+        car.setShowroom(sr);
 
         if (purchaseDate != null && !purchaseDate.isEmpty()) {
             try {
@@ -456,17 +542,29 @@ public class DashboardRestController {
             }
         }
 
-        java.util.Map<String, Object> response = new java.util.HashMap<>();
         response.put("success", true);
         response.put("message", "Vehicle added successfully!");
         response.put("carId", savedCar.getId());
-        response.put("redirectUrl", "/cars/showroom/" + showroom);
+        response.put("redirectUrl", "/cars/showroom/" + effectiveShowroomId);
         return response;
     }
 
     @GetMapping("/cars")
-    public java.util.List<java.util.Map<String, Object>> getAllCars() {
-        return carRepository.findAll()
+    public java.util.List<java.util.Map<String, Object>> getAllCars(HttpSession session) {
+        String role = (String) session.getAttribute("USER_ROLE");
+        java.util.List<Car> cars;
+
+        if (isStaffRole(role)) {
+            User sessionUser = getSessionUser(session);
+            if (sessionUser == null || sessionUser.getShowroomId() == null) {
+                return java.util.Collections.emptyList();
+            }
+            cars = carRepository.findByShowroomIdOrderByIdDesc(sessionUser.getShowroomId());
+        } else {
+            cars = carRepository.findAll();
+        }
+
+        return cars
                 .stream()
                 .map(c -> {
                     java.util.Map<String, Object> m = new java.util.HashMap<>();
@@ -807,7 +905,7 @@ public class DashboardRestController {
 
 
     @GetMapping("/cars/{id}")
-    public Map<String, Object> getCarById(@PathVariable Long id) {
+    public Map<String, Object> getCarById(@PathVariable Long id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -816,6 +914,12 @@ public class DashboardRestController {
             if (car == null) {
                 response.put("success", false);
                 response.put("message", "Car not found");
+                return response;
+            }
+
+            if (!canAccessCar(session, car)) {
+                response.put("success", false);
+                response.put("message", "Access denied for this vehicle");
                 return response;
             }
 
@@ -833,7 +937,7 @@ public class DashboardRestController {
 
 
     @DeleteMapping("/cars/{id}")
-    public Map<String, Object> deleteCar(@PathVariable Long id) {
+    public Map<String, Object> deleteCar(@PathVariable Long id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -842,6 +946,12 @@ public class DashboardRestController {
             if (car == null) {
                 response.put("success", false);
                 response.put("message", "Car not found");
+                return response;
+            }
+
+            if (!canAccessCar(session, car)) {
+                response.put("success", false);
+                response.put("message", "Access denied for this vehicle");
                 return response;
             }
 
@@ -860,7 +970,7 @@ public class DashboardRestController {
     }
 
     @PostMapping("/cars/{id}/mark-sold")
-    public Map<String, Object> markCarSold(@PathVariable Long id) {
+    public Map<String, Object> markCarSold(@PathVariable Long id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -869,6 +979,12 @@ public class DashboardRestController {
             if (car == null) {
                 response.put("success", false);
                 response.put("message", "Car not found");
+                return response;
+            }
+
+            if (!canAccessCar(session, car)) {
+                response.put("success", false);
+                response.put("message", "Access denied for this vehicle");
                 return response;
             }
 
@@ -889,7 +1005,7 @@ public class DashboardRestController {
     }
 
     @PostMapping("/cars/{id}/mark-available")
-    public Map<String, Object> markCarAvailable(@PathVariable Long id) {
+    public Map<String, Object> markCarAvailable(@PathVariable Long id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -898,6 +1014,12 @@ public class DashboardRestController {
             if (car == null) {
                 response.put("success", false);
                 response.put("message", "Car not found");
+                return response;
+            }
+
+            if (!canAccessCar(session, car)) {
+                response.put("success", false);
+                response.put("message", "Access denied for this vehicle");
                 return response;
             }
 
