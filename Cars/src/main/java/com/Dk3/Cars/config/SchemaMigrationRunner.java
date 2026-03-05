@@ -38,6 +38,41 @@ public class SchemaMigrationRunner implements ApplicationRunner {
         ensureColumn("car", "review_fuel_economy", "double null");
         ensureColumn("car", "review_comfort", "double null");
         ensureColumn("car", "faq_details", "text null");
+
+        if (tableExists("booking")) {
+            ensureColumn("booking", "road_tax_amount", "double null");
+            ensureColumn("booking", "fastag_charges", "double null");
+            ensureColumn("booking", "handling_charges", "double null");
+            ensureColumn("booking", "extended_warranty_amount", "double null");
+            ensureColumn("booking", "tcs_amount", "double null");
+            ensureColumn("booking", "down_payment_verified", "bit null");
+            ensureColumn("booking", "pre_verification_status", "varchar(255) null");
+            ensureColumn("booking", "customer_name_matched", "bit null");
+            ensureColumn("booking", "pre_verification_remarks", "text null");
+            ensureColumn("booking", "pre_verified_by", "varchar(255) null");
+            ensureColumn("booking", "pre_verified_at", "datetime(6) null");
+            ensureColumn("booking", "insurance_company_name", "varchar(255) null");
+            ensureColumn("booking", "insurance_policy_number", "varchar(255) null");
+            ensureColumn("booking", "insurance_document_url", "varchar(1000) null");
+            ensureColumn("booking", "insurance_generated_at", "datetime(6) null");
+            ensureColumn("booking", "form20_submitted", "bit null");
+            ensureColumn("booking", "form21_submitted", "bit null");
+            ensureColumn("booking", "form22_submitted", "bit null");
+            ensureColumn("booking", "invoice_submitted_to_rto", "bit null");
+            ensureColumn("booking", "insurance_submitted_to_rto", "bit null");
+            ensureColumn("booking", "rto_authority", "varchar(255) null");
+            ensureColumn("booking", "rto_application_status", "varchar(255) null");
+            ensureColumn("booking", "temporary_registration_number", "varchar(255) null");
+            ensureColumn("booking", "temporary_registration_url", "varchar(1000) null");
+            ensureColumn("booking", "rto_applied_at", "datetime(6) null");
+            ensureColumn("booking", "original_documents_verified", "bit null");
+            ensureColumn("booking", "physical_verification_done", "bit null");
+            ensureColumn("booking", "delivery_note_signed", "bit null");
+            ensureColumn("booking", "delivery_completed_at", "datetime(6) null");
+            ensureColumn("booking", "final_invoice_url", "varchar(1000) null");
+            ensureColumn("booking", "warranty_document_url", "varchar(1000) null");
+            ensureColumn("booking", "loan_document_url", "varchar(1000) null");
+        }
     }
 
     private boolean tableExists(String table) {

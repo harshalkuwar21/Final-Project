@@ -207,6 +207,32 @@
         return "Rs " + Number(value || 0).toLocaleString("en-IN");
     }
 
+    function parseColorOptions(car) {
+        const colors = [];
+        if (car.colorOptions) {
+            car.colorOptions.split("|").forEach(c => {
+                const p = c.split("~");
+                if (p.length >= 3) colors.push({ name: p[0].trim(), hex: p[1].trim(), image: p[2].trim() });
+            });
+        }
+        return colors;
+    }
+
+    function resolveGalleryImages(car) {
+        if (car.imageUrls && car.imageUrls.length) return car.imageUrls;
+        const colors = parseColorOptions(car);
+        const urls = [...new Set(colors.map(c => c.image).filter(Boolean))];
+        return urls.length ? urls : ["/images/car.jpg"];
+    }
+
+    function getPrimaryMileage(car) {
+        if (car.mileage && car.mileage.trim()) return car.mileage;
+        if (!car.mileageDetails) return "N/A";
+        const first = car.mileageDetails.split("|")[0] || "";
+        const parts = first.split(":");
+        return parts.length >= 2 ? parts.slice(1).join(":").trim() : "N/A";
+    }
+
     function show(n) {
         if (!imgs.length) return;
         imgs.forEach(i => i.classList.remove("active"));
@@ -257,11 +283,11 @@
         const specGrid = document.getElementById("specGrid");
         const specs = [
             { k: "Price", v: formatINR(car.price) },
-            { k: "Fuel Type", v: car.fuelType || "N/A" },
-            { k: "Transmission", v: car.transmission || "N/A" },
-            { k: "Mileage", v: car.mileage || "N/A" },
-            { k: "Color", v: car.color || "N/A" },
-            { k: "Stock", v: String(car.stockQuantity ?? "N/A") }
+            { k: "Engine", v: car.engineCc || "N/A" },
+            { k: "Fuel Type", v: car.fuelOptions || car.fuelType || "N/A" },
+            { k: "Transmission", v: car.transmissionOptions || car.transmission || "N/A" },
+            { k: "Seating Capacity", v: car.seatingCapacity || "N/A" },
+            { k: "Safety Rating", v: car.safetyRating || "N/A" }
         ];
         specGrid.innerHTML = specs.map(s => `<div class="spec"><b>${s.k}</b><br><br>${s.v}</div>`).join("");
     }
@@ -314,15 +340,9 @@
         const img = document.getElementById("carColorImg");
         const name = document.getElementById("colorName");
         document.getElementById("colorsTitle").textContent = `${carName} Colours`;
-        const colors = [];
-        if (car.colorOptions) {
-            car.colorOptions.split("|").forEach(c => {
-                const p = c.split("~");
-                if (p.length >= 3) colors.push({name: p[0].trim(), hex: p[1].trim(), image: p[2].trim()});
-            });
-        }
+        const colors = parseColorOptions(car);
         if (!colors.length) {
-            const firstImage = (car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : "/images/car.jpg";
+            const firstImage = resolveGalleryImages(car)[0];
             colors.push({name: car.color || "Default", hex: "#444", image: firstImage});
         }
         img.src = colors[0].image;
@@ -358,7 +378,7 @@
     function toggleFAQ(el) {
         const item = el.parentElement;
         item.classList.toggle("open");
-        el.querySelector("span").textContent = item.classList.contains("open") ? "−" : "+";
+        el.querySelector("span").textContent = item.classList.contains("open") ? "-" : "+";
     }
 
     function populateFaq(car) {
@@ -392,14 +412,15 @@
         document.getElementById("detailVersion").textContent = car.variant || `${car.transmission || "Standard"} ${car.fuelType || "Fuel"}`;
         document.getElementById("detailCity").textContent = car.showroom?.city || "Nashik";
         document.getElementById("variantTitle").textContent = `${carName} Variants`;
-        buildCarousel(car.imageUrls || []);
+        const galleryUrls = resolveGalleryImages(car);
+        buildCarousel(galleryUrls);
         populateSpecs(car);
         populateMileage(car);
         populateVariants(car, carName);
         populateColors(car, carName);
         populateReviews(car, carName);
         populateFaq(car);
-        populateImages(car.imageUrls || [], carName);
+        populateImages(galleryUrls, carName);
         document.getElementById("buyNowBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
         document.getElementById("offerBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
     }
@@ -429,3 +450,4 @@
 </script>
 </body>
 </html>
+

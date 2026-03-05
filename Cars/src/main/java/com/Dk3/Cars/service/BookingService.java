@@ -1,6 +1,8 @@
 package com.Dk3.Cars.service;
 
 import com.Dk3.Cars.entity.Booking;
+import com.Dk3.Cars.entity.PaymentStage;
+import com.Dk3.Cars.repository.PaymentStageRepository;
 import com.Dk3.Cars.repository.BookingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ public class BookingService {
     private PdfService pdfService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private PaymentStageRepository paymentStageRepository;
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
@@ -99,14 +103,46 @@ public class BookingService {
         if ("Approved".equalsIgnoreCase(workflowStatus)) {
             booking.setStatus("Confirmed");
             booking.setWorkflowStatus("Approved");
+            markStageStatus(booking.getId(), "Final Amount Received", "Completed", "Full payment approved by staff.");
+            markStageStatus(booking.getId(), "Delivery Ready", "Pending", "Documents sent. Delivery preparation in progress.");
+            generateBookingDocsAndNotify(booking);
+        }
+        if ("Payment Verified".equalsIgnoreCase(workflowStatus) && isFullPaymentBooking(booking)) {
+            booking.setStatus("Confirmed");
+            booking.setWorkflowStatus("Approved");
+            markStageStatus(booking.getId(), "Final Amount Received", "Completed", "Full payment approved by staff.");
+            markStageStatus(booking.getId(), "Delivery Ready", "Pending", "Documents sent. Delivery preparation in progress.");
             generateBookingDocsAndNotify(booking);
         }
 
         return Optional.of(bookingRepository.save(booking));
     }
 
+    private boolean isFullPaymentBooking(Booking booking) {
+        return booking == null || booking.getPaymentOption() == null || !"Loan Required".equalsIgnoreCase(booking.getPaymentOption());
+    }
+
+    private void markStageStatus(Long bookingId, String stageName, String stageStatus, String remarks) {
+        if (bookingId == null || stageName == null) return;
+        List<PaymentStage> stages = paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(bookingId);
+        for (PaymentStage stage : stages) {
+            if (stage.getStageName() != null && stageName.equalsIgnoreCase(stage.getStageName())) {
+                stage.setStageStatus(stageStatus);
+                stage.setRemarks(remarks);
+                paymentStageRepository.save(stage);
+                return;
+            }
+        }
+    }
+
     private void generateBookingDocsAndNotify(Booking booking) {
         try {
+            if (booking.getBookingReceiptUrl() != null && !booking.getBookingReceiptUrl().isBlank()
+                    && booking.getProformaInvoiceUrl() != null && !booking.getProformaInvoiceUrl().isBlank()
+                    && booking.getAllotmentLetterUrl() != null && !booking.getAllotmentLetterUrl().isBlank()
+                    && booking.getDeliveryConfirmationLetterUrl() != null && !booking.getDeliveryConfirmationLetterUrl().isBlank()) {
+                return;
+            }
             Map<String, byte[]> docs = new LinkedHashMap<>();
             docs.put("Booking-Confirmation-Receipt-" + booking.getId() + ".pdf",
                     pdfService.generateBookingDocumentPdf(booking, "Booking Confirmation Receipt",

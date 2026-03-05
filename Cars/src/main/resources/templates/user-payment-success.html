@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f8ff; color: #13223b; }
+        .wrap { max-width: 680px; margin: 70px auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 12px 30px rgba(19,34,59,.1); text-align: center; }
+        h2 { margin-top: 0; color: #148a3f; }
+        .meta { margin: 10px 0; color: #465a7b; }
+        .btns { margin-top: 18px; display: flex; justify-content: center; gap: 10px; }
+        a { text-decoration: none; padding: 10px 16px; border-radius: 8px; }
+        .primary { background: #005bbb; color: #fff; }
+        .light { background: #edf4ff; color: #004a9a; border: 1px solid #c9dcff; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h2>Payment Completed Successfully</h2>
+    <div class="meta">Your booking request has been submitted.</div>
+    <div class="meta" id="bid"></div>
+    <div class="btns">
+        <a class="primary" href="/user-panel/bookings">View My Bookings</a>
+        <a class="light" href="/user-dashboard">Back to Dashboard</a>
+    </div>
+</div>
+<script>
+    const bid = new URLSearchParams(location.search).get("bookingId");
+    if (bid) document.getElementById("bid").textContent = `Booking ID: #${bid}`;
+</script>
+</body>
+</html>

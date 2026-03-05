@@ -30,6 +30,27 @@ public class Booking {
     private String paymentMode;
     private String transactionId;
     private String paymentScreenshotUrl;
+    private String paymentGateway;
+    private String paymentOutcome;
+    private String paymentOption; // Full Payment / Loan Required
+    private Double downPaymentAmount;
+    private Boolean downPaymentVerified;
+    private String downPaymentMethod;
+    private String downPaymentReference;
+    private String downPaymentReceiptUrl;
+    private Double gstAmount;
+    private Double rtoCharges;
+    private Double roadTaxAmount;
+    private Double insuranceAmount;
+    private Double fastagCharges;
+    private Double handlingCharges;
+    private Double accessoriesAmount;
+    private Double extendedWarrantyAmount;
+    private Double tcsAmount;
+    private Double totalAmount;
+    private Double paidAmount;
+    private Double remainingAmount;
+    private String escrowStatus; // Secured / Released
     private LocalDate expectedDeliveryDate;
     private String deliveryTimeSlot;
     private String deliveryType; // Showroom Pickup / Home Delivery
@@ -58,6 +79,40 @@ public class Booking {
     private String allotmentLetterUrl;
     private String deliveryConfirmationLetterUrl;
 
+    // Step 2: Digital pre-verification
+    private String preVerificationStatus; // Pending / Pre-Verified / Rejected
+    private Boolean customerNameMatched;
+    private String preVerificationRemarks;
+    private String preVerifiedBy;
+    private LocalDateTime preVerifiedAt;
+
+    // Step 4: Insurance generated
+    private String insuranceCompanyName; // ICICI Lombard / HDFC ERGO
+    private String insurancePolicyNumber;
+    private String insuranceDocumentUrl;
+    private LocalDateTime insuranceGeneratedAt;
+
+    // Step 5: RTO applied and temporary registration
+    private Boolean form20Submitted;
+    private Boolean form21Submitted;
+    private Boolean form22Submitted;
+    private Boolean invoiceSubmittedToRto;
+    private Boolean insuranceSubmittedToRto;
+    private String rtoAuthority;
+    private String rtoApplicationStatus; // Not Applied / Applied / TR Issued
+    private String temporaryRegistrationNumber;
+    private String temporaryRegistrationUrl;
+    private LocalDateTime rtoAppliedAt;
+
+    // Step 6: Delivery handover
+    private Boolean originalDocumentsVerified;
+    private Boolean physicalVerificationDone;
+    private Boolean deliveryNoteSigned;
+    private LocalDateTime deliveryCompletedAt;
+    private String finalInvoiceUrl;
+    private String warrantyDocumentUrl;
+    private String loanDocumentUrl;
+
     @PrePersist
     private void prePersist() {
         if (bookingDate == null) {
@@ -71,6 +126,15 @@ public class Booking {
         }
         if (workflowStatus == null || workflowStatus.isBlank()) {
             workflowStatus = status;
+        }
+        if (preVerificationStatus == null || preVerificationStatus.isBlank()) {
+            preVerificationStatus = "Pending";
+        }
+        if (rtoApplicationStatus == null || rtoApplicationStatus.isBlank()) {
+            rtoApplicationStatus = "Not Applied";
+        }
+        if (rtoAuthority == null || rtoAuthority.isBlank()) {
+            rtoAuthority = "Ministry of Road Transport and Highways";
         }
     }
 }

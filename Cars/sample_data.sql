@@ -103,3 +103,47 @@ INSERT INTO setting (id, name, value) VALUES
 INSERT INTO verification_token (id, token, user_id, expiry_date) VALUES
 (1, 'VERIF-TOKEN-USER-001', 1, '2026-03-01 00:00:00'),
 (2, 'VERIF-TOKEN-USER-002', 2, '2026-03-05 00:00:00');
+
+-- Sample Bank Details
+INSERT INTO bank_details (id, bank_name, account_holder_name, account_number_masked, ifsc_code, branch_name, active) VALUES
+(1, 'State Bank of India', 'DK3 Cars Pvt Ltd', 'XXXXXX5678', 'SBIN0000456', 'Nashik Main', true),
+(2, 'HDFC Bank', 'DK3 Cars Pvt Ltd', 'XXXXXX4321', 'HDFC0001984', 'College Road', true),
+(3, 'ICICI Bank', 'DK3 Cars Pvt Ltd', 'XXXXXX8899', 'ICIC0000371', 'CIDCO', true);
+
+-- -------------------------------------------------------
+-- Full Car Details Sample (for user-car-details page testing)
+-- -------------------------------------------------------
+INSERT INTO car (
+    brand, model, variant, fuel_type, transmission, mileage, color, price, status,
+    engine_cc, safety_rating, seating_capacity, fuel_options, transmission_options,
+    mileage_details, variant_details, color_options,
+    review_score, review_exterior, review_performance, review_value, review_fuel_economy, review_comfort,
+    faq_details, vin, engine_no, purchase_date, supplier_info, sold, stock_quantity, showroom_id
+) VALUES (
+    'Kia',
+    'Carens Clavis',
+    'HTE Petrol 1.5L Manual 7 STR',
+    'Petrol',
+    'Manual',
+    '16 kmpl',
+    'Intense Red',
+    1311000.00,
+    'Available',
+    '1482 cc / 1493 cc / 1497 cc',
+    '4 Star',
+    '6 & 7 Seater',
+    'Petrol & Diesel',
+    'Manual, Clutchless Manual (IMT), Automatic',
+    'Petrol (Manual):16 kmpl|Petrol - Automatic (DCT):16.66 kmpl|Diesel (Manual):19.54 kmpl|Diesel - Automatic (TC):17.5 kmpl|Petrol - Clutchless Manual (IMT):15.95 kmpl',
+    'Carens Clavis HTE~Petrol 1.5L Manual 7 STR - 113 bhp - 144 Nm~1311000|Carens Clavis HTE (O)~Petrol 1.5L Turbo Manual 7 STR - 158 bhp - 253 Nm - 15.95 kmpl~1524000|Carens Clavis HTE (O) Diesel~Diesel 1.5L Turbo Manual 7 STR - 114 bhp - 250 Nm - 19.54 kmpl~1682000|Carens Clavis HTK Plus~Diesel 1.5L Turbo Manual 7 STR - 114 bhp - 250 Nm - 19.54 kmpl~1904000|Carens Clavis HTX~Petrol 1.5L Turbo Clutchless Manual (IMT) 7 STR - 158 bhp - 253 Nm - 15.95 kmpl~2117000|Carens Clavis HTX (O)~Petrol 1.5L Turbo Automatic (DCT) 7 STR - 158 bhp - 253 Nm - 16.66 kmpl~2277000',
+    'Intense Red~#fc0505~https://imgd.aeplcdn.com/370x208/n/tpej3cb_1726565.jpg?q=80|Gravity Grey~#5c5c5c~https://imgd.aeplcdn.com/600x337/n/afn7ufb_1833767.jpg?q=80|Pewter Olive~#05471b~https://imgd.aeplcdn.com/600x337/n/gs57ufb_1833773.jpg?q=80|Imperial Blue~#202151~https://imgd.aeplcdn.com/600x337/n/p077ufb_1833765.jpg?q=80',
+    4.7, 4.8, 4.6, 4.7, 4.2, 4.9,
+    'What is the on road price of Kia Carens Clavis base model?~The on road price starts around Rs. 13.11 Lakh including registration, insurance and charges.|What is the real world versus claimed mileage of Kia Carens Clavis?~Claimed mileage is up to 19.54 kmpl while real world mileage is typically lower by driving conditions.|How many airbags does Kia Carens Clavis get?~Top variants provide up to 6 airbags including front, side and curtain airbags.|What is the on road price of Kia Carens Clavis top model?~The top model on-road price goes up to around Rs. 24.52 Lakh depending on city taxes.',
+    'VIN-KIA-CARENS-CLAVIS-SQL-001',
+    'ENG-KIA-CARENS-CLAVIS-SQL-001',
+    '2026-02-01',
+    'Kia India Pvt Ltd',
+    false,
+    5,
+    1
+);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Failed</title>
+    <style>
+        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #fff6f6; color: #2f1c1c; }
+        .wrap { max-width: 680px; margin: 70px auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 12px 30px rgba(66,17,17,.1); text-align: center; }
+        h2 { margin-top: 0; color: #c83535; }
+        .meta { margin: 10px 0; color: #6f4646; }
+        .btns { margin-top: 18px; display: flex; justify-content: center; gap: 10px; }
+        a { text-decoration: none; padding: 10px 16px; border-radius: 8px; }
+        .primary { background: #005bbb; color: #fff; }
+        .light { background: #fff; color: #7d3030; border: 1px solid #f0c7c7; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h2>Payment Failed</h2>
+    <div class="meta">Your transaction could not be completed.</div>
+    <div class="meta">Please retry booking payment with valid transaction details.</div>
+    <div class="btns">
+        <a class="primary" href="/user-panel/buy-now">Retry Payment</a>
+        <a class="light" href="/user-dashboard">Back to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

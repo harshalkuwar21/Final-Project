@@ -460,6 +460,7 @@ public class DashboardRestController {
             @RequestParam(required = false) String color,
             @RequestParam(required = false) String fuelType,
             @RequestParam(required = false) String transmission,
+            @RequestParam(required = false) String mileage,
             @RequestParam Double price,
             @RequestParam(required = false) String engineCc,
             @RequestParam(required = false) String safetyRating,
@@ -513,6 +514,7 @@ public class DashboardRestController {
         car.setColor(color);
         car.setFuelType(fuelType);
         car.setTransmission(transmission);
+        car.setMileage(mileage);
         car.setPrice(price);
         car.setEngineCc(engineCc);
         car.setSafetyRating(safetyRating);

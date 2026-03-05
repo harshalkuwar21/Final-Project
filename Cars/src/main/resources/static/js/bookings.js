@@ -41,7 +41,12 @@ function displayBookings(bookings) {
             <td>${booking.bookingDate || "N/A"}</td>
             <td>${renderDocuments(booking)}</td>
             <td class="actions">
+                ${showPreVerifyButton(booking) ? `<button class="action-btn" style="background:#0f766e;color:#fff;" title="Pre-Verify Documents" onclick="preVerifyBooking(${booking.id})"><i class="fas fa-user-check"></i></button>` : ""}
+                ${showLoanApproveButton(booking) ? `<button class="action-btn" style="background:#7c3aed;color:#fff;" title="Approve Loan" onclick="approveLoan(${booking.id})"><i class="fas fa-building-columns"></i></button>` : ""}
+                ${showFullPaymentCompleteButton(booking) ? `<button class="action-btn" style="background:#2563eb;color:#fff;" title="Mark Payment Paid" onclick="completeFullPayment(${booking.id})"><i class="fas fa-wallet"></i></button>` : ""}
                 ${showConfirmButton(booking) ? `<button class="action-btn" style="background:#2dd36f;color:#fff;" title="Confirm Booking" onclick="confirmBooking(${booking.id}, '${booking.expectedDeliveryDate || ""}')"><i class="fas fa-check"></i></button>` : ""}
+                ${showDownPaymentVerifyButton(booking) ? `<button class="action-btn" style="background:#f59e0b;color:#fff;" title="Verify Down Payment" onclick="verifyDownPayment(${booking.id})"><i class="fas fa-money-check-dollar"></i></button>` : ""}
+                <button class="action-btn" style="background:#0ea5e9;color:#fff;" title="View Documents" onclick="viewBookingDocuments(${booking.id})"><i class="fas fa-file-lines"></i></button>
                 <button class="action-btn edit-btn" title="Edit" onclick="editBooking(${booking.id})">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -58,22 +63,140 @@ function statusClass(status) {
 }
 
 function renderDocuments(booking) {
-    const docs = [];
-    if (booking.aadhaarPhotoUrl) docs.push(`<a href="${booking.aadhaarPhotoUrl}" target="_blank">Aadhaar</a>`);
-    if (booking.panPhotoUrl) docs.push(`<a href="${booking.panPhotoUrl}" target="_blank">PAN</a>`);
-    if (booking.signaturePhotoUrl) docs.push(`<a href="${booking.signaturePhotoUrl}" target="_blank">Sign</a>`);
-    if (booking.passportPhotoUrl) docs.push(`<a href="${booking.passportPhotoUrl}" target="_blank">Photo</a>`);
-    if (booking.paymentScreenshotUrl) docs.push(`<a href="${booking.paymentScreenshotUrl}" target="_blank">Payment</a>`);
-    if (booking.bookingReceiptUrl) docs.push(`<a href="${booking.bookingReceiptUrl}" target="_blank">Receipt</a>`);
-    if (booking.proformaInvoiceUrl) docs.push(`<a href="${booking.proformaInvoiceUrl}" target="_blank">Invoice</a>`);
-    if (booking.allotmentLetterUrl) docs.push(`<a href="${booking.allotmentLetterUrl}" target="_blank">Allotment</a>`);
-    if (booking.deliveryConfirmationLetterUrl) docs.push(`<a href="${booking.deliveryConfirmationLetterUrl}" target="_blank">Delivery</a>`);
-    return docs.length ? docs.join(" | ") : "N/A";
+    const hasAnyDocument = Boolean(
+        booking.aadhaarPhotoUrl ||
+        booking.panPhotoUrl ||
+        booking.signaturePhotoUrl ||
+        booking.passportPhotoUrl ||
+        booking.paymentScreenshotUrl ||
+        booking.bookingReceiptUrl ||
+        booking.proformaInvoiceUrl ||
+        booking.allotmentLetterUrl ||
+        booking.deliveryConfirmationLetterUrl
+    );
+    return hasAnyDocument ? "Available (use View Documents)" : "N/A";
 }
 
+function viewBookingDocuments(id) {
+    window.open(`/bookings/details/${id}`, "_blank");
+}
 function showConfirmButton(booking) {
     const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
-    return !["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s);
+    if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
+        return false;
+    }
+    const remainingAmount = Number(booking.remainingAmount || 0);
+    const totalAmount = Number(booking.totalAmount || 0);
+    if (totalAmount > 0) {
+        return remainingAmount <= 0;
+    }
+    return s.includes("payment verified");
+}
+
+function showPreVerifyButton(booking) {
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    const pre = String(booking.preVerificationStatus || "").toLowerCase();
+    if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
+        return false;
+    }
+    if (pre === "pre-verified" || s.includes("pre-verified")) {
+        return false;
+    }
+    return true;
+}
+
+function showFullPaymentCompleteButton(booking) {
+    const paymentOption = String(booking.paymentOption || "Full Payment").toLowerCase();
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
+        return false;
+    }
+
+    if (paymentOption.includes("loan")) {
+        const loanApproved = s.includes("loan approved");
+        if (!loanApproved) return false;
+    }
+
+    const remainingAmount = Number(booking.remainingAmount || 0);
+    return remainingAmount > 0;
+}
+
+function preVerifyBooking(id) {
+    const nameMatched = confirm("Does customer name match across Aadhaar/PAN and booking details?\n\nOK = Yes, names match\nCancel = No, mismatch found");
+    const remarks = prompt("Enter pre-verification remarks (optional):", "") || "";
+    const query = `?nameMatched=${nameMatched}${remarks.trim() ? `&remarks=${encodeURIComponent(remarks.trim())}` : ""}`;
+
+    fetch(`/staff/bookings/${id}/pre-verify${query}`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification(nameMatched ? "Booking pre-verified successfully." : "Booking rejected due to name mismatch.", "success");
+            } else {
+                alert(data.error || "Failed to complete pre-verification");
+            }
+        })
+        .catch(() => alert("Failed to complete pre-verification"));
+}
+
+function showLoanApproveButton(booking) {
+    const paymentOption = String(booking.paymentOption || "").toLowerCase();
+    if (!paymentOption.includes("loan")) return false;
+
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
+        return false;
+    }
+    if (s.includes("loan approved")) return false;
+    return true;
+}
+
+function approveLoan(id) {
+    const bankName = prompt(
+        "Enter loan bank name exactly as below:\n1) State Bank of India\n2) HDFC Bank",
+        "State Bank of India"
+    );
+    if (!bankName || !bankName.trim()) return;
+
+    const query = `?bankName=${encodeURIComponent(bankName.trim())}`;
+    fetch(`/staff/bookings/${id}/loan-approve${query}`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification("Loan approved successfully.", "success");
+            } else {
+                alert(data.error || "Failed to approve loan");
+            }
+        })
+        .catch(() => alert("Failed to approve loan"));
+}
+
+function showDownPaymentVerifyButton(booking) {
+    const downPayment = Number(booking.downPaymentAmount || 0);
+    if (downPayment <= 0) return false;
+    return booking.downPaymentVerified !== true;
+}
+
+function completeFullPayment(id) {
+    const paymentMethod = prompt("Enter payment method (Cash / UPI / Card / Bank Transfer):", "Cash") || "Cash";
+    const reference = prompt("Enter transaction/reference number (optional):", "") || "";
+    const params = new URLSearchParams();
+    if (paymentMethod && paymentMethod.trim()) params.set("paymentMethod", paymentMethod.trim());
+    if (reference && reference.trim()) params.set("reference", reference.trim());
+    const query = params.toString() ? `?${params.toString()}` : "";
+
+    fetch(`/staff/bookings/${id}/complete-full-payment${query}`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification("Full payment marked completed at showroom.", "success");
+            } else {
+                alert(data.error || "Failed to complete full payment");
+            }
+        })
+        .catch(() => alert("Failed to complete full payment"));
 }
 
 function confirmBooking(id, existingDeliveryDate) {
@@ -91,6 +214,23 @@ function confirmBooking(id, existingDeliveryDate) {
             fallbackConfirm(id);
         })
         .catch(() => fallbackConfirm(id));
+}
+
+function verifyDownPayment(id) {
+    const reference = prompt("Enter down payment transaction/reference number (optional):", "") || "";
+    const query = reference ? `?reference=${encodeURIComponent(reference)}` : "";
+
+    fetch(`/staff/bookings/${id}/verify-down-payment${query}`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification("Down payment marked completed.", "success");
+            } else {
+                alert(data.error || "Failed to verify down payment");
+            }
+        })
+        .catch(() => alert("Failed to verify down payment"));
 }
 
 function fallbackConfirm(id) {
@@ -280,4 +420,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-

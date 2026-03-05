@@ -6,7 +6,7 @@
     <title>Buy Now</title>
     <style>
         body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f7ff; color: #13223b; }
-        .wrap { max-width: 900px; margin: 20px auto; padding: 0 14px; }
+        .wrap { max-width: 1020px; margin: 20px auto; padding: 0 14px; }
         .top, .card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 20px rgba(19,34,59,.08); }
         .top { display: flex; justify-content: space-between; align-items: center; }
         .steps { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
@@ -21,6 +21,13 @@
         .primary { background: #005bbb; color: #fff; }
         .light { background: #edf4ff; color: #004a9a; }
         .msg { margin-top: 10px; font-size: 14px; font-weight: 600; }
+        .sub { margin: 12px 0 6px; font-weight: 700; color: #2b4773; }
+        .hint { font-size: 12px; color: #5b6f90; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .table th, .table td { border: 1px solid #d9e4f6; padding: 8px; font-size: 13px; text-align: left; }
+        .table th { background: #f1f6ff; }
+        .pill { display:inline-block; padding:3px 8px; border-radius:999px; background:#edf4ff; color:#154a92; font-size:12px; }
+        .warn { color: #c43838; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -31,7 +38,7 @@
     </div>
     <div class="steps">
         <div class="step active" id="s1">Step 1 Personal Details</div>
-        <div class="step" id="s2">Step 2 Payment</div>
+        <div class="step" id="s2">Step 2 Payment & Loan</div>
         <div class="step" id="s3">Step 3 Delivery</div>
     </div>
     <div class="card">
@@ -45,7 +52,7 @@
                     <div><label>Aadhaar Number</label><input name="aadhaarNumber" required></div>
                     <div><label>PAN Number</label><input name="panNumber" required></div>
                     <div><label>City</label><input name="city" required></div>
-                    <div><label>State</label><input name="state" required></div>
+                    <div><label>State</label><input id="state" name="state" required></div>
                     <div><label>PIN Code</label><input name="pinCode" required></div>
                     <div><label>Aadhaar Photo</label><input type="file" name="aadhaarPhoto" required></div>
                     <div><label>PAN Photo</label><input type="file" name="panPhoto" required></div>
@@ -56,16 +63,104 @@
             </div>
 
             <div id="step2" class="hidden">
+                <div class="sub">1) Booking Amount Payment (Online)</div>
                 <div class="grid">
-                    <div><label>Booking Amount</label><input name="bookingAmount" type="number" value="10000" required></div>
+                    <div>
+                        <label>Booking Amount (Rs 5,000 - 25,000)</label>
+                        <input name="bookingAmount" id="bookingAmount" type="number" value="10000" min="5000" max="25000" required>
+                    </div>
                     <div><label>Payment Mode</label>
                         <select name="paymentMode" required>
-                            <option>UPI</option><option>Credit Card</option><option>Debit Card</option><option>Net Banking</option>
+                            <option>UPI</option>
+                        </select>
+                    </div>
+                    <div><label>Gateway</label>
+                        <select name="paymentGateway" required>
+                            <option>Razorpay</option><option>Paytm</option><option>Stripe</option>
+                        </select>
+                    </div>
+                    <div><label>Simulate Payment Result</label>
+                        <select name="paymentOutcome" id="paymentOutcome" required>
+                            <option>Success</option><option>Failed</option>
                         </select>
                     </div>
                     <div><label>Transaction ID</label><input name="transactionId" required></div>
                     <div><label>Payment Screenshot</label><input type="file" name="paymentScreenshot" required></div>
                 </div>
+
+                <div class="sub">2) Cost Breakdown & Auto Calculation</div>
+                <div class="grid">
+                    <div><label>Car Price (auto)</label><input id="carPrice" value="0" readonly></div>
+                    <div><label>RTO Registration Charges (auto)</label><input name="rtoCharges" id="rtoCharges" type="number" value="0" readonly></div>
+                    <div><label>Road Tax (auto by state)</label><input name="roadTaxAmount" id="roadTaxAmount" type="number" value="0" readonly></div>
+                    <div><label>Insurance (mandatory, auto)</label><input name="insuranceAmount" id="insuranceAmount" type="number" value="0" readonly></div>
+                    <div><label>FASTag Charges (auto)</label><input name="fastagCharges" id="fastagCharges" type="number" value="500" readonly></div>
+                    <div><label>Handling / Logistics (auto)</label><input name="handlingCharges" id="handlingCharges" type="number" value="8500" readonly></div>
+                    <div><label>TCS (1% if price > 10 lakh)</label><input name="tcsAmount" id="tcsAmount" type="number" value="0" readonly></div>
+                    <div><label>Extended Warranty (optional)</label><input name="extendedWarrantyAmount" id="extendedWarrantyAmount" type="number" value="0"></div>
+                    <div><label>Accessories (optional)</label><input name="accessoriesAmount" id="accessoriesAmount" type="number" value="0"></div>
+                    <div style="display:none;"><label>GST Amount</label><input name="gstAmount" id="gstAmount" type="number" value="0" readonly></div>
+                    <div style="display:none;"><label>Down Payment</label><input name="downPaymentAmount" id="downPaymentAmount" type="number" value="0" readonly></div>
+                    <div><label>Total Amount</label><input id="totalAmountView" readonly></div>
+                    <div><label>Paid Amount</label><input id="paidAmountView" readonly></div>
+                    <div><label>Remaining Amount</label><input id="remainingAmountView" readonly></div>
+                </div>
+                <div id="downWarn" class="warn"></div>
+
+                <input type="hidden" name="paymentOption" id="paymentOption" value="Pending Selection">
+
+                <div class="sub">3) Post-Booking Payment & Loan Selection</div>
+                <div class="hint" style="margin-bottom:8px;">
+                    Booking payment successful झाल्यानंतरच Down Payment / Full Payment / Loan Required option "My Bookings" page वर मिळेल.
+                </div>
+                <div class="grid hidden">
+                    <div><label>Down Payment Method</label>
+                        <select name="downPaymentMethod">
+                            <option value="">Select</option>
+                            <option>Net Banking</option><option>RTGS</option><option>NEFT</option><option>Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div><label>Reference Number</label><input name="downPaymentReference"></div>
+                    <div><label>Receipt Screenshot</label><input type="file" name="downPaymentReceipt"></div>
+                </div>
+
+                <div class="sub hidden">4) Loan Payment System</div>
+                <div class="grid hidden">
+                    <div>
+                        <label>Payment Option</label>
+                        <select>
+                            <option>Full Payment</option>
+                            <option>Loan Required</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="loanFields" class="hidden">
+                    <div class="grid" style="margin-top:10px;">
+                        <div><label>Loan Bank</label><select name="loanBank" id="loanBank"><option value="">Select Bank</option></select></div>
+                        <div><label>Salary</label><input type="number" name="salary"></div>
+                        <div><label>Employment Type</label><select name="employmentType"><option>Salaried</option><option>Self-Employed</option><option>Business</option></select></div>
+                        <div><label>Monthly Income</label><input type="number" name="monthlyIncome" id="monthlyIncome"></div>
+                        <div><label>PAN</label><input name="loanPanNumber"></div>
+                        <div><label>Aadhaar</label><input name="loanAadhaarNumber"></div>
+                        <div><label>Interest Rate (%)</label><input type="number" step="0.1" name="loanInterestRate" id="loanInterestRate" value="9"></div>
+                        <div><label>Tenure (Months)</label><input type="number" name="loanTenureMonths" id="loanTenureMonths" value="60"></div>
+                        <div><label>Estimated EMI</label><input id="emiView" readonly></div>
+                    </div>
+                </div>
+
+                <div class="sub">Installment-Based Payment Tracking</div>
+                <table class="table">
+                    <thead><tr><th>Stage</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr><td>Booking Paid</td><td><span class="pill">Pending</span></td></tr>
+                    <tr><td>Down Payment Paid</td><td><span class="pill">Pending</span></td></tr>
+                    <tr><td>Loan Approved</td><td><span class="pill">Pending</span></td></tr>
+                    <tr><td>Final Amount Received</td><td><span class="pill">Pending</span></td></tr>
+                    <tr><td>Delivery Ready</td><td><span class="pill">Pending</span></td></tr>
+                    </tbody>
+                </table>
+                <div class="hint" style="margin-top:6px;">Security: Use HTTPS, store only transaction IDs, role-based access, and payment logs.</div>
             </div>
 
             <div id="step3" class="hidden">
@@ -100,6 +195,8 @@
 
 <script>
     let step = 1;
+    let currentCarPrice = 0;
+
     function setStep() {
         [1,2,3].forEach(i => {
             document.getElementById("step"+i).classList.toggle("hidden", i !== step);
@@ -111,14 +208,128 @@
     }
     function nextStep() { if (step < 3) { step++; setStep(); } }
     function prevStep() { if (step > 1) { step--; setStep(); } }
+
+    function getNum(id) {
+        const v = parseFloat(document.getElementById(id).value || "0");
+        return Number.isFinite(v) ? v : 0;
+    }
+
+    function calcEmi(principal, annualRate, months) {
+        if (principal <= 0 || annualRate <= 0 || months <= 0) return 0;
+        const r = annualRate / (12 * 100);
+        const f = Math.pow(1 + r, months);
+        return (principal * r * f) / (f - 1);
+    }
+
+    function roadTaxRateByState(stateName) {
+        const s = String(stateName || "").toLowerCase();
+        if (s.includes("maharashtra")) return 0.11;
+        if (s.includes("karnataka")) return 0.13;
+        if (s.includes("delhi")) return 0.10;
+        if (s.includes("gujarat")) return 0.08;
+        if (s.includes("tamil nadu") || s.includes("tamilnadu")) return 0.10;
+        if (s.includes("telangana")) return 0.10;
+        return 0.10;
+    }
+
+    function updateCalculation() {
+        const bookingAmount = getNum("bookingAmount");
+        const stateName = document.querySelector('input[name="state"]').value;
+        const roadTax = currentCarPrice * roadTaxRateByState(stateName);
+        const rto = currentCarPrice * 0.0125;
+        const insurance = Math.max(currentCarPrice * 0.035, 12000);
+        const fastag = 500;
+        const handling = 8500;
+        const tcs = currentCarPrice > 1000000 ? currentCarPrice * 0.01 : 0;
+        const gst = 0;
+        const warranty = getNum("extendedWarrantyAmount");
+        const accessories = getNum("accessoriesAmount");
+        const down = getNum("downPaymentAmount");
+        const total = currentCarPrice + gst + rto + roadTax + insurance + fastag + handling + tcs + warranty + accessories;
+        const paid = bookingAmount + down;
+        const remaining = Math.max(0, total - paid);
+
+        document.getElementById("gstAmount").value = gst.toFixed(2);
+        document.getElementById("rtoCharges").value = rto.toFixed(2);
+        document.getElementById("roadTaxAmount").value = roadTax.toFixed(2);
+        document.getElementById("insuranceAmount").value = insurance.toFixed(2);
+        document.getElementById("fastagCharges").value = fastag.toFixed(2);
+        document.getElementById("handlingCharges").value = handling.toFixed(2);
+        document.getElementById("tcsAmount").value = tcs.toFixed(2);
+
+        document.getElementById("totalAmountView").value = total.toFixed(2);
+        document.getElementById("paidAmountView").value = paid.toFixed(2);
+        document.getElementById("remainingAmountView").value = remaining.toFixed(2);
+
+        const minDown = currentCarPrice * 0.10;
+        const maxDown = currentCarPrice * 0.30;
+        const warn = document.getElementById("downWarn");
+        if (down > 0 && (down < minDown || down > maxDown)) {
+            warn.textContent = `Down payment should be between Rs ${minDown.toFixed(0)} and Rs ${maxDown.toFixed(0)}.`;
+        } else {
+            warn.textContent = "";
+        }
+
+        if (document.getElementById("paymentOption").value === "Loan Required") {
+            const rate = getNum("loanInterestRate") || 9;
+            const months = getNum("loanTenureMonths") || 60;
+            const loanAmount = Math.max(0, currentCarPrice - down);
+            document.getElementById("emiView").value = calcEmi(loanAmount, rate, months).toFixed(2);
+        }
+    }
+
+    async function loadCarAndBanks() {
+        const carId = document.getElementById("carId").value;
+        if (carId) {
+            try {
+                const carRes = await fetch(`/user-panel/api/cars/${carId}`);
+                const carData = await carRes.json();
+                if (carData.ok && carData.car) {
+                    currentCarPrice = Number(carData.car.price || 0);
+                    document.getElementById("carPrice").value = currentCarPrice.toFixed(2);
+                    updateCalculation();
+                }
+            } catch (e) {}
+        }
+        try {
+            const bankRes = await fetch("/user-panel/api/banks");
+            const bankData = await bankRes.json();
+            const sel = document.getElementById("loanBank");
+            if (bankData.ok && Array.isArray(bankData.banks)) {
+                sel.innerHTML = '<option value="">Select Bank</option>' + bankData.banks.map(b => `<option>${b.bankName}</option>`).join("");
+            }
+        } catch (e) {}
+    }
+
     setStep();
 
     const carIdFromQuery = new URLSearchParams(location.search).get("carId");
     if (carIdFromQuery) document.getElementById("carId").value = carIdFromQuery;
 
+    ["bookingAmount","extendedWarrantyAmount","accessoriesAmount","downPaymentAmount","loanInterestRate","loanTenureMonths","paymentOption","state"].forEach(id => {
+        document.getElementById(id).addEventListener("input", () => {
+            document.getElementById("loanFields").classList.toggle("hidden", document.getElementById("paymentOption").value !== "Loan Required");
+            updateCalculation();
+        });
+        document.getElementById(id).addEventListener("change", () => {
+            document.getElementById("loanFields").classList.toggle("hidden", document.getElementById("paymentOption").value !== "Loan Required");
+            updateCalculation();
+        });
+    });
+
+    document.getElementById("carId").addEventListener("change", loadCarAndBanks);
+    document.getElementById("paymentOption").dispatchEvent(new Event("change"));
+    loadCarAndBanks();
+
     document.getElementById("buyNowForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("msg");
+        const paymentOutcome = document.getElementById("paymentOutcome").value;
+        if (paymentOutcome === "Failed") {
+            location.href = "/user-panel/payment-failure";
+            return;
+        }
+
         msg.textContent = "Submitting booking...";
         msg.style.color = "#004a9a";
         const formData = new FormData(e.target);
@@ -126,10 +337,7 @@
             const res = await fetch("/user-panel/api/buy-now", { method: "POST", body: formData });
             const data = await res.json();
             if (data.ok) {
-                msg.style.color = "green";
-                msg.textContent = `Booking submitted successfully. Booking ID: #${data.bookingId}`;
-                e.target.reset();
-                step = 1; setStep();
+                location.href = `/user-panel/payment-success?bookingId=${data.bookingId}`;
             } else {
                 msg.style.color = "red";
                 msg.textContent = data.error || "Submission failed";
@@ -142,4 +350,3 @@
 </script>
 </body>
 </html>
-

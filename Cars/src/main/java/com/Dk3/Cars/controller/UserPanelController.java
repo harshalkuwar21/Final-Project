@@ -1,15 +1,23 @@
 package com.Dk3.Cars.controller;
 
 import com.Dk3.Cars.entity.Booking;
+import com.Dk3.Cars.entity.BankDetail;
 import com.Dk3.Cars.entity.Car;
 import com.Dk3.Cars.entity.Customer;
+import com.Dk3.Cars.entity.LoanDetail;
 import com.Dk3.Cars.entity.Payment;
+import com.Dk3.Cars.entity.PaymentStage;
+import com.Dk3.Cars.entity.PaymentTransaction;
 import com.Dk3.Cars.entity.Showroom;
 import com.Dk3.Cars.entity.TestDrive;
 import com.Dk3.Cars.entity.User;
+import com.Dk3.Cars.repository.BankDetailRepository;
 import com.Dk3.Cars.repository.BookingRepository;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.CustomerRepository;
+import com.Dk3.Cars.repository.LoanDetailRepository;
+import com.Dk3.Cars.repository.PaymentStageRepository;
+import com.Dk3.Cars.repository.PaymentTransactionRepository;
 import com.Dk3.Cars.repository.ShowroomRepository;
 import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.repository.PaymentRepository;
@@ -26,6 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -69,6 +78,14 @@ public class UserPanelController {
     private TestDriveService testDriveService;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
+    @Autowired
+    private PaymentStageRepository paymentStageRepository;
+    @Autowired
+    private LoanDetailRepository loanDetailRepository;
+    @Autowired
+    private BankDetailRepository bankDetailRepository;
 
     private boolean isUser(HttpSession session) {
         return "ROLE_USER".equals(session.getAttribute("USER_ROLE"));
@@ -101,6 +118,18 @@ public class UserPanelController {
     public String buyNowPage(HttpSession session) {
         if (!isUser(session)) return "redirect:/login";
         return "user-buy-now";
+    }
+
+    @GetMapping("/payment-success")
+    public String paymentSuccessPage(HttpSession session) {
+        if (!isUser(session)) return "redirect:/login";
+        return "user-payment-success";
+    }
+
+    @GetMapping("/payment-failure")
+    public String paymentFailurePage(HttpSession session) {
+        if (!isUser(session)) return "redirect:/login";
+        return "user-payment-failure";
     }
 
     @GetMapping("/bookings")
@@ -217,7 +246,13 @@ public class UserPanelController {
         User user = sessionUser(session).orElse(null);
         if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
         List<Booking> bookings = bookingService.getBookingsByCustomerEmail(user.getEmail());
-        return ResponseEntity.ok(Map.of("ok", true, "bookings", bookings));
+        Map<Long, Map<String, String>> stepTracker = new LinkedHashMap<>();
+        for (Booking booking : bookings) {
+            List<PaymentStage> stages = paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(booking.getId());
+            LoanDetail loan = loanDetailRepository.findByBookingId(booking.getId()).orElse(null);
+            stepTracker.put(booking.getId(), computeStepTracker(booking, stages, loan));
+        }
+        return ResponseEntity.ok(Map.of("ok", true, "bookings", bookings, "stepTracker", stepTracker));
     }
 
     @GetMapping("/api/payments")
@@ -228,6 +263,162 @@ public class UserPanelController {
         if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
         List<Payment> payments = paymentRepository.findByBookingCustomerEmailOrderByPaymentDateDesc(user.getEmail());
         return ResponseEntity.ok(Map.of("ok", true, "payments", payments));
+    }
+
+    @GetMapping("/api/payment-dashboard")
+    @ResponseBody
+    public ResponseEntity<?> paymentDashboard(
+            @RequestParam(required = false) Long bookingId,
+            HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        Booking booking;
+        if (bookingId != null) {
+            booking = bookingService.getBookingById(bookingId).orElse(null);
+            if (booking == null || booking.getCustomer() == null || booking.getCustomer().getEmail() == null
+                    || !booking.getCustomer().getEmail().equalsIgnoreCase(user.getEmail())) {
+                return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
+            }
+        } else {
+            List<Booking> userBookings = bookingService.getBookingsByCustomerEmail(user.getEmail());
+            booking = userBookings.isEmpty() ? null : userBookings.get(0);
+            if (booking == null) {
+                return ResponseEntity.ok(Map.of("ok", true, "message", "No bookings yet"));
+            }
+        }
+
+        List<PaymentTransaction> txns = paymentTransactionRepository.findByBookingIdOrderByCreatedAtDesc(booking.getId());
+        List<PaymentStage> stages = paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(booking.getId());
+        LoanDetail loan = loanDetailRepository.findByBookingId(booking.getId()).orElse(null);
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("bookingId", booking.getId());
+        payload.put("car", booking.getCar());
+        payload.put("totalAmount", booking.getTotalAmount());
+        payload.put("paidAmount", booking.getPaidAmount());
+        payload.put("remainingAmount", booking.getRemainingAmount());
+        payload.put("paymentOption", booking.getPaymentOption());
+        payload.put("paymentGateway", booking.getPaymentGateway());
+        payload.put("escrowStatus", booking.getEscrowStatus());
+        payload.put("stages", stages);
+        payload.put("transactions", txns);
+        payload.put("loanDetails", loan);
+        payload.put("emiAmount", loan != null ? loan.getEmiAmount() : 0D);
+        return ResponseEntity.ok(Map.of("ok", true, "paymentDashboard", payload));
+    }
+
+    @GetMapping("/api/banks")
+    @ResponseBody
+    public ResponseEntity<?> getBanks(HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        ensureDefaultBanks();
+        return ResponseEntity.ok(Map.of("ok", true, "banks", bankDetailRepository.findByActiveTrueOrderByBankNameAsc()));
+    }
+
+    @PostMapping("/api/bookings/{id}/payment-plan")
+    @ResponseBody
+    public ResponseEntity<?> updatePaymentPlan(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload,
+            HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        Booking booking = bookingService.getBookingById(id).orElse(null);
+        if (booking == null || booking.getCustomer() == null || booking.getCustomer().getEmail() == null
+                || !booking.getCustomer().getEmail().equalsIgnoreCase(user.getEmail())) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
+        }
+
+        String workflow = String.valueOf(booking.getWorkflowStatus() == null ? booking.getStatus() : booking.getWorkflowStatus()).toLowerCase();
+        if (workflow.contains("reject") || workflow.contains("cancel") || workflow.contains("deliver")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking is closed"));
+        }
+
+        String paymentOption = String.valueOf(payload.getOrDefault("paymentOption", "Full Payment"));
+        if (!"Full Payment".equalsIgnoreCase(paymentOption) && !"Loan Required".equalsIgnoreCase(paymentOption)) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Payment option must be Full Payment or Loan Required"));
+        }
+
+        double downPayment = parseDouble(payload.get("downPaymentAmount"), 0D);
+        if (downPayment < 0) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Down payment cannot be negative"));
+        }
+
+        double carPrice = booking.getCar() != null ? booking.getCar().getPrice() : 0D;
+        if (downPayment > 0 && carPrice > 0) {
+            double minDown = carPrice * 0.10;
+            double maxDown = carPrice * 0.30;
+            if (downPayment < minDown || downPayment > maxDown) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "ok", false,
+                        "error", "Down payment must be between 10% and 30% of car price"
+                ));
+            }
+        }
+
+        booking.setPaymentOption(paymentOption);
+        booking.setDownPaymentAmount(downPayment);
+        booking.setDownPaymentMethod(downPayment > 0 ? String.valueOf(payload.getOrDefault("downPaymentMethod", "Bank Transfer")) : null);
+        booking.setDownPaymentReference(downPayment > 0 ? String.valueOf(payload.getOrDefault("downPaymentReference", "")) : null);
+        booking.setDownPaymentVerified(downPayment <= 0);
+
+        double bookingPaid = booking.getBookingAmount();
+        booking.setPaidAmount(bookingPaid + downPayment);
+        double total = booking.getTotalAmount() == null ? 0D : booking.getTotalAmount();
+        booking.setRemainingAmount(Math.max(0D, total - booking.getPaidAmount()));
+        booking.setStatusUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+
+        PaymentTransaction existingDownTxn = paymentTransactionRepository.findByBookingIdOrderByCreatedAtDesc(id).stream()
+                .filter(t -> t.getPaymentType() != null && "Down Payment".equalsIgnoreCase(t.getPaymentType()))
+                .findFirst()
+                .orElse(null);
+        if (downPayment > 0) {
+            PaymentTransaction downTxn = existingDownTxn == null ? new PaymentTransaction() : existingDownTxn;
+            downTxn.setBooking(booking);
+            downTxn.setPaymentType("Down Payment");
+            downTxn.setAmount(downPayment);
+            downTxn.setPaymentMethod(booking.getDownPaymentMethod() == null || booking.getDownPaymentMethod().isBlank() ? "Bank Transfer" : booking.getDownPaymentMethod());
+            downTxn.setPaymentGateway("Offline");
+            downTxn.setTransactionId(booking.getDownPaymentReference());
+            downTxn.setReferenceNumber(booking.getDownPaymentReference());
+            downTxn.setStatus("Pending");
+            downTxn.setNotes("Awaiting manual verification by staff.");
+            paymentTransactionRepository.save(downTxn);
+        }
+
+        if ("Loan Required".equalsIgnoreCase(paymentOption)) {
+            LoanDetail loan = loanDetailRepository.findByBookingId(id).orElseGet(LoanDetail::new);
+            loan.setBooking(booking);
+            loan.setLoanRequired(true);
+            loan.setBankName(String.valueOf(payload.getOrDefault("loanBank", loan.getBankName() == null ? "" : loan.getBankName())));
+            loan.setSalary(parseDouble(payload.get("salary"), loan.getSalary() == null ? 0D : loan.getSalary()));
+            loan.setEmploymentType(String.valueOf(payload.getOrDefault("employmentType", loan.getEmploymentType() == null ? "Salaried" : loan.getEmploymentType())));
+            loan.setMonthlyIncome(parseDouble(payload.get("monthlyIncome"), loan.getMonthlyIncome() == null ? 0D : loan.getMonthlyIncome()));
+            loan.setPanNumber(String.valueOf(payload.getOrDefault("loanPanNumber", loan.getPanNumber() == null ? "" : loan.getPanNumber())));
+            loan.setAadhaarNumber(String.valueOf(payload.getOrDefault("loanAadhaarNumber", loan.getAadhaarNumber() == null ? "" : loan.getAadhaarNumber())));
+            loan.setInterestRate(parseDouble(payload.get("loanInterestRate"), loan.getInterestRate() == null ? 9D : loan.getInterestRate()));
+            loan.setTenureMonths(parseInteger(payload.get("loanTenureMonths"), loan.getTenureMonths() == null ? 60 : loan.getTenureMonths()));
+            loan.setCarPrice(carPrice);
+            loan.setDownPaymentAmount(downPayment);
+            loan.setLoanAmount(Math.max(0D, carPrice - downPayment));
+            loan.setEmiAmount(calculateEmi(loan.getLoanAmount(), loan.getInterestRate(), loan.getTenureMonths()));
+            if (loan.getStatus() == null || loan.getStatus().isBlank() || "Rejected".equalsIgnoreCase(loan.getStatus())) {
+                loan.setStatus("Pending");
+            }
+            loanDetailRepository.save(loan);
+        }
+
+        markPaymentStage(booking, "Down Payment Paid", downPayment > 0 ? "Pending" : "Not Required",
+                downPayment > 0 ? "Down payment submitted by customer. Awaiting staff verification." : "No down payment selected.");
+        markPaymentStage(booking, "Loan Approved", "Loan Required".equalsIgnoreCase(paymentOption) ? "Pending" : "Not Required",
+                "Loan Required".equalsIgnoreCase(paymentOption) ? "Awaiting bank approval." : "Customer selected full payment.");
+
+        return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
 
     @PostMapping("/api/buy-now")
@@ -246,6 +437,29 @@ public class UserPanelController {
             @RequestParam Double bookingAmount,
             @RequestParam String paymentMode,
             @RequestParam String transactionId,
+            @RequestParam(required = false) String paymentGateway,
+            @RequestParam(required = false, defaultValue = "Success") String paymentOutcome,
+            @RequestParam(required = false, defaultValue = "Pending Selection") String paymentOption,
+            @RequestParam(required = false) Double downPaymentAmount,
+            @RequestParam(required = false) String downPaymentMethod,
+            @RequestParam(required = false) String downPaymentReference,
+            @RequestParam(required = false) Double gstAmount,
+            @RequestParam(required = false) Double rtoCharges,
+            @RequestParam(required = false) Double roadTaxAmount,
+            @RequestParam(required = false) Double insuranceAmount,
+            @RequestParam(required = false) Double fastagCharges,
+            @RequestParam(required = false) Double handlingCharges,
+            @RequestParam(required = false) Double accessoriesAmount,
+            @RequestParam(required = false) Double extendedWarrantyAmount,
+            @RequestParam(required = false) Double tcsAmount,
+            @RequestParam(required = false) String loanBank,
+            @RequestParam(required = false) Double salary,
+            @RequestParam(required = false) String employmentType,
+            @RequestParam(required = false) Double monthlyIncome,
+            @RequestParam(required = false) String loanPanNumber,
+            @RequestParam(required = false) String loanAadhaarNumber,
+            @RequestParam(required = false) Double loanInterestRate,
+            @RequestParam(required = false) Integer loanTenureMonths,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate expectedDeliveryDate,
             @RequestParam String deliveryTimeSlot,
             @RequestParam String deliveryType,
@@ -254,6 +468,7 @@ public class UserPanelController {
             @RequestPart MultipartFile signaturePhoto,
             @RequestPart MultipartFile passportPhoto,
             @RequestPart MultipartFile paymentScreenshot,
+            @RequestPart(required = false) MultipartFile downPaymentReceipt,
             HttpSession session) {
         if (!isUser(session)) return unauthorized();
         User user = sessionUser(session).orElse(null);
@@ -262,6 +477,21 @@ public class UserPanelController {
         Car car = carService.getCarById(carId).orElse(null);
         if (car == null || !"Available".equalsIgnoreCase(car.getStatus())) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Selected car is not available"));
+        }
+        if (bookingAmount == null || bookingAmount < 5000 || bookingAmount > 25000) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking amount must be between Rs 5,000 and Rs 25,000"));
+        }
+        if ("Failed".equalsIgnoreCase(paymentOutcome)) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking payment failed. Please retry payment."));
+        }
+
+        double carPrice = car.getPrice();
+        if (downPaymentAmount != null && downPaymentAmount > 0) {
+            double minDown = carPrice * 0.10;
+            double maxDown = carPrice * 0.30;
+            if (downPaymentAmount < minDown || downPaymentAmount > maxDown) {
+                return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Down payment must be between 10% and 30% of car price"));
+            }
         }
 
         Customer customer = customerRepository.findByEmail(user.getEmail()).orElseGet(Customer::new);
@@ -292,6 +522,49 @@ public class UserPanelController {
         booking.setBookingAmount(bookingAmount);
         booking.setPaymentMode(paymentMode);
         booking.setTransactionId(transactionId);
+        booking.setPaymentGateway(paymentGateway == null || paymentGateway.isBlank() ? "Razorpay" : paymentGateway);
+        booking.setPaymentOutcome(paymentOutcome);
+        booking.setPaymentOption(paymentOption);
+        booking.setDownPaymentAmount(downPaymentAmount == null ? 0D : downPaymentAmount);
+        booking.setDownPaymentVerified(downPaymentAmount == null || downPaymentAmount <= 0);
+        booking.setDownPaymentMethod(downPaymentMethod);
+        booking.setDownPaymentReference(downPaymentReference);
+        booking.setDownPaymentReceiptUrl(saveFile(downPaymentReceipt, "uploads/documents"));
+        double computedRoadTax = roundAmount(carPrice * roadTaxRateByState(state));
+        double computedRtoCharges = roundAmount(carPrice * 0.0125); // registration + number plate + smart card + misc RTO
+        double computedInsurance = roundAmount(Math.max(carPrice * 0.035, 12000D));
+        double computedFastag = 500D;
+        double computedHandling = 8500D;
+        double computedAccessories = roundAmount(Math.max(0D, accessoriesAmount == null ? 0D : accessoriesAmount));
+        double computedExtendedWarranty = roundAmount(Math.max(0D, extendedWarrantyAmount == null ? 0D : extendedWarrantyAmount));
+        double computedTcs = carPrice > 1_000_000D ? roundAmount(carPrice * 0.01) : 0D;
+        double computedGst = roundAmount(Math.max(0D, gstAmount == null ? 0D : gstAmount));
+
+        booking.setGstAmount(computedGst);
+        booking.setRtoCharges(computedRtoCharges);
+        booking.setRoadTaxAmount(computedRoadTax);
+        booking.setInsuranceAmount(computedInsurance);
+        booking.setFastagCharges(computedFastag);
+        booking.setHandlingCharges(computedHandling);
+        booking.setAccessoriesAmount(computedAccessories);
+        booking.setExtendedWarrantyAmount(computedExtendedWarranty);
+        booking.setTcsAmount(computedTcs);
+
+        double totalAmount = carPrice
+                + booking.getGstAmount()
+                + booking.getRtoCharges()
+                + booking.getRoadTaxAmount()
+                + booking.getInsuranceAmount()
+                + booking.getFastagCharges()
+                + booking.getHandlingCharges()
+                + booking.getAccessoriesAmount()
+                + booking.getExtendedWarrantyAmount()
+                + booking.getTcsAmount();
+        double paidAmount = bookingAmount + (downPaymentAmount == null ? 0D : downPaymentAmount);
+        booking.setTotalAmount(totalAmount);
+        booking.setPaidAmount(paidAmount);
+        booking.setRemainingAmount(Math.max(0D, totalAmount - paidAmount));
+        booking.setEscrowStatus("Secured");
         booking.setPaymentScreenshotUrl(saveFile(paymentScreenshot, "uploads/documents"));
         booking.setExpectedDeliveryDate(expectedDeliveryDate);
         booking.setDeliveryTimeSlot(deliveryTimeSlot);
@@ -308,10 +581,75 @@ public class UserPanelController {
         payment.setAmount(bookingAmount);
         payment.setPaymentMethod(paymentMode);
         payment.setTransactionId(transactionId);
-        payment.setStatus("Pending");
+        payment.setStatus("Completed");
         paymentService.savePayment(payment);
 
-        return ResponseEntity.ok(Map.of("ok", true, "bookingId", saved.getId(), "status", saved.getWorkflowStatus()));
+        PaymentTransaction bookingTx = new PaymentTransaction();
+        bookingTx.setBooking(saved);
+        bookingTx.setPaymentType("Booking");
+        bookingTx.setAmount(bookingAmount);
+        bookingTx.setPaymentMethod(paymentMode);
+        bookingTx.setPaymentGateway(saved.getPaymentGateway());
+        bookingTx.setTransactionId(transactionId);
+        bookingTx.setReferenceNumber(transactionId);
+        bookingTx.setReceiptUrl(saved.getPaymentScreenshotUrl());
+        bookingTx.setStatus("Completed");
+        bookingTx.setNotes("Booking amount paid online.");
+        paymentTransactionRepository.save(bookingTx);
+
+        if (downPaymentAmount != null && downPaymentAmount > 0) {
+            PaymentTransaction dpTx = new PaymentTransaction();
+            dpTx.setBooking(saved);
+            dpTx.setPaymentType("Down Payment");
+            dpTx.setAmount(downPaymentAmount);
+            dpTx.setPaymentMethod(downPaymentMethod == null || downPaymentMethod.isBlank() ? "Bank Transfer" : downPaymentMethod);
+            dpTx.setPaymentGateway("Offline");
+            dpTx.setTransactionId(downPaymentReference);
+            dpTx.setReferenceNumber(downPaymentReference);
+            dpTx.setReceiptUrl(saved.getDownPaymentReceiptUrl());
+            dpTx.setStatus("Pending");
+            dpTx.setNotes("Awaiting manual verification by staff.");
+            paymentTransactionRepository.save(dpTx);
+        }
+
+        if ("Loan Required".equalsIgnoreCase(paymentOption)) {
+            LoanDetail loan = new LoanDetail();
+            loan.setBooking(saved);
+            loan.setLoanRequired(true);
+            loan.setBankName(loanBank);
+            loan.setSalary(salary);
+            loan.setEmploymentType(employmentType);
+            loan.setMonthlyIncome(monthlyIncome);
+            loan.setPanNumber(loanPanNumber);
+            loan.setAadhaarNumber(loanAadhaarNumber);
+            loan.setInterestRate(loanInterestRate == null ? 9.0 : loanInterestRate);
+            loan.setTenureMonths(loanTenureMonths == null || loanTenureMonths <= 0 ? 60 : loanTenureMonths);
+            loan.setCarPrice(carPrice);
+            loan.setDownPaymentAmount(downPaymentAmount == null ? 0D : downPaymentAmount);
+            loan.setLoanAmount(Math.max(0D, carPrice - (downPaymentAmount == null ? 0D : downPaymentAmount)));
+            loan.setEmiAmount(calculateEmi(loan.getLoanAmount(), loan.getInterestRate(), loan.getTenureMonths()));
+            loan.setStatus("Pending");
+            loanDetailRepository.save(loan);
+        }
+
+        createPaymentStages(saved, downPaymentAmount != null && downPaymentAmount > 0, "Loan Required".equalsIgnoreCase(paymentOption));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("ok", true);
+        response.put("bookingId", saved.getId());
+        response.put("status", saved.getWorkflowStatus());
+        response.put("roadTaxAmount", saved.getRoadTaxAmount());
+        response.put("rtoCharges", saved.getRtoCharges());
+        response.put("insuranceAmount", saved.getInsuranceAmount());
+        response.put("fastagCharges", saved.getFastagCharges());
+        response.put("handlingCharges", saved.getHandlingCharges());
+        response.put("accessoriesAmount", saved.getAccessoriesAmount());
+        response.put("extendedWarrantyAmount", saved.getExtendedWarrantyAmount());
+        response.put("tcsAmount", saved.getTcsAmount());
+        response.put("totalAmount", saved.getTotalAmount());
+        response.put("paidAmount", saved.getPaidAmount());
+        response.put("remainingAmount", saved.getRemainingAmount());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/api/test-drive")
@@ -354,5 +692,167 @@ public class UserPanelController {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private void createPaymentStages(Booking booking, boolean downPaymentDone, boolean loanRequired) {
+        List<PaymentStage> stages = new ArrayList<>();
+        stages.add(stage(booking, 1, "Booking Paid", "Completed", "Booking amount received."));
+        stages.add(stage(booking, 2, "Down Payment Paid", downPaymentDone ? "Completed" : "Pending",
+                downPaymentDone ? "Down payment recorded." : "Awaiting down payment."));
+        stages.add(stage(booking, 3, "Loan Approved", loanRequired ? "Pending" : "Not Required",
+                loanRequired ? "Awaiting bank approval." : "Customer selected full payment."));
+        stages.add(stage(booking, 4, "Final Amount Received", "Pending", "Awaiting final settlement."));
+        stages.add(stage(booking, 5, "Delivery Ready", "Pending", "Delivery will be prepared after payments."));
+        paymentStageRepository.saveAll(stages);
+    }
+
+    private Map<String, String> computeStepTracker(Booking booking, List<PaymentStage> stages, LoanDetail loan) {
+        String step1Status = "Completed";
+        String step2Status = "Pending";
+        String step3Label = "Full Payment Paid";
+        String step3Status = "Pending";
+
+        PaymentStage bookingStage = findStage(stages, "Booking Paid");
+        if (bookingStage != null && bookingStage.getStageStatus() != null && !bookingStage.getStageStatus().isBlank()) {
+            step1Status = normalizeStatus(bookingStage.getStageStatus());
+        } else if (booking.getBookingAmount() <= 0) {
+            step1Status = "Pending";
+        }
+
+        PaymentStage downStage = findStage(stages, "Down Payment Paid");
+        if (downStage != null && downStage.getStageStatus() != null && !downStage.getStageStatus().isBlank()) {
+            step2Status = normalizeStatus(downStage.getStageStatus());
+        } else if (booking.getDownPaymentAmount() != null && booking.getDownPaymentAmount() > 0) {
+            step2Status = "Completed";
+        } else if (!"Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
+            step2Status = "Not Required";
+        }
+
+        if ("Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
+            step3Label = "Loan Approved";
+            if (loan == null || loan.getStatus() == null || loan.getStatus().isBlank()) {
+                step3Status = "Pending";
+            } else if ("Approved".equalsIgnoreCase(loan.getStatus())) {
+                step3Status = "Completed";
+            } else if ("Rejected".equalsIgnoreCase(loan.getStatus())) {
+                step3Status = "Rejected";
+            } else {
+                step3Status = "Pending";
+            }
+        } else {
+            PaymentStage finalStage = findStage(stages, "Final Amount Received");
+            if (finalStage != null && finalStage.getStageStatus() != null && !finalStage.getStageStatus().isBlank()) {
+                step3Status = normalizeStatus(finalStage.getStageStatus());
+            } else if (booking.getRemainingAmount() != null && booking.getRemainingAmount() <= 0) {
+                step3Status = "Completed";
+            }
+        }
+
+        Map<String, String> out = new LinkedHashMap<>();
+        out.put("step1Label", "Booking Amount Paid");
+        out.put("step1Status", step1Status);
+        out.put("step2Label", "Down Payment Paid");
+        out.put("step2Status", step2Status);
+        out.put("step3Label", step3Label);
+        out.put("step3Status", step3Status);
+        return out;
+    }
+
+    private PaymentStage findStage(List<PaymentStage> stages, String stageName) {
+        if (stages == null || stageName == null) return null;
+        return stages.stream()
+                .filter(s -> s.getStageName() != null && s.getStageName().equalsIgnoreCase(stageName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null) return "Pending";
+        if ("Completed".equalsIgnoreCase(status)) return "Completed";
+        if ("Rejected".equalsIgnoreCase(status)) return "Rejected";
+        if ("Not Required".equalsIgnoreCase(status)) return "Not Required";
+        return "Pending";
+    }
+
+    private PaymentStage stage(Booking booking, int order, String name, String status, String remarks) {
+        PaymentStage stage = new PaymentStage();
+        stage.setBooking(booking);
+        stage.setStageOrderNo(order);
+        stage.setStageName(name);
+        stage.setStageStatus(status);
+        stage.setRemarks(remarks);
+        return stage;
+    }
+
+    private double calculateEmi(double principal, double annualRate, int months) {
+        if (principal <= 0 || annualRate <= 0 || months <= 0) return 0D;
+        double monthlyRate = annualRate / (12 * 100);
+        double factor = Math.pow(1 + monthlyRate, months);
+        return (principal * monthlyRate * factor) / (factor - 1);
+    }
+
+    private void markPaymentStage(Booking booking, String stageName, String stageStatus, String remarks) {
+        if (booking == null || booking.getId() == null) return;
+        paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(booking.getId()).stream()
+                .filter(s -> s.getStageName() != null && s.getStageName().equalsIgnoreCase(stageName))
+                .findFirst()
+                .ifPresent(s -> {
+                    s.setStageStatus(stageStatus);
+                    s.setRemarks(remarks);
+                    paymentStageRepository.save(s);
+                });
+    }
+
+    private double parseDouble(Object value, double defaultValue) {
+        if (value == null) return defaultValue;
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception ex) {
+            return defaultValue;
+        }
+    }
+
+    private int parseInteger(Object value, int defaultValue) {
+        if (value == null) return defaultValue;
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (Exception ex) {
+            return defaultValue;
+        }
+    }
+
+    private double roadTaxRateByState(String state) {
+        String s = state == null ? "" : state.trim().toLowerCase();
+        if (s.contains("maharashtra")) return 0.11;
+        if (s.contains("karnataka")) return 0.13;
+        if (s.contains("delhi")) return 0.10;
+        if (s.contains("gujarat")) return 0.08;
+        if (s.contains("tamil nadu") || s.contains("tamilnadu")) return 0.10;
+        if (s.contains("telangana")) return 0.10;
+        return 0.10;
+    }
+
+    private double roundAmount(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    private void ensureDefaultBanks() {
+        if (bankDetailRepository.count() > 0) return;
+        List<BankDetail> banks = new ArrayList<>();
+        banks.add(bank("State Bank of India", "DK3 Cars Pvt Ltd", "XXXXXX5678", "SBIN0000456", "Nashik Main"));
+        banks.add(bank("HDFC Bank", "DK3 Cars Pvt Ltd", "XXXXXX4321", "HDFC0001984", "College Road"));
+        banks.add(bank("ICICI Bank", "DK3 Cars Pvt Ltd", "XXXXXX8899", "ICIC0000371", "CIDCO"));
+        bankDetailRepository.saveAll(banks);
+    }
+
+    private BankDetail bank(String name, String holder, String accountMasked, String ifsc, String branch) {
+        BankDetail bank = new BankDetail();
+        bank.setBankName(name);
+        bank.setAccountHolderName(holder);
+        bank.setAccountNumberMasked(accountMasked);
+        bank.setIfscCode(ifsc);
+        bank.setBranchName(branch);
+        bank.setActive(true);
+        return bank;
     }
 }

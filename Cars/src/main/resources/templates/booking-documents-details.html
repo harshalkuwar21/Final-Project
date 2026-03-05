@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Documents & Payment Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --muted: #6b7280;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dbeafe, #f8fafc);
+            color: #111827;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .btn {
+            border: 0;
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .card h2 {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        .item {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .label {
+            color: var(--muted);
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border);
+            padding: 8px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #1e3a8a;
+        }
+
+        .link-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .link-pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #eef2ff;
+            color: #1d4ed8;
+            text-decoration: none;
+            font-size: 13px;
+            border: 1px solid #c7d2fe;
+        }
+
+        .empty {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .steps-wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .step-box {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            background: #f8fafc;
+        }
+
+        .step-title {
+            font-size: 13px;
+            color: #334155;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .step-status {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .step-completed { background: #d1fae5; color: #065f46; }
+        .step-pending { background: #fff3cd; color: #7a5a00; }
+        .step-rejected { background: #fee2e2; color: #991b1b; }
+        .step-not-required { background: #e2e8f0; color: #334155; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="topbar">
+        <h1><i class="fa-solid fa-file-circle-check"></i> Booking Documents & Payment Details</h1>
+        <a class="btn" href="/bookings"><i class="fa-solid fa-arrow-left"></i> Back to Bookings</a>
+    </div>
+
+    <div class="grid">
+        <section class="card" style="grid-column: 1 / -1;">
+            <h2>Step By Step Booking Status</h2>
+            <div class="steps-wrap">
+                <div class="step-box">
+                    <div class="step-title">1. <span th:text="${stepTracker.step1Label}">Booking Amount Paid</span></div>
+                    <span class="step-status"
+                          th:classappend="${#strings.equalsIgnoreCase(stepTracker.step1Status, 'Completed') ? ' step-completed' : (#strings.equalsIgnoreCase(stepTracker.step1Status, 'Rejected') ? ' step-rejected' : (#strings.equalsIgnoreCase(stepTracker.step1Status, 'Not Required') ? ' step-not-required' : ' step-pending'))}"
+                          th:text="${stepTracker.step1Status}">Pending</span>
+                </div>
+                <div class="step-box">
+                    <div class="step-title">2. <span th:text="${stepTracker.step2Label}">Down Payment Paid</span></div>
+                    <span class="step-status"
+                          th:classappend="${#strings.equalsIgnoreCase(stepTracker.step2Status, 'Completed') ? ' step-completed' : (#strings.equalsIgnoreCase(stepTracker.step2Status, 'Rejected') ? ' step-rejected' : (#strings.equalsIgnoreCase(stepTracker.step2Status, 'Not Required') ? ' step-not-required' : ' step-pending'))}"
+                          th:text="${stepTracker.step2Status}">Pending</span>
+                </div>
+                <div class="step-box">
+                    <div class="step-title">3. <span th:text="${stepTracker.step3Label}">Full Payment Paid</span></div>
+                    <span class="step-status"
+                          th:classappend="${#strings.equalsIgnoreCase(stepTracker.step3Status, 'Completed') ? ' step-completed' : (#strings.equalsIgnoreCase(stepTracker.step3Status, 'Rejected') ? ' step-rejected' : (#strings.equalsIgnoreCase(stepTracker.step3Status, 'Not Required') ? ' step-not-required' : ' step-pending'))}"
+                          th:text="${stepTracker.step3Status}">Pending</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Booking Summary</h2>
+            <div class="item"><span class="label">Booking ID:</span> <span th:text="${booking.id}">-</span></div>
+            <div class="item"><span class="label">Customer:</span> <span th:text="${booking.customer != null ? booking.customer.name : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Car:</span> <span th:text="${booking.car != null ? booking.car.brand + ' ' + booking.car.model : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Booking Date:</span> <span th:text="${booking.bookingDate}">-</span></div>
+            <div class="item"><span class="label">Status:</span> <span th:text="${booking.workflowStatus != null ? booking.workflowStatus : booking.status}">-</span></div>
+            <div class="item"><span class="label">Expected Delivery:</span> <span th:text="${booking.expectedDeliveryDate != null ? booking.expectedDeliveryDate : 'Not scheduled'}">-</span></div>
+        </section>
+
+        <section class="card">
+            <h2>Payment Overview</h2>
+            <div class="item"><span class="label">Payment Mode:</span> <span th:text="${booking.paymentMode != null ? booking.paymentMode : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Payment Option:</span> <span th:text="${booking.paymentOption != null ? booking.paymentOption : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Payment Gateway:</span> <span th:text="${booking.paymentGateway != null ? booking.paymentGateway : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Transaction ID:</span> <span th:text="${booking.transactionId != null ? booking.transactionId : 'N/A'}">N/A</span></div>
+            <div class="item"><span class="label">Booking Amount:</span> <span th:text="${booking.bookingAmount}">0</span></div>
+            <div class="item"><span class="label">RTO Charges:</span> <span th:text="${booking.rtoCharges != null ? booking.rtoCharges : 0}">0</span></div>
+            <div class="item"><span class="label">Road Tax:</span> <span th:text="${booking.roadTaxAmount != null ? booking.roadTaxAmount : 0}">0</span></div>
+            <div class="item"><span class="label">Insurance:</span> <span th:text="${booking.insuranceAmount != null ? booking.insuranceAmount : 0}">0</span></div>
+            <div class="item"><span class="label">FASTag:</span> <span th:text="${booking.fastagCharges != null ? booking.fastagCharges : 0}">0</span></div>
+            <div class="item"><span class="label">Handling:</span> <span th:text="${booking.handlingCharges != null ? booking.handlingCharges : 0}">0</span></div>
+            <div class="item"><span class="label">TCS:</span> <span th:text="${booking.tcsAmount != null ? booking.tcsAmount : 0}">0</span></div>
+            <div class="item"><span class="label">Extended Warranty:</span> <span th:text="${booking.extendedWarrantyAmount != null ? booking.extendedWarrantyAmount : 0}">0</span></div>
+            <div class="item"><span class="label">Down Payment:</span> <span th:text="${booking.downPaymentAmount != null ? booking.downPaymentAmount : 0}">0</span></div>
+            <div class="item"><span class="label">Remaining:</span> <span th:text="${booking.remainingAmount != null ? booking.remainingAmount : 0}">0</span></div>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;">
+            <h2>Uploaded Documents</h2>
+            <div class="link-list">
+                <a class="link-pill" th:if="${booking.aadhaarPhotoUrl}" th:href="${booking.aadhaarPhotoUrl}" target="_blank">Aadhaar Photo</a>
+                <a class="link-pill" th:if="${booking.panPhotoUrl}" th:href="${booking.panPhotoUrl}" target="_blank">PAN Photo</a>
+                <a class="link-pill" th:if="${booking.signaturePhotoUrl}" th:href="${booking.signaturePhotoUrl}" target="_blank">Signature</a>
+                <a class="link-pill" th:if="${booking.passportPhotoUrl}" th:href="${booking.passportPhotoUrl}" target="_blank">Passport Photo</a>
+                <a class="link-pill" th:if="${booking.paymentScreenshotUrl}" th:href="${booking.paymentScreenshotUrl}" target="_blank">Payment Screenshot</a>
+                <a class="link-pill" th:if="${booking.downPaymentReceiptUrl}" th:href="${booking.downPaymentReceiptUrl}" target="_blank">Down Payment Receipt</a>
+                <a class="link-pill" th:if="${booking.bookingReceiptUrl}" th:href="${booking.bookingReceiptUrl}" target="_blank">Booking Receipt</a>
+                <a class="link-pill" th:if="${booking.proformaInvoiceUrl}" th:href="${booking.proformaInvoiceUrl}" target="_blank">Proforma Invoice</a>
+                <a class="link-pill" th:if="${booking.allotmentLetterUrl}" th:href="${booking.allotmentLetterUrl}" target="_blank">Allotment Letter</a>
+                <a class="link-pill" th:if="${booking.deliveryConfirmationLetterUrl}" th:href="${booking.deliveryConfirmationLetterUrl}" target="_blank">Delivery Confirmation</a>
+            </div>
+            <p class="empty"
+               th:if="${booking.aadhaarPhotoUrl == null and booking.panPhotoUrl == null and booking.signaturePhotoUrl == null and booking.passportPhotoUrl == null and booking.paymentScreenshotUrl == null and booking.downPaymentReceiptUrl == null and booking.bookingReceiptUrl == null and booking.proformaInvoiceUrl == null and booking.allotmentLetterUrl == null and booking.deliveryConfirmationLetterUrl == null}">
+                No documents uploaded for this booking.
+            </p>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;" th:if="${loanDetail != null}">
+            <h2>Loan Details</h2>
+            <div class="grid">
+                <div>
+                    <div class="item"><span class="label">Loan Required:</span> <span th:text="${loanDetail.loanRequired}">false</span></div>
+                    <div class="item"><span class="label">Bank Name:</span> <span th:text="${loanDetail.bankName != null ? loanDetail.bankName : 'N/A'}">N/A</span></div>
+                    <div class="item"><span class="label">Status:</span> <span th:text="${loanDetail.status != null ? loanDetail.status : 'N/A'}">N/A</span></div>
+                    <div class="item"><span class="label">Employment Type:</span> <span th:text="${loanDetail.employmentType != null ? loanDetail.employmentType : 'N/A'}">N/A</span></div>
+                </div>
+                <div>
+                    <div class="item"><span class="label">Monthly Income:</span> <span th:text="${loanDetail.monthlyIncome != null ? loanDetail.monthlyIncome : 0}">0</span></div>
+                    <div class="item"><span class="label">Interest Rate:</span> <span th:text="${loanDetail.interestRate != null ? loanDetail.interestRate : 0}">0</span></div>
+                    <div class="item"><span class="label">Tenure (Months):</span> <span th:text="${loanDetail.tenureMonths != null ? loanDetail.tenureMonths : 0}">0</span></div>
+                    <div class="item"><span class="label">EMI Amount:</span> <span th:text="${loanDetail.emiAmount != null ? loanDetail.emiAmount : 0}">0</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;">
+            <h2>Payment Transactions (UPI/Bank/Card/More)</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Gateway</th>
+                    <th>Transaction ID</th>
+                    <th>Status</th>
+                    <th>Receipt</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(paymentTransactions)}">
+                    <td colspan="7" class="empty">No payment transactions found.</td>
+                </tr>
+                <tr th:each="txn : ${paymentTransactions}">
+                    <td th:text="${txn.paymentType != null ? txn.paymentType : 'N/A'}">N/A</td>
+                    <td th:text="${txn.amount != null ? txn.amount : 0}">0</td>
+                    <td th:text="${txn.paymentMethod != null ? txn.paymentMethod : 'N/A'}">N/A</td>
+                    <td th:text="${txn.paymentGateway != null ? txn.paymentGateway : 'N/A'}">N/A</td>
+                    <td th:text="${txn.transactionId != null ? txn.transactionId : 'N/A'}">N/A</td>
+                    <td th:text="${txn.status != null ? txn.status : 'N/A'}">N/A</td>
+                    <td>
+                        <a th:if="${txn.receiptUrl}" th:href="${txn.receiptUrl}" target="_blank">View</a>
+                        <span th:unless="${txn.receiptUrl}">N/A</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;">
+            <h2>Payment Records</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Transaction ID</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(payments)}">
+                    <td colspan="5" class="empty">No payment records found.</td>
+                </tr>
+                <tr th:each="p : ${payments}">
+                    <td th:text="${p.paymentDate != null ? p.paymentDate : 'N/A'}">N/A</td>
+                    <td th:text="${p.amount}">0</td>
+                    <td th:text="${p.paymentMethod != null ? p.paymentMethod : 'N/A'}">N/A</td>
+                    <td th:text="${p.status != null ? p.status : 'N/A'}">N/A</td>
+                    <td th:text="${p.transactionId != null ? p.transactionId : 'N/A'}">N/A</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;">
+            <h2>Active Dealership Bank Accounts</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Bank</th>
+                    <th>Account Holder</th>
+                    <th>Account No.</th>
+                    <th>IFSC</th>
+                    <th>Branch</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(activeBanks)}">
+                    <td colspan="5" class="empty">No active bank details configured.</td>
+                </tr>
+                <tr th:each="bank : ${activeBanks}">
+                    <td th:text="${bank.bankName}">N/A</td>
+                    <td th:text="${bank.accountHolderName}">N/A</td>
+                    <td th:text="${bank.accountNumberMasked}">N/A</td>
+                    <td th:text="${bank.ifscCode}">N/A</td>
+                    <td th:text="${bank.branchName}">N/A</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</div>
+</body>
+</html>

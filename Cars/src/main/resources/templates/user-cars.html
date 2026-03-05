@@ -26,7 +26,7 @@
 <body>
 <div class="wrap">
     <div class="top">
-        <h2>View All Cars</h2>
+        <h2 id="carsTitle">View All Cars</h2>
         <a href="/user-dashboard">Back to Dashboard</a>
     </div>
 
@@ -54,6 +54,24 @@
 </div>
 
 <script>
+    function applyUrlFilters() {
+        const params = new URLSearchParams(window.location.search);
+        const brand = params.get("brand") || "";
+        const fuelType = params.get("fuelType") || "";
+        const minPrice = params.get("minPrice") || "";
+        const maxPrice = params.get("maxPrice") || "";
+
+        if (brand) document.getElementById("brand").value = brand;
+        if (fuelType) document.getElementById("fuelType").value = fuelType;
+        if (minPrice) document.getElementById("minPrice").value = minPrice;
+        if (maxPrice) document.getElementById("maxPrice").value = maxPrice;
+
+        const titleEl = document.getElementById("carsTitle");
+        if (titleEl && brand) {
+            titleEl.textContent = `${brand} Cars`;
+        }
+    }
+
     async function loadCars() {
         const params = new URLSearchParams();
         ["brand","fuelType","minPrice","maxPrice"].forEach(id => {
@@ -103,6 +121,7 @@
             `${c.brand} ${c.model}: Price Rs ${c.price}, Fuel ${c.fuelType}, Transmission ${c.transmission}, Mileage ${c.mileage || "-"}`).join("<br>");
     }
 
+    applyUrlFilters();
     loadCars();
 </script>
 </body>

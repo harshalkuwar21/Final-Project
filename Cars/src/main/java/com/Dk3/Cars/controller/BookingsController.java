@@ -1,19 +1,29 @@
 package com.Dk3.Cars.controller;
 
 import com.Dk3.Cars.entity.Booking;
+import com.Dk3.Cars.entity.LoanDetail;
+import com.Dk3.Cars.entity.Payment;
+import com.Dk3.Cars.entity.PaymentStage;
+import com.Dk3.Cars.entity.PaymentTransaction;
 import com.Dk3.Cars.entity.User;
+import com.Dk3.Cars.repository.BankDetailRepository;
+import com.Dk3.Cars.repository.CustomerRepository;
+import com.Dk3.Cars.repository.LoanDetailRepository;
+import com.Dk3.Cars.repository.PaymentRepository;
+import com.Dk3.Cars.repository.PaymentStageRepository;
+import com.Dk3.Cars.repository.PaymentTransactionRepository;
+import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.service.BookingService;
 import com.Dk3.Cars.service.CarService;
-import com.Dk3.Cars.repository.CustomerRepository;
-import com.Dk3.Cars.repository.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Optional;
 
 @Controller
@@ -23,8 +33,6 @@ public class BookingsController {
     @Autowired
     private BookingService bookingService;
 
-    
-
     @Autowired
     private CarService carService;
 
@@ -33,6 +41,21 @@ public class BookingsController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private PaymentTransactionRepository paymentTransactionRepository;
+
+    @Autowired
+    private PaymentStageRepository paymentStageRepository;
+
+    @Autowired
+    private LoanDetailRepository loanDetailRepository;
+
+    @Autowired
+    private BankDetailRepository bankDetailRepository;
 
     private boolean isStaffRole(String role) {
         return role != null && !"ROLE_ADMIN".equals(role) && !"ROLE_USER".equals(role);
@@ -80,6 +103,96 @@ public class BookingsController {
         return "bookings";
     }
 
+    @GetMapping("/details/{id}")
+    public String bookingDocumentsDetailsPage(@PathVariable Long id, Model model, HttpSession session) {
+        Booking booking = bookingService.getBookingById(id).orElse(null);
+        if (booking == null || !canAccessBooking(session, booking)) {
+            return "redirect:/bookings";
+        }
+
+        List<Payment> payments = paymentRepository.findByBookingId(id);
+        List<PaymentTransaction> paymentTransactions = paymentTransactionRepository.findByBookingIdOrderByCreatedAtDesc(id);
+        LoanDetail loanDetail = loanDetailRepository.findByBookingId(id).orElse(null);
+        List<PaymentStage> stages = paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(id);
+
+        model.addAttribute("booking", booking);
+        model.addAttribute("payments", payments);
+        model.addAttribute("paymentTransactions", paymentTransactions);
+        model.addAttribute("loanDetail", loanDetail);
+        model.addAttribute("stepTracker", computeStepTracker(booking, stages, loanDetail));
+        model.addAttribute("activeBanks", bankDetailRepository.findByActiveTrueOrderByBankNameAsc());
+
+        return "booking-documents-details";
+    }
+
+    private Map<String, String> computeStepTracker(Booking booking, List<PaymentStage> stages, LoanDetail loan) {
+        String step1Status = "Completed";
+        String step2Status = "Pending";
+        String step3Label = "Full Payment Paid";
+        String step3Status = "Pending";
+
+        PaymentStage bookingStage = findStage(stages, "Booking Paid");
+        if (bookingStage != null && bookingStage.getStageStatus() != null && !bookingStage.getStageStatus().isBlank()) {
+            step1Status = normalizeStatus(bookingStage.getStageStatus());
+        } else if (booking.getBookingAmount() <= 0) {
+            step1Status = "Pending";
+        }
+
+        PaymentStage downStage = findStage(stages, "Down Payment Paid");
+        if (downStage != null && downStage.getStageStatus() != null && !downStage.getStageStatus().isBlank()) {
+            step2Status = normalizeStatus(downStage.getStageStatus());
+        } else if (booking.getDownPaymentAmount() != null && booking.getDownPaymentAmount() > 0) {
+            step2Status = "Completed";
+        } else if (!"Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
+            step2Status = "Not Required";
+        }
+
+        if ("Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
+            step3Label = "Loan Approved";
+            if (loan == null || loan.getStatus() == null || loan.getStatus().isBlank()) {
+                step3Status = "Pending";
+            } else if ("Approved".equalsIgnoreCase(loan.getStatus())) {
+                step3Status = "Completed";
+            } else if ("Rejected".equalsIgnoreCase(loan.getStatus())) {
+                step3Status = "Rejected";
+            } else {
+                step3Status = "Pending";
+            }
+        } else {
+            PaymentStage finalStage = findStage(stages, "Final Amount Received");
+            if (finalStage != null && finalStage.getStageStatus() != null && !finalStage.getStageStatus().isBlank()) {
+                step3Status = normalizeStatus(finalStage.getStageStatus());
+            } else if (booking.getRemainingAmount() != null && booking.getRemainingAmount() <= 0) {
+                step3Status = "Completed";
+            }
+        }
+
+        Map<String, String> out = new HashMap<>();
+        out.put("step1Label", "Booking Amount Paid");
+        out.put("step1Status", step1Status);
+        out.put("step2Label", "Down Payment Paid");
+        out.put("step2Status", step2Status);
+        out.put("step3Label", step3Label);
+        out.put("step3Status", step3Status);
+        return out;
+    }
+
+    private PaymentStage findStage(List<PaymentStage> stages, String stageName) {
+        if (stages == null || stageName == null) return null;
+        return stages.stream()
+                .filter(s -> s.getStageName() != null && s.getStageName().equalsIgnoreCase(stageName))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null) return "Pending";
+        if ("Completed".equalsIgnoreCase(status)) return "Completed";
+        if ("Rejected".equalsIgnoreCase(status)) return "Rejected";
+        if ("Not Required".equalsIgnoreCase(status)) return "Not Required";
+        return "Pending";
+    }
+
     @GetMapping("/api")
     @ResponseBody
     public List<Booking> getAllBookings(HttpSession session) {
@@ -113,12 +226,11 @@ public class BookingsController {
                 response.put("error", "Access denied for this booking");
                 return response;
             }
-            
-            // Handle sales executive assignment
+
             if (bookingData.get("salesExecutiveId") != null && !bookingData.get("salesExecutiveId").toString().isEmpty()) {
                 booking.setSalesExecutive(userRepository.findById(Long.valueOf(bookingData.get("salesExecutiveId").toString())).orElse(null));
             }
-            
+
             booking.setStatus((String) bookingData.get("status"));
             booking.setBookingAmount(Double.valueOf(bookingData.get("bookingAmount").toString()));
             booking.setPaymentMode((String) bookingData.get("paymentMode"));

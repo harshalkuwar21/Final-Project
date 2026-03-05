@@ -865,6 +865,7 @@
                             </div>
 
                             <div class="actions">
+                                <button id="viewDocsBtn" type="button" style="background-color:#0ea5e9;">View Documents</button>
                                 <button class="accept">Accept</button>
                                 <button class="reject">Reject</button>
                                 <button class="waiting">Waiting</button>
@@ -1065,6 +1066,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.querySelector(".schedule")
         .addEventListener("click", () => scheduleDelivery());
+
+    document.getElementById("viewDocsBtn")
+        .addEventListener("click", () => {
+            if (!selectedBooking) {
+                alert("Please select a booking first.");
+                return;
+            }
+            window.open(`/bookings/details/${selectedBooking.id}`, "_blank");
+        });
 
     /* ================= SCHEDULE DELIVERY ================= */
     function scheduleDelivery() {
