@@ -120,18 +120,21 @@ function showPreVerifyButton(booking) {
 }
 
 function showFullPaymentCompleteButton(booking) {
-    const paymentOption = String(booking.paymentOption || "Full Payment").toLowerCase();
+    const paymentOption = String(booking.paymentOption || "").toLowerCase();
     const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
     if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
         return false;
     }
     if (booking.downPaymentVerified !== true) return false;
-
-    if (paymentOption.includes("loan")) {
-        return false;
-    } else if (!paymentOption.includes("full")) {
+    if (!paymentOption.includes("full")) {
         return false;
     }
+
+    const deliveryDate = booking.expectedDeliveryDate ? new Date(`${booking.expectedDeliveryDate}T00:00:00`) : null;
+    if (!deliveryDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (today < deliveryDate) return false;
 
     const remainingAmount = Number(booking.remainingAmount || 0);
     return remainingAmount > 0;
