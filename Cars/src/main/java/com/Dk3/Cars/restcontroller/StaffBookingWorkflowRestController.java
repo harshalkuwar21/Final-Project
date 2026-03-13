@@ -70,6 +70,18 @@ public class StaffBookingWorkflowRestController {
         return booking != null && booking.getPaymentOption() != null && "Loan Required".equalsIgnoreCase(booking.getPaymentOption());
     }
 
+    private String normalizeLoanBankName(String rawBankName) {
+        if (rawBankName == null) return null;
+        String value = rawBankName.trim();
+        if (value.isBlank()) return null;
+        if ("1".equals(value) || "sbi".equalsIgnoreCase(value)) return "State Bank of India";
+        if ("2".equals(value) || "hdfc".equalsIgnoreCase(value)) return "HDFC Bank";
+        return LOAN_BANKS.stream()
+                .filter(b -> b.equalsIgnoreCase(value))
+                .findFirst()
+                .orElse(null);
+    }
+
     private void markStage(Long bookingId, String stageName, String status, String remarks) {
         paymentStageRepository.findByBookingIdOrderByStageOrderNoAsc(bookingId).stream()
                 .filter(s -> s.getStageName() != null && stageName.equalsIgnoreCase(s.getStageName()))
@@ -123,20 +135,26 @@ public class StaffBookingWorkflowRestController {
         if (booking == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
         if (!canAccessBooking(session, booking)) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
         if (!isLoanBooking(booking)) return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "This booking is not loan based"));
-        if (!LOAN_BANKS.contains(bankName)) return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Allowed banks: State Bank of India, HDFC Bank"));
+        String normalizedBankName = normalizeLoanBankName(bankName);
+        if (normalizedBankName == null) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Allowed banks: State Bank of India, HDFC Bank"));
+        }
         if (!"Pre-Verified".equalsIgnoreCase(booking.getPreVerificationStatus())) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Pre-verification is required before loan approval"));
+        }
+        if (!Boolean.TRUE.equals(booking.getDownPaymentVerified())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Verify down payment before loan approval"));
         }
 
         LoanDetail loan = loanDetailRepository.findByBookingId(id).orElseGet(LoanDetail::new);
         loan.setBooking(booking);
         loan.setLoanRequired(true);
-        loan.setBankName(bankName);
+        loan.setBankName(normalizedBankName);
         loan.setStatus("Approved");
         loan.setApprovedAt(LocalDateTime.now());
         loanDetailRepository.save(loan);
 
-        markStage(id, "Loan Approved", "Completed", "Loan approved by " + bankName + ".");
+        markStage(id, "Loan Approved", "Completed", "Loan approved by " + normalizedBankName + ".");
         booking.setWorkflowStatus("Loan Approved");
         booking.setStatus("Loan Approved");
         booking.setStatusUpdatedAt(LocalDateTime.now());
@@ -156,6 +174,12 @@ public class StaffBookingWorkflowRestController {
         if (isClosed(booking)) return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking is already closed"));
         if (!"Pre-Verified".equalsIgnoreCase(booking.getPreVerificationStatus())) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Pre-verification is required before full payment"));
+        }
+        if (!"Full Payment".equalsIgnoreCase(booking.getPaymentOption())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Full payment can be completed only for bookings with Full Payment option selected"));
+        }
+        if (booking.getExpectedDeliveryDate() == null || LocalDate.now().isBefore(booking.getExpectedDeliveryDate())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Full payment can be completed only on or after the delivery date"));
         }
         if (isLoanBooking(booking)) {
             LoanDetail loan = loanDetailRepository.findByBookingId(id).orElse(null);
@@ -188,11 +212,11 @@ public class StaffBookingWorkflowRestController {
         markStage(id, "Final Amount Received", "Completed", "Final payment completed.");
         booking.setPaidAmount(paid + remaining);
         booking.setRemainingAmount(0D);
-        booking.setWorkflowStatus("Payment Verified");
-        booking.setStatus("Payment Verified");
-        booking.setStatusUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
-        return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "transaction", tx));
+
+        Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Payment Verified", null, null);
+        Booking responseBooking = updated.orElse(booking);
+        return ResponseEntity.ok(Map.of("ok", true, "booking", responseBooking, "transaction", tx));
     }
 
     @PostMapping("/{id}/verify-down-payment")
@@ -226,9 +250,53 @@ public class StaffBookingWorkflowRestController {
 
         markStage(id, "Down Payment Paid", "Completed", "Down payment verified by staff.");
         booking.setDownPaymentVerified(true);
+        double bookingAmount = booking.getBookingAmount();
+        double downPayment = booking.getDownPaymentAmount() == null ? 0D : booking.getDownPaymentAmount();
+        double total = booking.getTotalAmount() == null ? 0D : booking.getTotalAmount();
+        booking.setPaidAmount(bookingAmount + downPayment);
+        booking.setRemainingAmount(Math.max(0D, total - booking.getPaidAmount()));
+        booking.setWorkflowStatus("Down Payment Verified");
+        booking.setStatus("Down Payment Verified");
         booking.setStatusUpdatedAt(LocalDateTime.now());
         bookingRepository.save(booking);
+        bookingService.sendBookingDocumentsAfterPayment(booking.getId());
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "transaction", tx));
+    }
+
+    @PostMapping("/{id}/request-reverification")
+    public ResponseEntity<?> requestReverification(@PathVariable Long id,
+                                                   @RequestParam(required = false) String remarks,
+                                                   HttpSession session) {
+        if (!isStaffOrAdmin(session)) return ResponseEntity.status(401).body(Map.of("ok", false, "error", "Unauthorized"));
+        Booking booking = bookingRepository.findById(id).orElse(null);
+        if (booking == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
+        if (!canAccessBooking(session, booking)) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
+        boolean loanBooking = isLoanBooking(booking);
+        if (loanBooking) {
+            LoanDetail loan = loanDetailRepository.findByBookingId(id).orElse(null);
+            boolean loanApprovedInRecord = loan != null && "Approved".equalsIgnoreCase(loan.getStatus());
+            boolean loanApprovedInBookingStatus = String.valueOf(booking.getWorkflowStatus()).toLowerCase().contains("loan approved");
+            if (!loanApprovedInRecord && !loanApprovedInBookingStatus) {
+                return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Loan must be approved before re-verification"));
+            }
+        } else {
+            Double remaining = booking.getRemainingAmount();
+            boolean fullyPaid = remaining == null || remaining <= 0D;
+            if (!fullyPaid) {
+                return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Full payment must be completed before re-verification"));
+            }
+        }
+
+        String currentRemarks = booking.getPreVerificationRemarks() == null ? "" : booking.getPreVerificationRemarks().trim();
+        String extraRemarks = remarks == null || remarks.isBlank()
+                ? (loanBooking ? "Post-loan re-verification requested by staff." : "Post-payment re-verification requested by staff.")
+                : remarks.trim();
+        booking.setPreVerificationRemarks((currentRemarks + (currentRemarks.isBlank() ? "" : " | ") + extraRemarks).trim());
+        booking.setWorkflowStatus("Re-Verification Pending");
+        booking.setStatus("Re-Verification Pending");
+        booking.setStatusUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+        return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
 
     @PostMapping("/{id}/generate-insurance")
@@ -312,10 +380,16 @@ public class StaffBookingWorkflowRestController {
         Booking booking = bookingRepository.findById(id).orElse(null);
         if (booking == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
         if (!canAccessBooking(session, booking)) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
-        if (booking.getTemporaryRegistrationNumber() == null || booking.getTemporaryRegistrationNumber().isBlank()) {
+        String workflow = String.valueOf(booking.getWorkflowStatus()).toLowerCase();
+        boolean quickDeliverFromReverification = workflow.contains("re-verification pending");
+        if (!quickDeliverFromReverification && (booking.getTemporaryRegistrationNumber() == null || booking.getTemporaryRegistrationNumber().isBlank())) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Temporary registration required before delivery"));
         }
-        if ((booking.getRemainingAmount() != null && booking.getRemainingAmount() > 0) || !originalDocumentsVerified || !physicalVerificationDone || !deliveryNoteSigned) {
+        if (!quickDeliverFromReverification
+                && ((booking.getRemainingAmount() != null && booking.getRemainingAmount() > 0)
+                || !originalDocumentsVerified
+                || !physicalVerificationDone
+                || !deliveryNoteSigned)) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Payment and all delivery-day verifications are mandatory"));
         }
 
@@ -381,6 +455,10 @@ public class StaffBookingWorkflowRestController {
         Optional<Booking> existing = bookingRepository.findById(id);
         if (existing.isEmpty()) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
         if (!canAccessBooking(session, existing.get())) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
+        Booking booking = existing.get();
+        if (!"Pre-Verified".equalsIgnoreCase(booking.getPreVerificationStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Pre-verification is required before booking confirmation"));
+        }
         Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Approved", null, confirmedDeliveryDate);
         return updated.<ResponseEntity<?>>map(b -> ResponseEntity.ok(Map.of("ok", true, "booking", b)))
                 .orElseGet(() -> ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found")));

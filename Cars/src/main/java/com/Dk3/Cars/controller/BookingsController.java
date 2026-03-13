@@ -196,19 +196,33 @@ public class BookingsController {
     @GetMapping("/api")
     @ResponseBody
     public List<Booking> getAllBookings(HttpSession session) {
+        return getBookingsByDeliveryState(session, false);
+    }
+
+    @GetMapping("/api/delivered")
+    @ResponseBody
+    public List<Booking> getDeliveredBookings(HttpSession session) {
+        return getBookingsByDeliveryState(session, true);
+    }
+
+    private List<Booking> getBookingsByDeliveryState(HttpSession session, boolean delivered) {
         String role = (String) session.getAttribute("USER_ROLE");
-        if (!isStaffRole(role)) {
-            return bookingService.getAllBookings();
-        }
-        Long showroomId = getSessionUser(session).map(User::getShowroomId).orElse(null);
-        if (showroomId == null) {
-            return java.util.Collections.emptyList();
-        }
-        return bookingService.getAllBookings()
-                .stream()
-                .filter(b -> b.getCar() != null && b.getCar().getShowroom() != null
-                        && showroomId.equals(b.getCar().getShowroom().getId()))
+        return bookingService.getAllBookings().stream()
+                .filter(b -> delivered == isDelivered(b))
+                .filter(b -> {
+                    if (!isStaffRole(role)) return true;
+                    Long showroomId = getSessionUser(session).map(User::getShowroomId).orElse(null);
+                    return showroomId != null
+                            && b.getCar() != null
+                            && b.getCar().getShowroom() != null
+                            && showroomId.equals(b.getCar().getShowroom().getId());
+                })
                 .toList();
+    }
+
+    private boolean isDelivered(Booking booking) {
+        String s = String.valueOf(booking.getWorkflowStatus() == null ? booking.getStatus() : booking.getWorkflowStatus()).toLowerCase();
+        return s.contains("deliver");
     }
 
     @PostMapping("/api")

@@ -1,6 +1,7 @@
 package com.Dk3.Cars.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,12 +19,15 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Value("${spring.mail.username}")
+    private String fromAddress;
+
 
     @Async
     public void sendVerificationEmail(String to, String link) {
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("DK3 Cars <dk3cars@gmail.com>");
+        message.setFrom(fromAddress);
         message.setTo(to);
         message.setSubject("Verify your DK3 Cars account");
         message.setText("""
@@ -47,7 +51,7 @@ public class EmailService {
     @Async
     public void sendOtpEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("DK3 Cars <dk3cars@gmail.com>");
+        message.setFrom(fromAddress);
         message.setTo(to);
         message.setSubject("DK3 Cars Password Reset OTP");
         message.setText("Your OTP is: " + otp + "\nValid for 10 minutes.");
@@ -64,7 +68,7 @@ public class EmailService {
         try {
             var mimeMessage = mailSender.createMimeMessage();
             var helper = new MimeMessageHelper(mimeMessage, true);
-            helper.setFrom("DK3 Cars <dk3cars@gmail.com>");
+            helper.setFrom(fromAddress);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body);

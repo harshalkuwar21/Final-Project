@@ -7,12 +7,14 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 let currentDeleteId = null;
+let currentBookingTab = "active";
 
 function loadBookings() {
     const tbody = document.getElementById("bookingsTableBody");
     tbody.innerHTML = '<tr><td colspan="11" class="loading"><div class="spinner"></div>Loading bookings...</td></tr>';
+    const endpoint = currentBookingTab === "delivered" ? "/bookings/api/delivered" : "/bookings/api";
 
-    fetch("/bookings/api")
+    fetch(endpoint)
         .then((response) => response.json())
         .then((bookings) => displayBookings(bookings))
         .catch((error) => {
@@ -22,9 +24,11 @@ function loadBookings() {
 }
 
 function displayBookings(bookings) {
+    window.__bookingsCache = Array.isArray(bookings) ? bookings : [];
     const tbody = document.getElementById("bookingsTableBody");
     if (bookings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="empty-state"><i class="fas fa-calendar-check"></i><br>No bookings found</td></tr>';
+        const emptyText = currentBookingTab === "delivered" ? "No delivered bookings found" : "No bookings found";
+        tbody.innerHTML = `<tr><td colspan="11" class="empty-state"><i class="fas fa-calendar-check"></i><br>${emptyText}</td></tr>`;
         return;
     }
 
@@ -40,20 +44,7 @@ function displayBookings(bookings) {
             <td>${booking.expectedDeliveryDate || "N/A"}</td>
             <td>${booking.bookingDate || "N/A"}</td>
             <td>${renderDocuments(booking)}</td>
-            <td class="actions">
-                ${showPreVerifyButton(booking) ? `<button class="action-btn" style="background:#0f766e;color:#fff;" title="Pre-Verify Documents" onclick="preVerifyBooking(${booking.id})"><i class="fas fa-user-check"></i></button>` : ""}
-                ${showLoanApproveButton(booking) ? `<button class="action-btn" style="background:#7c3aed;color:#fff;" title="Approve Loan" onclick="approveLoan(${booking.id})"><i class="fas fa-building-columns"></i></button>` : ""}
-                ${showFullPaymentCompleteButton(booking) ? `<button class="action-btn" style="background:#2563eb;color:#fff;" title="Mark Payment Paid" onclick="completeFullPayment(${booking.id})"><i class="fas fa-wallet"></i></button>` : ""}
-                ${showConfirmButton(booking) ? `<button class="action-btn" style="background:#2dd36f;color:#fff;" title="Confirm Booking" onclick="confirmBooking(${booking.id}, '${booking.expectedDeliveryDate || ""}')"><i class="fas fa-check"></i></button>` : ""}
-                ${showDownPaymentVerifyButton(booking) ? `<button class="action-btn" style="background:#f59e0b;color:#fff;" title="Verify Down Payment" onclick="verifyDownPayment(${booking.id})"><i class="fas fa-money-check-dollar"></i></button>` : ""}
-                <button class="action-btn" style="background:#0ea5e9;color:#fff;" title="View Documents" onclick="viewBookingDocuments(${booking.id})"><i class="fas fa-file-lines"></i></button>
-                <button class="action-btn edit-btn" title="Edit" onclick="editBooking(${booking.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-btn" title="Delete" onclick="deleteBooking(${booking.id}, '${safeText(booking.customer ? booking.customer.name : "Unknown")}', '${safeText(booking.car ? booking.car.brand + " " + booking.car.model : "Unknown")}')">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
+            <td class="actions">${renderBookingActions(booking)}</td>
         </tr>
     `).join("");
 }
@@ -80,17 +71,40 @@ function renderDocuments(booking) {
 function viewBookingDocuments(id) {
     window.open(`/bookings/details/${id}`, "_blank");
 }
+
+function renderBookingActions(booking) {
+    if (currentBookingTab === "delivered") {
+        return `<button class="action-btn" style="background:#0ea5e9;color:#fff;" title="View Documents" onclick="viewBookingDocuments(${booking.id})"><i class="fas fa-file-lines"></i></button>`;
+    }
+
+    return `
+        ${showPreVerifyButton(booking) ? `<button class="action-btn" style="background:#0f766e;color:#fff;" title="Pre-Verify Documents" onclick="preVerifyBooking(${booking.id})"><i class="fas fa-user-check"></i></button>` : ""}
+        ${showLoanApproveButton(booking) ? `<button class="action-btn" style="background:#7c3aed;color:#fff;" title="Approve Loan" onclick="approveLoan(${booking.id})"><i class="fas fa-building-columns"></i> Approve Loan</button>` : ""}
+        ${showReverificationButton(booking) ? `<button class="action-btn" style="background:#1d4ed8;color:#fff;" title="Request Re-Verification" onclick="requestReverification(${booking.id})"><i class="fas fa-rotate"></i></button>` : ""}
+        ${showFullPaymentCompleteButton(booking) ? `<button class="action-btn" style="background:#2563eb;color:#fff;" title="Mark Payment Paid" onclick="completeFullPayment(${booking.id})"><i class="fas fa-wallet"></i></button>` : ""}
+        ${showConfirmButton(booking) ? `<button class="action-btn" style="background:#2dd36f;color:#fff;" title="${getConfirmActionTitle(booking)}" onclick="confirmBooking(${booking.id}, '${booking.expectedDeliveryDate || ""}')"><i class="fas fa-truck"></i> ${getConfirmActionLabel(booking)}</button>` : ""}
+        ${showDownPaymentVerifyButton(booking) ? `<button class="action-btn" style="background:#f59e0b;color:#fff;" title="Verify Down Payment" onclick="verifyDownPayment(${booking.id})"><i class="fas fa-money-check-dollar"></i></button>` : ""}
+        <button class="action-btn" style="background:#0ea5e9;color:#fff;" title="View Documents" onclick="viewBookingDocuments(${booking.id})"><i class="fas fa-file-lines"></i></button>
+        <button class="action-btn edit-btn" title="Edit" onclick="editBooking(${booking.id})">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="action-btn delete-btn" title="Delete" onclick="deleteBooking(${booking.id}, '${safeText(booking.customer ? booking.customer.name : "Unknown")}', '${safeText(booking.car ? booking.car.brand + " " + booking.car.model : "Unknown")}')">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+}
 function showConfirmButton(booking) {
     const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    const pre = String(booking.preVerificationStatus || "").toLowerCase();
+    const paymentOption = String(booking.paymentOption || "").toLowerCase();
     if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
         return false;
     }
-    const remainingAmount = Number(booking.remainingAmount || 0);
-    const totalAmount = Number(booking.totalAmount || 0);
-    if (totalAmount > 0) {
-        return remainingAmount <= 0;
+    if (paymentOption.includes("loan")) {
+        if (s.includes("loan approved")) return false;
+        if (s.includes("re-verification pending")) return true;
     }
-    return s.includes("payment verified");
+    return pre === "pre-verified" || s.includes("pre-verified");
 }
 
 function showPreVerifyButton(booking) {
@@ -111,10 +125,12 @@ function showFullPaymentCompleteButton(booking) {
     if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
         return false;
     }
+    if (booking.downPaymentVerified !== true) return false;
 
     if (paymentOption.includes("loan")) {
-        const loanApproved = s.includes("loan approved");
-        if (!loanApproved) return false;
+        return false;
+    } else if (!paymentOption.includes("full")) {
+        return false;
     }
 
     const remainingAmount = Number(booking.remainingAmount || 0);
@@ -144,19 +160,43 @@ function showLoanApproveButton(booking) {
     if (!paymentOption.includes("loan")) return false;
 
     const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
-    if (["approved", "confirmed", "rejected", "cancelled", "delivered"].includes(s)) {
+    const pre = String(booking.preVerificationStatus || "").toLowerCase();
+    if (["rejected", "cancelled", "delivered"].includes(s)) {
         return false;
     }
+    if (s.includes("re-verification pending")) return false;
     if (s.includes("loan approved")) return false;
+    if (!(pre === "pre-verified" || s.includes("pre-verified"))) return false;
+    if (booking.downPaymentVerified !== true) return false;
     return true;
 }
 
+function showReverificationButton(booking) {
+    const paymentOption = String(booking.paymentOption || "").toLowerCase();
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    if (["rejected", "cancelled", "delivered"].includes(s)) return false;
+    if (s.includes("re-verification pending")) return false;
+
+    if (paymentOption.includes("loan")) {
+        return s.includes("loan approved");
+    }
+
+    const remainingAmount = Number(booking.remainingAmount || 0);
+    const fullyPaid = remainingAmount <= 0;
+    return fullyPaid && (s.includes("approved") || s.includes("payment verified"));
+}
+
 function approveLoan(id) {
-    const bankName = prompt(
+    const bankInput = prompt(
         "Enter loan bank name exactly as below:\n1) State Bank of India\n2) HDFC Bank",
         "State Bank of India"
     );
-    if (!bankName || !bankName.trim()) return;
+    if (!bankInput || !bankInput.trim()) return;
+
+    const raw = bankInput.trim();
+    let bankName = raw;
+    if (raw === "1" || raw.toLowerCase() === "sbi") bankName = "State Bank of India";
+    if (raw === "2" || raw.toLowerCase() === "hdfc") bankName = "HDFC Bank";
 
     const query = `?bankName=${encodeURIComponent(bankName.trim())}`;
     fetch(`/staff/bookings/${id}/loan-approve${query}`, { method: "POST" })
@@ -170,6 +210,22 @@ function approveLoan(id) {
             }
         })
         .catch(() => alert("Failed to approve loan"));
+}
+
+function requestReverification(id) {
+    const remarks = prompt("Enter re-verification remarks (optional):", "") || "";
+    const query = remarks.trim() ? `?remarks=${encodeURIComponent(remarks.trim())}` : "";
+    fetch(`/staff/bookings/${id}/request-reverification${query}`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification("Re-verification requested.", "success");
+            } else {
+                alert(data.error || "Failed to request re-verification");
+            }
+        })
+        .catch(() => alert("Failed to request re-verification"));
 }
 
 function showDownPaymentVerifyButton(booking) {
@@ -200,6 +256,12 @@ function completeFullPayment(id) {
 }
 
 function confirmBooking(id, existingDeliveryDate) {
+    const booking = window.__bookingsCache ? window.__bookingsCache.find((b) => Number(b.id) === Number(id)) : null;
+    if (booking && isReverificationPending(booking)) {
+        completeDelivery(id);
+        return;
+    }
+
     const dateInput = existingDeliveryDate || prompt("Enter confirmed delivery date (YYYY-MM-DD), optional:", "") || "";
     const query = dateInput ? `?confirmedDeliveryDate=${encodeURIComponent(dateInput)}` : "";
 
@@ -214,6 +276,20 @@ function confirmBooking(id, existingDeliveryDate) {
             fallbackConfirm(id);
         })
         .catch(() => fallbackConfirm(id));
+}
+
+function completeDelivery(id) {
+    fetch(`/staff/bookings/${id}/complete-delivery`, { method: "POST" })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data.ok) {
+                loadBookings();
+                showNotification("Car delivered successfully.", "success");
+            } else {
+                alert(data.error || "Failed to deliver car");
+            }
+        })
+        .catch(() => alert("Failed to deliver car"));
 }
 
 function verifyDownPayment(id) {
@@ -406,6 +482,36 @@ function showNotification(message, type = "info") {
 
 function safeText(v) {
     return String(v || "").replace(/'/g, "\\'");
+}
+
+function switchBookingTab(tabName) {
+    currentBookingTab = tabName === "delivered" ? "delivered" : "active";
+    document.getElementById("activeTabBtn").classList.toggle("active", currentBookingTab === "active");
+    document.getElementById("deliveredTabBtn").classList.toggle("active", currentBookingTab === "delivered");
+    const addBtn = document.getElementById("addBookingBtn");
+    if (addBtn) addBtn.style.display = currentBookingTab === "delivered" ? "none" : "inline-flex";
+    loadBookings();
+}
+
+function isReverificationPending(booking) {
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    return s.includes("re-verification pending");
+}
+
+function getConfirmActionLabel(booking) {
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    if (s.includes("re-verification pending")) {
+        return "Deliver Car";
+    }
+    return "Confirm Booking";
+}
+
+function getConfirmActionTitle(booking) {
+    const s = String(booking.workflowStatus || booking.status || "").toLowerCase();
+    if (s.includes("re-verification pending")) {
+        return "Deliver Car";
+    }
+    return "Confirm Booking";
 }
 
 const style = document.createElement("style");

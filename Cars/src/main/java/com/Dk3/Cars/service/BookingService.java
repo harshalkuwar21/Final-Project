@@ -42,6 +42,14 @@ public class BookingService {
         return bookingRepository.save(booking);
     }
 
+    public void sendBookingDocumentsAfterPayment(Long bookingId) {
+        if (bookingId == null) return;
+        bookingRepository.findById(bookingId).ifPresent(booking -> {
+            generateBookingDocsAndNotify(booking);
+            bookingRepository.save(booking);
+        });
+    }
+
     public void deleteBooking(Long id) {
         bookingRepository.deleteById(id);
     }
@@ -103,11 +111,10 @@ public class BookingService {
         if ("Approved".equalsIgnoreCase(workflowStatus)) {
             booking.setStatus("Confirmed");
             booking.setWorkflowStatus("Approved");
-            markStageStatus(booking.getId(), "Final Amount Received", "Completed", "Full payment approved by staff.");
-            markStageStatus(booking.getId(), "Delivery Ready", "Pending", "Documents sent. Delivery preparation in progress.");
-            generateBookingDocsAndNotify(booking);
+            markStageStatus(booking.getId(), "Final Amount Received", "Pending", "Booking confirmed. Awaiting final payment on delivery day.");
+            markStageStatus(booking.getId(), "Delivery Ready", "Pending", "Delivery will be prepared after full payment completion.");
         }
-        if ("Payment Verified".equalsIgnoreCase(workflowStatus) && isFullPaymentBooking(booking)) {
+        if ("Payment Verified".equalsIgnoreCase(workflowStatus)) {
             booking.setStatus("Confirmed");
             booking.setWorkflowStatus("Approved");
             markStageStatus(booking.getId(), "Final Amount Received", "Completed", "Full payment approved by staff.");
@@ -116,10 +123,6 @@ public class BookingService {
         }
 
         return Optional.of(bookingRepository.save(booking));
-    }
-
-    private boolean isFullPaymentBooking(Booking booking) {
-        return booking == null || booking.getPaymentOption() == null || !"Loan Required".equalsIgnoreCase(booking.getPaymentOption());
     }
 
     private void markStageStatus(Long bookingId, String stageName, String stageStatus, String remarks) {
@@ -137,12 +140,10 @@ public class BookingService {
 
     private void generateBookingDocsAndNotify(Booking booking) {
         try {
-            if (booking.getBookingReceiptUrl() != null && !booking.getBookingReceiptUrl().isBlank()
+            boolean docsAlreadyGenerated = booking.getBookingReceiptUrl() != null && !booking.getBookingReceiptUrl().isBlank()
                     && booking.getProformaInvoiceUrl() != null && !booking.getProformaInvoiceUrl().isBlank()
                     && booking.getAllotmentLetterUrl() != null && !booking.getAllotmentLetterUrl().isBlank()
-                    && booking.getDeliveryConfirmationLetterUrl() != null && !booking.getDeliveryConfirmationLetterUrl().isBlank()) {
-                return;
-            }
+                    && booking.getDeliveryConfirmationLetterUrl() != null && !booking.getDeliveryConfirmationLetterUrl().isBlank();
             Map<String, byte[]> docs = new LinkedHashMap<>();
             docs.put("Booking-Confirmation-Receipt-" + booking.getId() + ".pdf",
                     pdfService.generateBookingDocumentPdf(booking, "Booking Confirmation Receipt",
@@ -157,19 +158,21 @@ public class BookingService {
                     pdfService.generateBookingDocumentPdf(booking, "Delivery Confirmation Letter",
                             "Delivery details are confirmed as per your selected schedule."));
 
-            Path generatedDir = Path.of("uploads", "documents", "generated");
-            Files.createDirectories(generatedDir);
-            int idx = 0;
-            for (Map.Entry<String, byte[]> entry : docs.entrySet()) {
-                String fileName = "booking-" + booking.getId() + "-" + idx + ".pdf";
-                Path filePath = generatedDir.resolve(fileName);
-                Files.write(filePath, entry.getValue(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                String url = "/uploads/documents/generated/" + fileName;
-                if (idx == 0) booking.setBookingReceiptUrl(url);
-                if (idx == 1) booking.setProformaInvoiceUrl(url);
-                if (idx == 2) booking.setAllotmentLetterUrl(url);
-                if (idx == 3) booking.setDeliveryConfirmationLetterUrl(url);
-                idx++;
+            if (!docsAlreadyGenerated) {
+                Path generatedDir = Path.of("uploads", "documents", "generated");
+                Files.createDirectories(generatedDir);
+                int idx = 0;
+                for (Map.Entry<String, byte[]> entry : docs.entrySet()) {
+                    String fileName = "booking-" + booking.getId() + "-" + idx + ".pdf";
+                    Path filePath = generatedDir.resolve(fileName);
+                    Files.write(filePath, entry.getValue(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    String url = "/uploads/documents/generated/" + fileName;
+                    if (idx == 0) booking.setBookingReceiptUrl(url);
+                    if (idx == 1) booking.setProformaInvoiceUrl(url);
+                    if (idx == 2) booking.setAllotmentLetterUrl(url);
+                    if (idx == 3) booking.setDeliveryConfirmationLetterUrl(url);
+                    idx++;
+                }
             }
 
             String to = booking.getCustomer() != null ? booking.getCustomer().getEmail() : null;

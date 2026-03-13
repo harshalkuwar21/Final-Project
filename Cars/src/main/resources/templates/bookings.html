@@ -267,6 +267,30 @@ body {
     min-width: 250px;
 }
 
+.booking-tabs {
+    padding: 14px 30px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    gap: 10px;
+}
+
+.tab-btn {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #1e293b;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
 /* Table */
 .table-container {
     overflow-x: auto;
@@ -361,6 +385,7 @@ tbody tr:last-child {
 .actions {
     display: flex;
     gap: 5px;
+    flex-wrap: wrap;
 }
 
 .action-btn {
@@ -616,9 +641,14 @@ tbody tr:last-child {
 
         <div class="header">
             <h1><i class="fas fa-calendar-check"></i> Bookings Management</h1>
-            <button class="btn btn-primary" onclick="showAddModal()">
+            <button id="addBookingBtn" class="btn btn-primary" onclick="showAddModal()">
                 <i class="fas fa-plus"></i> Add New Booking
             </button>
+        </div>
+
+        <div class="booking-tabs">
+            <button id="activeTabBtn" class="tab-btn active" onclick="switchBookingTab('active')">Bookings</button>
+            <button id="deliveredTabBtn" class="tab-btn" onclick="switchBookingTab('delivered')">Delivered</button>
         </div>
 
         <div class="filters">

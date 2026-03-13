@@ -337,6 +337,14 @@ public class UserPanelController {
         if (workflow.contains("reject") || workflow.contains("cancel") || workflow.contains("deliver")) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking is closed"));
         }
+        boolean bookingConfirmed = workflow.contains("approved")
+                || "confirmed".equalsIgnoreCase(booking.getStatus());
+        if (!bookingConfirmed) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "ok", false,
+                    "error", "Booking is not confirmed yet. Wait for staff verification first."
+            ));
+        }
 
         String paymentOption = String.valueOf(payload.getOrDefault("paymentOption", "Full Payment"));
         if (!"Full Payment".equalsIgnoreCase(paymentOption) && !"Loan Required".equalsIgnoreCase(paymentOption)) {
@@ -360,14 +368,28 @@ public class UserPanelController {
             }
         }
 
-        booking.setPaymentOption(paymentOption);
-        booking.setDownPaymentAmount(downPayment);
-        booking.setDownPaymentMethod(downPayment > 0 ? String.valueOf(payload.getOrDefault("downPaymentMethod", "Bank Transfer")) : null);
-        booking.setDownPaymentReference(downPayment > 0 ? String.valueOf(payload.getOrDefault("downPaymentReference", "")) : null);
-        booking.setDownPaymentVerified(downPayment <= 0);
+        boolean downPaymentAlreadyVerified = Boolean.TRUE.equals(booking.getDownPaymentVerified());
+        if (!downPaymentAlreadyVerified) {
+            if (downPayment <= 0) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "ok", false,
+                        "error", "Please pay down payment first and submit payment reference."
+                ));
+            }
+            booking.setDownPaymentAmount(downPayment);
+            booking.setDownPaymentMethod(String.valueOf(payload.getOrDefault("downPaymentMethod", "Bank Transfer")));
+            booking.setDownPaymentReference(String.valueOf(payload.getOrDefault("downPaymentReference", "")));
+            booking.setDownPaymentVerified(false);
+        } else {
+            // Lock down payment details after staff verification.
+            downPayment = booking.getDownPaymentAmount() == null ? 0D : booking.getDownPaymentAmount();
+            booking.setPaymentOption(paymentOption);
+        }
 
-        double bookingPaid = booking.getBookingAmount();
-        booking.setPaidAmount(bookingPaid + downPayment);
+        double bookingPaid = downPaymentAlreadyVerified
+                ? booking.getBookingAmount() + downPayment
+                : booking.getBookingAmount();
+        booking.setPaidAmount(bookingPaid);
         double total = booking.getTotalAmount() == null ? 0D : booking.getTotalAmount();
         booking.setRemainingAmount(Math.max(0D, total - booking.getPaidAmount()));
         booking.setStatusUpdatedAt(LocalDateTime.now());
@@ -391,7 +413,7 @@ public class UserPanelController {
             paymentTransactionRepository.save(downTxn);
         }
 
-        if ("Loan Required".equalsIgnoreCase(paymentOption)) {
+        if (downPaymentAlreadyVerified && "Loan Required".equalsIgnoreCase(paymentOption)) {
             LoanDetail loan = loanDetailRepository.findByBookingId(id).orElseGet(LoanDetail::new);
             loan.setBooking(booking);
             loan.setLoanRequired(true);
@@ -413,12 +435,20 @@ public class UserPanelController {
             loanDetailRepository.save(loan);
         }
 
-        markPaymentStage(booking, "Down Payment Paid", downPayment > 0 ? "Pending" : "Not Required",
-                downPayment > 0 ? "Down payment submitted by customer. Awaiting staff verification." : "No down payment selected.");
-        markPaymentStage(booking, "Loan Approved", "Loan Required".equalsIgnoreCase(paymentOption) ? "Pending" : "Not Required",
-                "Loan Required".equalsIgnoreCase(paymentOption) ? "Awaiting bank approval." : "Customer selected full payment.");
+        if (!downPaymentAlreadyVerified) {
+            markPaymentStage(booking, "Down Payment Paid", "Pending",
+                    "Down payment submitted by customer. Awaiting staff verification.");
+        } else {
+            markPaymentStage(booking, "Loan Approved", "Loan Required".equalsIgnoreCase(paymentOption) ? "Pending" : "Not Required",
+                    "Loan Required".equalsIgnoreCase(paymentOption)
+                            ? "Awaiting bank approval."
+                            : "Customer selected full payment. Pay final amount on delivery day.");
+        }
 
-        return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
+        String message = downPaymentAlreadyVerified
+                ? "Payment option updated successfully."
+                : "Down payment submitted. Staff will verify and then payment option selection will be enabled.";
+        return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "message", message));
     }
 
     @PostMapping("/api/buy-now")
@@ -524,9 +554,9 @@ public class UserPanelController {
         booking.setTransactionId(transactionId);
         booking.setPaymentGateway(paymentGateway == null || paymentGateway.isBlank() ? "Razorpay" : paymentGateway);
         booking.setPaymentOutcome(paymentOutcome);
-        booking.setPaymentOption(paymentOption);
+        booking.setPaymentOption("Pending Selection");
         booking.setDownPaymentAmount(downPaymentAmount == null ? 0D : downPaymentAmount);
-        booking.setDownPaymentVerified(downPaymentAmount == null || downPaymentAmount <= 0);
+        booking.setDownPaymentVerified(false);
         booking.setDownPaymentMethod(downPaymentMethod);
         booking.setDownPaymentReference(downPaymentReference);
         booking.setDownPaymentReceiptUrl(saveFile(downPaymentReceipt, "uploads/documents"));
@@ -560,7 +590,7 @@ public class UserPanelController {
                 + booking.getAccessoriesAmount()
                 + booking.getExtendedWarrantyAmount()
                 + booking.getTcsAmount();
-        double paidAmount = bookingAmount + (downPaymentAmount == null ? 0D : downPaymentAmount);
+        double paidAmount = bookingAmount;
         booking.setTotalAmount(totalAmount);
         booking.setPaidAmount(paidAmount);
         booking.setRemainingAmount(Math.max(0D, totalAmount - paidAmount));
@@ -612,7 +642,7 @@ public class UserPanelController {
             paymentTransactionRepository.save(dpTx);
         }
 
-        if ("Loan Required".equalsIgnoreCase(paymentOption)) {
+        if ("Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
             LoanDetail loan = new LoanDetail();
             loan.setBooking(saved);
             loan.setLoanRequired(true);
@@ -632,7 +662,7 @@ public class UserPanelController {
             loanDetailRepository.save(loan);
         }
 
-        createPaymentStages(saved, downPaymentAmount != null && downPaymentAmount > 0, "Loan Required".equalsIgnoreCase(paymentOption));
+        createPaymentStages(saved, downPaymentAmount != null && downPaymentAmount > 0, "Loan Required".equalsIgnoreCase(saved.getPaymentOption()));
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("ok", true);
@@ -694,11 +724,11 @@ public class UserPanelController {
         }
     }
 
-    private void createPaymentStages(Booking booking, boolean downPaymentDone, boolean loanRequired) {
+    private void createPaymentStages(Booking booking, boolean downPaymentSubmitted, boolean loanRequired) {
         List<PaymentStage> stages = new ArrayList<>();
         stages.add(stage(booking, 1, "Booking Paid", "Completed", "Booking amount received."));
-        stages.add(stage(booking, 2, "Down Payment Paid", downPaymentDone ? "Completed" : "Pending",
-                downPaymentDone ? "Down payment recorded." : "Awaiting down payment."));
+        stages.add(stage(booking, 2, "Down Payment Paid", "Pending",
+                downPaymentSubmitted ? "Awaiting staff verification for submitted down payment." : "Awaiting down payment."));
         stages.add(stage(booking, 3, "Loan Approved", loanRequired ? "Pending" : "Not Required",
                 loanRequired ? "Awaiting bank approval." : "Customer selected full payment."));
         stages.add(stage(booking, 4, "Final Amount Received", "Pending", "Awaiting final settlement."));
@@ -720,15 +750,16 @@ public class UserPanelController {
         }
 
         PaymentStage downStage = findStage(stages, "Down Payment Paid");
-        if (downStage != null && downStage.getStageStatus() != null && !downStage.getStageStatus().isBlank()) {
-            step2Status = normalizeStatus(downStage.getStageStatus());
-        } else if (booking.getDownPaymentAmount() != null && booking.getDownPaymentAmount() > 0) {
+        if (Boolean.TRUE.equals(booking.getDownPaymentVerified())) {
             step2Status = "Completed";
-        } else if (!"Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
-            step2Status = "Not Required";
+        } else if (downStage != null && downStage.getStageStatus() != null && !downStage.getStageStatus().isBlank()) {
+            step2Status = normalizeStatus(downStage.getStageStatus());
         }
 
-        if ("Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
+        if (!Boolean.TRUE.equals(booking.getDownPaymentVerified())) {
+            step3Label = "Payment Plan Selection";
+            step3Status = "Pending";
+        } else if ("Loan Required".equalsIgnoreCase(booking.getPaymentOption())) {
             step3Label = "Loan Approved";
             if (loan == null || loan.getStatus() == null || loan.getStatus().isBlank()) {
                 step3Status = "Pending";
@@ -740,11 +771,11 @@ public class UserPanelController {
                 step3Status = "Pending";
             }
         } else {
-            PaymentStage finalStage = findStage(stages, "Final Amount Received");
-            if (finalStage != null && finalStage.getStageStatus() != null && !finalStage.getStageStatus().isBlank()) {
-                step3Status = normalizeStatus(finalStage.getStageStatus());
-            } else if (booking.getRemainingAmount() != null && booking.getRemainingAmount() <= 0) {
+            step3Label = "Full Payment on Delivery Day";
+            if (booking.getRemainingAmount() != null && booking.getRemainingAmount() <= 0) {
                 step3Status = "Completed";
+            } else {
+                step3Status = "Pending";
             }
         }
 

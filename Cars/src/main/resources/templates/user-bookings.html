@@ -28,6 +28,7 @@
         button { background:#005bbb; color:#fff; border:none; cursor:pointer; }
         .hidden { display:none; }
         .hint { font-size:12px; color:#5b6f90; margin-top:6px; }
+        .next-action { font-size: 12px; color: #0f172a; line-height: 1.45; }
     </style>
 </head>
 <body>
@@ -45,11 +46,12 @@
                 <th>Car</th>
                 <th>Status</th>
                 <th>Step by Step Status</th>
+                <th>Next Action</th>
                 <th>Delivery Date</th>
                 <th>Documents</th>
             </tr>
             </thead>
-            <tbody id="bookingsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+            <tbody id="bookingsBody"><tr><td colspan="7">Loading...</td></tr></tbody>
         </table>
     </div>
     <div class="panel">
@@ -59,7 +61,7 @@
                 <label>Booking</label>
                 <select id="planBookingId"></select>
             </div>
-            <div>
+            <div id="planOptionWrap">
                 <label>Payment Option</label>
                 <select id="planPaymentOption">
                     <option value="Full Payment">Full Payment</option>
@@ -67,7 +69,7 @@
                 </select>
             </div>
             <div>
-                <label>Down Payment (Optional)</label>
+                <label>Down Payment Amount</label>
                 <input id="planDownPaymentAmount" type="number" value="0" min="0">
             </div>
             <div>
@@ -77,6 +79,8 @@
                     <option value="NEFT">NEFT</option>
                     <option value="RTGS">RTGS</option>
                     <option value="Net Banking">Net Banking</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
                 </select>
             </div>
             <div>
@@ -94,9 +98,9 @@
             <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
             <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
         </div>
-        <div class="hint">Booking payment आधीच झालेले असते. इथून Down Payment / Full Payment / Loan option निवडा.</div>
+        <div id="planFlowHint" class="hint">Follow this sequence: booking confirmation -> submit down payment reference -> staff verifies -> choose full payment or loan.</div>
         <div style="margin-top:10px;">
-            <button type="button" onclick="savePaymentPlan()">Save Payment Plan</button>
+            <button id="planSaveBtn" type="button" onclick="savePaymentPlan()">Save</button>
         </div>
         <div id="planMsg" class="hint"></div>
     </div>
@@ -149,11 +153,32 @@
                     <span class="step-badge ${stepBadgeClass(s.step2Status)}">${s.step2Status || "Pending"}</span>
                 </div>
                 <div class="step-row">
-                    <span class="step-label">3. ${s.step3Label || "Full Payment Paid"}</span>
+                    <span class="step-label">3. ${s.step3Label || "Full Payment on Delivery Day"}</span>
                     <span class="step-badge ${stepBadgeClass(s.step3Status)}">${s.step3Status || "Pending"}</span>
                 </div>
             </div>
         `;
+    }
+
+    function nextActionMessage(booking) {
+        const workflow = String(booking.workflowStatus || booking.status || "").toLowerCase();
+        const paymentOption = String(booking.paymentOption || "").toLowerCase();
+        if (workflow.includes("reject") || workflow.includes("cancel")) return "Booking closed.";
+        if (workflow.includes("deliver")) return "Vehicle delivered.";
+
+        const confirmed = workflow.includes("approved") || String(booking.status || "").toLowerCase() === "confirmed";
+        if (!confirmed) return "Waiting for staff to verify payment and documents, then confirm booking.";
+
+        if (booking.downPaymentVerified !== true) {
+            return "Booking confirmed. Please pay down payment using non-cash mode and submit payment reference.";
+        }
+
+        if (paymentOption.includes("loan")) {
+            return workflow.includes("loan approved")
+                ? "Loan approved. Staff can continue with re-verification."
+                : "Down payment verified. Loan approval is pending.";
+        }
+        return "Down payment verified. Please pay full amount on delivery day.";
     }
 
     async function loadBookings() {
@@ -162,8 +187,9 @@
         const body = document.getElementById("bookingsBody");
         const tracker = data.stepTracker || {};
         if (!data.ok || !data.bookings.length) {
-            body.innerHTML = "<tr><td colspan='6'>No bookings found.</td></tr>";
+            body.innerHTML = "<tr><td colspan='7'>No bookings found.</td></tr>";
             document.getElementById("planBookingId").innerHTML = "<option value=''>No active bookings</option>";
+            syncPlanFormState();
             return;
         }
         bookingsCache = data.bookings || [];
@@ -173,6 +199,7 @@
                 <td>${b.car ? (b.car.brand + " " + b.car.model) : "-"}</td>
                 <td><span class="badge ${badgeClass(b.workflowStatus || b.status)}">${b.workflowStatus || b.status || "-"}</span></td>
                 <td>${renderStepTracker(tracker[b.id])}</td>
+                <td><div class="next-action">${nextActionMessage(b)}</div></td>
                 <td>${b.expectedDeliveryDate || "-"}</td>
                 <td>
                     ${b.bookingReceiptUrl ? `<a href="${b.bookingReceiptUrl}" target="_blank">Receipt</a> ` : ""}
@@ -191,6 +218,7 @@
         select.innerHTML = openBookings.length
             ? openBookings.map(b => `<option value="${b.id}">#${b.id} - ${(b.car ? (b.car.brand + " " + b.car.model) : "Booking")}</option>`).join("")
             : "<option value=''>No active bookings</option>";
+        syncPlanFormState();
     }
 
     async function loadPayments() {
@@ -213,6 +241,63 @@
         `).join("");
     }
 
+    function syncPlanFormState() {
+        const bookingId = Number(document.getElementById("planBookingId").value || 0);
+        const booking = bookingsCache.find(b => Number(b.id) === bookingId);
+
+        const optionWrap = document.getElementById("planOptionWrap");
+        const paymentOption = document.getElementById("planPaymentOption");
+        const downAmount = document.getElementById("planDownPaymentAmount");
+        const downMethod = document.getElementById("planDownPaymentMethod");
+        const downRef = document.getElementById("planDownPaymentReference");
+        const saveBtn = document.getElementById("planSaveBtn");
+        const hint = document.getElementById("planFlowHint");
+        const msg = document.getElementById("planMsg");
+
+        if (!booking) {
+            optionWrap.style.display = "none";
+            document.getElementById("loanPlanFields").classList.add("hidden");
+            downAmount.disabled = true;
+            downMethod.disabled = true;
+            downRef.disabled = true;
+            saveBtn.disabled = true;
+            hint.textContent = "Select a booking to continue.";
+            return;
+        }
+
+        const workflow = String(booking.workflowStatus || booking.status || "").toLowerCase();
+        const confirmed = workflow.includes("approved") || String(booking.status || "").toLowerCase() === "confirmed";
+        const downVerified = booking.downPaymentVerified === true;
+
+        if (!confirmed) {
+            optionWrap.style.display = "none";
+            document.getElementById("loanPlanFields").classList.add("hidden");
+            downAmount.disabled = true;
+            downMethod.disabled = true;
+            downRef.disabled = true;
+            saveBtn.disabled = true;
+            hint.textContent = "Staff confirmation pending. Payment actions are locked.";
+            return;
+        }
+
+        saveBtn.disabled = false;
+        downAmount.disabled = downVerified;
+        downMethod.disabled = downVerified;
+        downRef.disabled = downVerified;
+        optionWrap.style.display = downVerified ? "" : "none";
+
+        if (!downVerified) {
+            document.getElementById("loanPlanFields").classList.add("hidden");
+            hint.textContent = "Step 1: submit down payment reference. Staff verification is required before selecting Full Payment or Loan.";
+            msg.textContent = "";
+            return;
+        }
+
+        const isLoan = paymentOption.value === "Loan Required";
+        document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
+        hint.textContent = "Step 2: choose Full Payment or Loan Required after down payment verification.";
+    }
+
     loadBookings();
     loadPayments();
 
@@ -220,18 +305,25 @@
         const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
         document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
     });
+    document.getElementById("planBookingId").addEventListener("change", syncPlanFormState);
 
     async function savePaymentPlan() {
         const bookingId = document.getElementById("planBookingId").value;
         if (!bookingId) return;
+        const booking = bookingsCache.find(b => String(b.id) === String(bookingId));
+        if (!booking) return;
+
         const paymentOption = document.getElementById("planPaymentOption").value;
+        const downVerified = booking.downPaymentVerified === true;
         const payload = {
-            paymentOption,
             downPaymentAmount: Number(document.getElementById("planDownPaymentAmount").value || 0),
             downPaymentMethod: document.getElementById("planDownPaymentMethod").value,
             downPaymentReference: document.getElementById("planDownPaymentReference").value || ""
         };
-        if (paymentOption === "Loan Required") {
+        if (downVerified) {
+            payload.paymentOption = paymentOption;
+        }
+        if (downVerified && paymentOption === "Loan Required") {
             payload.loanBank = document.getElementById("planLoanBank").value || "";
             payload.salary = Number(document.getElementById("planSalary").value || 0);
             payload.employmentType = document.getElementById("planEmploymentType").value || "Salaried";
@@ -241,6 +333,7 @@
             payload.loanInterestRate = Number(document.getElementById("planLoanRate").value || 9);
             payload.loanTenureMonths = Number(document.getElementById("planLoanTenure").value || 60);
         }
+
         const msg = document.getElementById("planMsg");
         msg.textContent = "Saving...";
         try {
@@ -251,7 +344,7 @@
             });
             const data = await res.json();
             if (data.ok) {
-                msg.textContent = "Payment plan updated successfully.";
+                msg.textContent = data.message || "Updated successfully.";
                 await loadBookings();
             } else {
                 msg.textContent = data.error || "Failed to update payment plan.";
