@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#eef2ff,#f5f7ff,#f9f5ff);
+color:#16233d;
+}
+
+.wrap{
+max-width:980px;
+margin:auto;
+padding:28px 22px 40px;
+}
+
+.top{
+background:#fff;
+padding:18px 20px;
+border-radius:18px;
+box-shadow:0 12px 30px rgba(0,0,0,0.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.top h2{
+font-size:30px;
+}
+
+.top-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.btn{
+border:none;
+text-decoration:none;
+padding:10px 16px;
+border-radius:10px;
+font-weight:600;
+font-size:14px;
+cursor:pointer;
+}
+
+.back-link{
+background:#eef2ff;
+color:#2f4db2;
+}
+
+.edit-btn,
+.save-btn{
+background:linear-gradient(135deg,#6c4ef6,#8d77ff);
+color:#fff;
+}
+
+.cancel-btn{
+background:#f3f5fb;
+color:#33415f;
+}
+
+.card{
+margin-top:22px;
+background:#fff;
+border-radius:20px;
+padding:24px;
+box-shadow:0 16px 34px rgba(0,0,0,0.08);
+border:1px solid #e8e8f3;
+}
+
+.hero{
+display:grid;
+grid-template-columns:120px 1fr;
+gap:18px;
+align-items:center;
+}
+
+.avatar,
+.avatar-img{
+width:120px;
+height:120px;
+border-radius:28px;
+border:4px solid #f0edff;
+box-shadow:0 10px 24px rgba(87,66,194,0.12);
+}
+
+.avatar{
+background:linear-gradient(135deg,#e7e2ff,#dff1ff);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+font-weight:700;
+color:#5b43d1;
+}
+
+.avatar-img{
+object-fit:cover;
+}
+
+.name{
+font-size:32px;
+font-weight:700;
+}
+
+.role{
+margin-top:8px;
+display:inline-block;
+padding:8px 12px;
+border-radius:999px;
+background:#f1edff;
+color:#5b43d1;
+font-size:13px;
+font-weight:600;
+}
+
+.status{
+margin-top:12px;
+font-size:14px;
+color:#5f6e86;
+}
+
+.grid{
+margin-top:20px;
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:12px;
+}
+
+.item{
+padding:14px;
+border-radius:14px;
+background:#faf9ff;
+border:1px solid #e8e5f6;
+}
+
+.item span,
+.form-group label{
+display:block;
+color:#77819a;
+font-size:13px;
+margin-bottom:6px;
+}
+
+.item strong{
+font-size:15px;
+word-break:break-word;
+}
+
+.edit-panel{
+display:none;
+margin-top:22px;
+padding-top:22px;
+border-top:1px solid #ece9f7;
+}
+
+.edit-panel.active{
+display:block;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:14px;
+}
+
+.form-group input{
+width:100%;
+padding:12px 14px;
+border-radius:12px;
+border:1px solid #dfe4f3;
+background:#fafbff;
+font-size:14px;
+}
+
+.form-group input:focus{
+outline:none;
+border-color:#7a60ff;
+box-shadow:0 0 0 3px rgba(122,96,255,0.12);
+}
+
+.photo-row{
+margin-top:14px;
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+align-items:center;
+}
+
+.msg{
+margin-top:14px;
+font-size:14px;
+font-weight:600;
+}
+
+.hidden{
+display:none;
+}
+
+@media(max-width:800px){
+.hero,
+.grid,
+.form-grid{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h2>My Profile</h2>
+        <div class="top-actions">
+            <a class="btn back-link" href="/user-dashboard">Back to Dashboard</a>
+            <button class="btn edit-btn" id="editProfileBtn" type="button">Edit Profile</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div id="profileView">Loading profile...</div>
+
+        <div id="editPanel" class="edit-panel">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="firstNameInput">First Name</label>
+                    <input id="firstNameInput" type="text" placeholder="First Name">
+                </div>
+                <div class="form-group">
+                    <label for="lastNameInput">Last Name</label>
+                    <input id="lastNameInput" type="text" placeholder="Last Name">
+                </div>
+                <div class="form-group">
+                    <label for="emailInput">Email</label>
+                    <input id="emailInput" type="email" placeholder="Email">
+                </div>
+                <div class="form-group">
+                    <label for="contactInput">Contact</label>
+                    <input id="contactInput" type="text" placeholder="Contact Number">
+                </div>
+                <div class="form-group" style="grid-column:1 / -1;">
+                    <label for="passwordInput">New Password</label>
+                    <input id="passwordInput" type="password" placeholder="Leave blank if you do not want to change password">
+                </div>
+            </div>
+
+            <div class="photo-row">
+                <input id="photoInput" type="file" accept="image/*">
+                <button class="btn back-link" id="uploadPhotoBtn" type="button">Upload Photo</button>
+            </div>
+
+            <div class="photo-row">
+                <button class="btn save-btn" id="saveProfileBtn" type="button">Save Changes</button>
+                <button class="btn cancel-btn" id="cancelEditBtn" type="button">Cancel</button>
+            </div>
+
+            <div id="profileMsg" class="msg"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentProfile = null;
+
+function initials(name){
+return (name || "U").split(" ").filter(Boolean).slice(0,2).map(v => v[0].toUpperCase()).join("");
+}
+
+function profileMarkup(profile){
+const fullName = [profile.first, profile.last].filter(Boolean).join(" ").trim() || "User";
+const avatar = profile.profilePhotoUrl
+? `<img class="avatar-img" src="${profile.profilePhotoUrl}" alt="${fullName}">`
+: `<div class="avatar">${initials(fullName)}</div>`;
+
+return `
+<div class="hero">
+    ${avatar}
+    <div>
+        <div class="name">${fullName}</div>
+        <div class="role">${profile.role || "ROLE_USER"}</div>
+        <div class="status">Account status: ${profile.enabled ? "Verified" : "Pending Verification"}</div>
+    </div>
+</div>
+<div class="grid">
+    <div class="item"><span>Email</span><strong>${profile.email || "-"}</strong></div>
+    <div class="item"><span>Contact</span><strong>${profile.contact || "-"}</strong></div>
+    <div class="item"><span>User ID</span><strong>${profile.id || "-"}</strong></div>
+    <div class="item"><span>Profile Type</span><strong>${profile.role || "ROLE_USER"}</strong></div>
+</div>
+`;
+}
+
+function renderProfile(profile){
+currentProfile = profile;
+document.getElementById("profileView").innerHTML = profileMarkup(profile);
+document.getElementById("firstNameInput").value = profile.first || "";
+document.getElementById("lastNameInput").value = profile.last || "";
+document.getElementById("emailInput").value = profile.email || "";
+document.getElementById("contactInput").value = profile.contact || "";
+}
+
+function setMessage(text,color){
+const msg = document.getElementById("profileMsg");
+msg.textContent = text;
+msg.style.color = color;
+}
+
+function toggleEdit(show){
+document.getElementById("editPanel").classList.toggle("active", show);
+}
+
+async function loadProfile(){
+const res = await fetch("/user/profile");
+if(!res.ok){
+throw new Error("Profile load failed");
+}
+const profile = await res.json();
+renderProfile(profile);
+}
+
+async function saveProfile(){
+const payload = {
+first: document.getElementById("firstNameInput").value.trim(),
+last: document.getElementById("lastNameInput").value.trim(),
+email: document.getElementById("emailInput").value.trim(),
+contact: document.getElementById("contactInput").value.trim()
+};
+
+const password = document.getElementById("passwordInput").value.trim();
+if(password){
+payload.password = password;
+}
+
+const res = await fetch("/user/profile", {
+method: "PUT",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify(payload)
+});
+
+const out = await res.json();
+if(res.ok && out.ok){
+document.getElementById("passwordInput").value = "";
+setMessage("Profile updated successfully.", "green");
+await loadProfile();
+toggleEdit(false);
+return;
+}
+
+setMessage(out.error || "Unable to update profile.", "red");
+}
+
+async function uploadPhoto(){
+const fileInput = document.getElementById("photoInput");
+if(!fileInput.files || !fileInput.files[0]){
+setMessage("Please choose a photo first.", "red");
+return;
+}
+
+const data = new FormData();
+data.append("photo", fileInput.files[0]);
+
+const res = await fetch("/user/profile/photo", {
+method: "POST",
+body: data
+});
+
+const out = await res.json();
+if(res.ok && out.ok){
+setMessage("Profile photo updated.", "green");
+await loadProfile();
+return;
+}
+
+setMessage(out.error || "Photo upload failed.", "red");
+}
+
+document.getElementById("editProfileBtn").addEventListener("click", () => {
+toggleEdit(true);
+setMessage("", "#16233d");
+});
+
+document.getElementById("cancelEditBtn").addEventListener("click", () => {
+toggleEdit(false);
+document.getElementById("passwordInput").value = "";
+setMessage("", "#16233d");
+if(currentProfile){
+renderProfile(currentProfile);
+}
+});
+
+document.getElementById("saveProfileBtn").addEventListener("click", saveProfile);
+document.getElementById("uploadPhotoBtn").addEventListener("click", uploadPhoto);
+
+loadProfile().catch(() => {
+document.getElementById("profileView").innerHTML = "Unable to load profile.";
+});
+</script>
+</body>
+</html>

@@ -1,8 +1,10 @@
 package com.Dk3.Cars.restcontroller;
 
 import com.Dk3.Cars.entity.Car;
+import com.Dk3.Cars.entity.Booking;
 import com.Dk3.Cars.entity.Customer;
 import com.Dk3.Cars.entity.Document;
+import com.Dk3.Cars.repository.BookingRepository;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.CustomerRepository;
 import com.Dk3.Cars.repository.DocumentRepository;
@@ -20,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
@@ -39,6 +40,9 @@ public class DocumentsRestController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
     // ============================================
     // GET ALL DOCUMENTS
     // ============================================
@@ -46,13 +50,10 @@ public class DocumentsRestController {
     @GetMapping("/all")
     public ResponseEntity<List<Map<String, Object>>> getAllDocuments() {
         try {
-            List<Document> documents = documentService.getAllDocuments();
             List<Map<String, Object>> response = new ArrayList<>();
-
-            for (Document doc : documents) {
-                response.add(documentToMap(doc));
-            }
-
+            documentService.getAllDocuments().forEach(doc -> response.add(documentToMap(doc)));
+            bookingRepository.findAll().forEach(booking -> response.addAll(bookingDocumentsToMaps(booking)));
+            response.sort(this::compareDocuments);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -321,8 +322,10 @@ public class DocumentsRestController {
             for (Customer customer : customers) {
                 Map<String, Object> custMap = new HashMap<>();
                 custMap.put("id", customer.getId());
+                custMap.put("name", customer.getName());
                 custMap.put("firstName", customer.getName());
-                custMap.put("lastName", customer.getMobile());
+                custMap.put("lastName", "");
+                custMap.put("mobile", customer.getMobile());
                 custMap.put("email", customer.getEmail());
                 response.add(custMap);
             }
@@ -341,7 +344,12 @@ public class DocumentsRestController {
     private Map<String, Object> documentToMap(Document doc) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", doc.getId());
+        map.put("documentId", doc.getId());
+        map.put("compositeId", "document-" + doc.getId());
+        map.put("source", "DOCUMENT");
+        map.put("sourceLabel", "Document Upload");
         map.put("documentType", doc.getDocumentType());
+        map.put("documentCategory", doc.getDocumentType());
         map.put("fileName", doc.getFileName());
         map.put("filePath", doc.getFilePath());
         map.put("fileUrl", doc.getFileUrl());
@@ -362,12 +370,102 @@ public class DocumentsRestController {
         if (doc.getCustomer() != null) {
             Map<String, Object> custMap = new HashMap<>();
             custMap.put("id", doc.getCustomer().getId());
-            custMap.put("firstName", doc.getCustomer().getName());
-            custMap.put("lastName", doc.getCustomer().getMobile());
+            custMap.put("name", doc.getCustomer().getName());
+            custMap.put("mobile", doc.getCustomer().getMobile());
             custMap.put("email", doc.getCustomer().getEmail());
             map.put("customer", custMap);
         }
 
         return map;
+    }
+
+    private List<Map<String, Object>> bookingDocumentsToMaps(Booking booking) {
+        List<Map<String, Object>> docs = new ArrayList<>();
+        addBookingDocument(docs, booking, "Aadhaar Card", "CustomerID", booking.getAadhaarPhotoUrl(), null);
+        addBookingDocument(docs, booking, "PAN Card", "CustomerID", booking.getPanPhotoUrl(), null);
+        addBookingDocument(docs, booking, "Signature", "CustomerSignature", booking.getSignaturePhotoUrl(), null);
+        addBookingDocument(docs, booking, "Passport Photo", "PassportPhoto", booking.getPassportPhotoUrl(), null);
+        addBookingDocument(docs, booking, "Payment Screenshot", "PaymentProof", booking.getPaymentScreenshotUrl(), null);
+        addBookingDocument(docs, booking, "Down Payment Receipt", "PaymentReceipt", booking.getDownPaymentReceiptUrl(), null);
+        addBookingDocument(docs, booking, "Booking Receipt", "BookingReceipt", booking.getBookingReceiptUrl(), null);
+        addBookingDocument(docs, booking, "Proforma Invoice", "Invoice", booking.getProformaInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Allotment Letter", "AllotmentLetter", booking.getAllotmentLetterUrl(), null);
+        addBookingDocument(docs, booking, "Delivery Confirmation", "DeliveryConfirmation", booking.getDeliveryConfirmationLetterUrl(), null);
+        addBookingDocument(docs, booking, "Insurance Policy", "Insurance", booking.getInsuranceDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Temporary Registration", "TemporaryRegistration", booking.getTemporaryRegistrationUrl(), null);
+        addBookingDocument(docs, booking, "Final Invoice", "Invoice", booking.getFinalInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Warranty Document", "Warranty", booking.getWarrantyDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Loan Document", "LoanDocument", booking.getLoanDocumentUrl(), null);
+        return docs;
+    }
+
+    private void addBookingDocument(List<Map<String, Object>> docs,
+                                    Booking booking,
+                                    String documentType,
+                                    String documentCategory,
+                                    String fileUrl,
+                                    LocalDate expiryDate) {
+        if (fileUrl == null || fileUrl.isBlank()) {
+            return;
+        }
+
+        Map<String, Object> map = new HashMap<>();
+        String compositeId = "booking-" + booking.getId() + "-" + documentCategory;
+        map.put("id", compositeId);
+        map.put("documentId", null);
+        map.put("compositeId", compositeId);
+        map.put("source", "BOOKING");
+        map.put("sourceLabel", "Booking Upload");
+        map.put("bookingId", booking.getId());
+        map.put("documentType", documentType);
+        map.put("documentCategory", documentCategory);
+        map.put("fileName", extractFileName(fileUrl));
+        map.put("filePath", fileUrl);
+        map.put("fileUrl", fileUrl);
+        map.put("uploadDate", booking.getBookingDate());
+        map.put("expiryDate", expiryDate);
+        map.put("workflowStatus", booking.getWorkflowStatus());
+
+        if (booking.getCar() != null) {
+            Map<String, Object> carMap = new HashMap<>();
+            carMap.put("id", booking.getCar().getId());
+            carMap.put("brand", booking.getCar().getBrand());
+            carMap.put("model", booking.getCar().getModel());
+            carMap.put("vin", booking.getCar().getVin());
+            map.put("car", carMap);
+        }
+
+        if (booking.getCustomer() != null) {
+            Map<String, Object> customerMap = new HashMap<>();
+            customerMap.put("id", booking.getCustomer().getId());
+            customerMap.put("name", booking.getCustomer().getName());
+            customerMap.put("mobile", booking.getCustomer().getMobile());
+            customerMap.put("email", booking.getCustomer().getEmail());
+            map.put("customer", customerMap);
+        }
+
+        docs.add(map);
+    }
+
+    private String extractFileName(String fileUrl) {
+        int lastSlash = fileUrl == null ? -1 : fileUrl.lastIndexOf('/');
+        return lastSlash >= 0 && lastSlash < fileUrl.length() - 1
+                ? fileUrl.substring(lastSlash + 1)
+                : fileUrl;
+    }
+
+    private int compareDocuments(Map<String, Object> left, Map<String, Object> right) {
+        boolean leftBooking = "BOOKING".equals(String.valueOf(left.get("source")));
+        boolean rightBooking = "BOOKING".equals(String.valueOf(right.get("source")));
+        if (leftBooking != rightBooking) {
+            return leftBooking ? -1 : 1;
+        }
+
+        Object leftDate = left.get("uploadDate");
+        Object rightDate = right.get("uploadDate");
+        if (leftDate == null && rightDate == null) return 0;
+        if (leftDate == null) return 1;
+        if (rightDate == null) return -1;
+        return rightDate.toString().compareTo(leftDate.toString());
     }
 }

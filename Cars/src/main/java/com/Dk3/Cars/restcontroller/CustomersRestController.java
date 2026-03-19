@@ -35,16 +35,22 @@ public class CustomersRestController {
     public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
         Map<String, Object> resp = new HashMap<>();
         String email = body.get("email") == null ? null : String.valueOf(body.get("email")).trim();
+        String contact = normalizeContact(body.get("contact"));
         if (email != null && !email.isBlank() && userRepository.existsByEmail(email)) {
             resp.put("ok", false);
             resp.put("message", "Email already exists");
+            return ResponseEntity.badRequest().body(resp);
+        }
+        if (contact == null || !contact.matches("\\d{10}")) {
+            resp.put("ok", false);
+            resp.put("message", "Mobile number must be exactly 10 digits");
             return ResponseEntity.badRequest().body(resp);
         }
         User u = new User();
         u.setFirst(body.get("first") == null ? null : String.valueOf(body.get("first")).trim());
         u.setLast(body.get("last") == null ? null : String.valueOf(body.get("last")).trim());
         u.setEmail(email);
-        u.setContact(body.get("contact") == null ? null : String.valueOf(body.get("contact")).trim());
+        u.setContact(contact);
         u.setRole("ROLE_USER");
         u.setEnabled(true);
         u.setActive(true);
@@ -65,15 +71,27 @@ public class CustomersRestController {
         Map<String, Object> resp = new HashMap<>();
         return userRepository.findById(id).map(existing -> {
             String email = body.get("email") == null ? null : String.valueOf(body.get("email")).trim();
+            String contact = body.containsKey("contact") ? normalizeContact(body.get("contact")) : existing.getContact();
             if (email != null && !email.equals(existing.getEmail()) && userRepository.existsByEmail(email)) {
                 resp.put("ok", false);
                 resp.put("message", "Email already exists");
                 return ResponseEntity.badRequest().body(resp);
             }
+            if (contact == null || !contact.matches("\\d{10}")) {
+                resp.put("ok", false);
+                resp.put("message", "Mobile number must be exactly 10 digits");
+                return ResponseEntity.badRequest().body(resp);
+            }
             if (body.containsKey("first")) existing.setFirst(body.get("first") == null ? null : String.valueOf(body.get("first")).trim());
             if (body.containsKey("last")) existing.setLast(body.get("last") == null ? null : String.valueOf(body.get("last")).trim());
             if (body.containsKey("email")) existing.setEmail(email);
-            if (body.containsKey("contact")) existing.setContact(body.get("contact") == null ? null : String.valueOf(body.get("contact")).trim());
+            if (body.containsKey("contact")) existing.setContact(contact);
+            if (body.containsKey("password")) {
+                String password = body.get("password") == null ? null : String.valueOf(body.get("password"));
+                if (password != null && !password.isBlank()) {
+                    existing.setPassword(passwordEncoder.encode(password));
+                }
+            }
             existing.setRole("ROLE_USER");
             if (body.containsKey("enabled")) {
                 existing.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
@@ -90,6 +108,11 @@ public class CustomersRestController {
             resp.put("message", "User not found");
             return ResponseEntity.status(404).body(resp);
         });
+    }
+
+    private String normalizeContact(Object value) {
+        if (value == null) return null;
+        return String.valueOf(value).replaceAll("\\D", "").trim();
     }
 
     @DeleteMapping("/{id}")

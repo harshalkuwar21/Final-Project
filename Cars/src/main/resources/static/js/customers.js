@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 let editingId = null;
 
+function normalizeContact(value){
+    return String(value || '').replace(/\D/g, '').slice(0, 10);
+}
+
+function isValidContact(value){
+    return /^\d{10}$/.test(normalizeContact(value));
+}
+
 function loadCustomers(){
     fetch('/api/customers')
         .then(r => r.json())
@@ -36,11 +44,17 @@ function renderCustomers(list){
 }
 
 function addCustomer(){
+    const contact = normalizeContact(document.getElementById('contact').value);
+    if(!isValidContact(contact)){
+        document.getElementById('msg').textContent = 'Mobile number must be exactly 10 digits';
+        return;
+    }
     const c = {
         first: document.getElementById('first').value,
         last: document.getElementById('last').value,
-        contact: document.getElementById('contact').value,
-        email: document.getElementById('email').value
+        contact: contact,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
     };
     fetch('/api/customers', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(c) })
         .then(async r => {
@@ -104,6 +118,7 @@ function showEdit(id){
         document.getElementById('eLast').value = c.last || '';
         document.getElementById('eContact').value = c.contact || '';
         document.getElementById('eEmail').value = c.email || '';
+        document.getElementById('ePassword').value = '';
         document.getElementById('editModal').style.display = 'block';
     }).catch(err=>console.error(err));
 }
@@ -112,11 +127,17 @@ function hideEdit(){ document.getElementById('editModal').style.display = 'none'
 
 function saveEdit(){
     if(!editingId) return;
+    const contact = normalizeContact(document.getElementById('eContact').value);
+    if(!isValidContact(contact)){
+        alert('Mobile number must be exactly 10 digits');
+        return;
+    }
     const c = {
         first: document.getElementById('eFirst').value,
         last: document.getElementById('eLast').value,
-        contact: document.getElementById('eContact').value,
-        email: document.getElementById('eEmail').value
+        contact: contact,
+        email: document.getElementById('eEmail').value,
+        password: document.getElementById('ePassword').value
     };
     fetch('/api/customers/'+editingId, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(c) })
         .then(async r => {
@@ -131,6 +152,12 @@ function saveEdit(){
         .catch(err => console.error(err));
 }
 
-function clearForm(){ document.getElementById('first').value=''; document.getElementById('last').value=''; document.getElementById('contact').value=''; document.getElementById('email').value=''; }
+function clearForm(){ document.getElementById('first').value=''; document.getElementById('last').value=''; document.getElementById('contact').value=''; document.getElementById('email').value=''; document.getElementById('password').value=''; }
+
+document.addEventListener('input', (event) => {
+    if(event.target.id === 'contact' || event.target.id === 'eContact'){
+        event.target.value = normalizeContact(event.target.value);
+    }
+});
 
 function escapeHtml(str){ return String(str).replace(/[&<>"'`]/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;","`":"&#96;" })[s]); }

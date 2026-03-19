@@ -1,37 +1,45 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8">
-    <title>Vehicle Management - DK3 Cars</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/cars.css">
-    <style>
-        :root {
-            --primary: #6c4ef6;
-            --accent: #9f7bff;
-            --glass: rgba(255, 255, 255, 0.95);
-            --shadow: 0 18px 45px rgba(0, 0, 0, .15);
-            --bg: #f1f5f9;
-        }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+<meta charset="utf-8">
+<title>Vehicle Management | DK3 Cars</title>
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--primary:#6c4ef6;
+--accent:#9f7bff;
+--success:#10b981;
+--danger:#ef4444;
+--warning:#f59e0b;
+--bg:#f1f5f9;
+--shadow:0 18px 45px rgba(0,0,0,.15);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#eef2ff,#f8faff);
+min-height:100vh;
+}
+ /* ================= NAVBAR ================= */
 
         .navbar {
             max-width: 1500px;
             margin: 25px auto;
-            padding: 14px 28px;
+            padding: 14px 30px;
             background: var(--glass);
-            border-radius: 20px;
+            border-radius: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -39,152 +47,285 @@
             position: sticky;
             top: 20px;
             z-index: 999;
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, .3);
         }
 
         .logo {
             display: flex;
             align-items: center;
             gap: 14px;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
         }
 
-        .sidebar {
-            background: var(--glass);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
+        .logo img {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            transition: .35s;
         }
 
-        .sidebar ul {
-            list-style: none;
+        .logo img:hover {
+            transform: rotate(8deg) scale(1.08);
         }
 
-        .sidebar li {
-            padding: 12px 16px;
-            margin: 8px 0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
+        /* NAV LINKS */
+
+        .nav-links a {
+            margin: 0 14px;
+            text-decoration: none;
+            color: #333;
             font-weight: 500;
+            position: relative;
+            font-size: 15px;
         }
 
-        .sidebar li:hover {
-            background: rgba(108, 78, 246, .1);
-            transform: translateX(6px);
-        }
-
-        .sidebar li.active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #fff;
-        }
-
-        .main {
-            flex: 1;
-            background: var(--bg);
-            border-radius: 28px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-
-        .toolbar input, .toolbar select {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .btn {
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            height: 2px;
+            width: 0;
             background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
+            transition: .3s;
         }
 
-        .btn:hover {
-            background: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .car-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .car-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .car-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .car-image {
+        .nav-links a:hover::after {
             width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
         }
 
-        .car-details h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .car-details p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
-        .car-actions {
+        .nav-icons {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 14px;
         }
 
-        .car-actions button {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
+        .nav-icons i {
+            font-size: 18px;
+            padding: 9px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 12px;
+            transition: .3s;
         }
 
-        .edit-btn {
-            background: #2196F3;
-            color: white;
+        .nav-icons i:hover {
+            background: #f3f4ff;
+            color: var(--primary);
+            transform: scale(1.15);
         }
 
-        .delete-btn {
-            background: #f44336;
-            color: white;
+        /* ================= LAYOUT ================= */
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            display: flex;
+            gap: 24px;
+            padding-bottom: 40px;
         }
+
+/* SIDEBAR */
+
+.sidebar{
+width:220px;
+background:white;
+border-radius:18px;
+padding:20px;
+box-shadow:var(--shadow);
+height:fit-content;
+}
+
+.sidebar li{
+list-style:none;
+padding:12px 15px;
+border-radius:12px;
+margin-bottom:10px;
+cursor:pointer;
+transition:.3s;
+}
+
+.sidebar li:hover{
+background:#f3f4ff;
+transform:translateX(6px);
+}
+
+.sidebar li.active{
+background:linear-gradient(135deg,var(--primary),var(--accent));
+color:white;
+}
+
+/* MAIN */
+
+.main{
+flex:1;
+background:white;
+border-radius:20px;
+padding:30px;
+box-shadow:var(--shadow);
+}
+
+/* TOOLBAR */
+
+.toolbar{
+display:flex;
+gap:12px;
+margin-bottom:25px;
+}
+
+.toolbar input,
+.toolbar select{
+padding:10px 14px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:14px;
+}
+
+.btn{
+background:linear-gradient(135deg,var(--primary),var(--accent));
+color:white;
+border:none;
+padding:10px 18px;
+border-radius:10px;
+cursor:pointer;
+font-weight:500;
+transition:.3s;
+}
+
+.btn:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 20px rgba(108,78,246,.3);
+}
+
+/* CAR GRID */
+
+.car-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:22px;
+}
+
+/* CARD */
+
+.car-card{
+background:white;
+border-radius:16px;
+overflow:hidden;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+transition:.35s;
+}
+
+.car-card:hover{
+transform:translateY(-6px);
+box-shadow:0 15px 35px rgba(0,0,0,.15);
+}
+
+.car-image{
+width:100%;
+height:200px;
+object-fit:cover;
+transition:.4s;
+}
+
+.car-card:hover .car-image{
+transform:scale(1.08);
+}
+
+.car-body{
+padding:18px;
+}
+
+.car-title{
+font-size:18px;
+font-weight:600;
+color:var(--primary);
+margin-bottom:6px;
+}
+
+.car-price{
+font-size:18px;
+font-weight:700;
+color:#111;
+margin-bottom:10px;
+}
+
+/* STATUS BADGES */
+
+.status{
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.status-available{
+background:#d1fae5;
+color:#065f46;
+}
+
+.status-sold{
+background:#fee2e2;
+color:#991b1b;
+}
+
+.status-reserved{
+background:#fef3c7;
+color:#92400e;
+}
+
+/* CAR DETAILS */
+
+.car-details p{
+font-size:13px;
+margin:4px 0;
+color:#555;
+}
+
+/* ACTIONS */
+
+.car-actions{
+display:flex;
+gap:8px;
+margin-top:12px;
+}
+
+.edit-btn{
+flex:1;
+background:#3b82f6;
+color:white;
+border:none;
+padding:7px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.delete-btn{
+flex:1;
+background:#ef4444;
+color:white;
+border:none;
+padding:7px;
+border-radius:6px;
+cursor:pointer;
+}
+
+.edit-btn:hover{opacity:.9}
+.delete-btn:hover{opacity:.9}
+
+/* EMPTY STATE */
+
+.empty{
+text-align:center;
+padding:50px;
+color:#777;
+}
     </style>
 </head>
 <body>
 <header class="navbar">
     <div class="logo">
         <img src="/images/logo.png" alt="logo" style="width: 60px; height: 60px; border-radius: 10px;">
-        DK3 Cars - Vehicle Management
+        DK3 Cars
     </div>
     <div class="nav-icons">
         <i class="fas fa-bell"></i>
@@ -195,7 +336,7 @@
 <div class="container" style="display: flex; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px;">
     <aside class="sidebar">
         <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Return to Dashboard</li>
+            <li onclick="location.href='/dashboard'"><i class="fas fa-home"></i> Return to Dashboard</li>
             <!-- <li class="active" onclick="location.href='/cars'"><i class="fas fa-car"></i> Vehicle Management</li>
             <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
             <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>

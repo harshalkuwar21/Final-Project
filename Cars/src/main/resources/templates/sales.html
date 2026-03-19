@@ -17,21 +17,67 @@
 </header>
 
 <div class="container">
-    <aside class="sidebar">
-        <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
-            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
-            <li class="active" onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
-            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
-            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
-            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
-            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
-            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
-            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
-        </ul>
-    </aside>
+   
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <ul class="menu">
+                <li class="dashboard" onclick="location.href='/dashboard'">
+                    <i class="fa fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+
+                <li class="showroom" onclick="location.href='/showrooms'">
+                    <i class="fas fa-store"></i>
+                    <span>Showroom</span>
+                </li>
+
+                <li class="vehicles" onclick="location.href='/cars/all'">
+                    <i class="fas fa-car-side"></i>
+                    <span>All Vehicles</span>
+                </li>
+
+                <li class="bookings" onclick="location.href='/bookings'">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Bookings</span>
+                </li>
+
+                   <li class="active" onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+
+                <li class="customers" onclick="location.href='/customers'">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </li>
+
+                <li class="staff" onclick="location.href='/staff'">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Staff</span>
+                </li>
+
+                <li class="finance" onclick="location.href='/finance'">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Finance</span>
+                </li>
+
+                <li class="documents" onclick="location.href='/documents'">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Documents</span>
+                </li>
+
+                <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+
+                <li class="notifications" onclick="location.href='/notifications'">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </li>
+
+
+                <li class="logout" id="logoutBtn">
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </li>
+
+            </ul>
+        </aside>
 
     <main class="main">
         <h2>Sales</h2>

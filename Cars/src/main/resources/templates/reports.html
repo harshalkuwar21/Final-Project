@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Reports</title>
@@ -7,73 +8,145 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
+
 <body>
-<header class="navbar">
-    <div class="logo"><img src="/images/logo.png" alt="logo"> DK3 Cars</div>
-    <div class="nav-icons">
+    <header class="navbar">
+        <div class="logo"><img src="/images/logo.png" alt="logo"> DK3 Cars</div>
+        <div class="nav-icons">
             <i class="fa fa-bell"></i>
             <i class="fa fa-user-circle"></i>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <ul class="menu">
+                <li class="dashboard" onclick="location.href='/dashboard'">
+                    <i class="fa fa-home"></i>
+                    <span>Dashboard</span>
+                </li>
+
+                <li class="showroom" onclick="location.href='/showrooms'">
+                    <i class="fas fa-store"></i>
+                    <span>Showroom</span>
+                </li>
+
+                <li class="vehicles" onclick="location.href='/cars/all'">
+                    <i class="fas fa-car-side"></i>
+                    <span>All Vehicles</span>
+                </li>
+
+                <li class="bookings" onclick="location.href='/bookings'">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Bookings</span>
+                </li>
+
+                <li class="sales" onclick="location.href='/sales'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Sales</span>
+                </li>
+
+                <li class="customers" onclick="location.href='/customers'">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </li>
+
+                <li class="staff" onclick="location.href='/staff'">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Staff</span>
+                </li>
+
+                <li class="finance" onclick="location.href='/finance'">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Finance</span>
+                </li>
+
+                <li class="documents" onclick="location.href='/documents'">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Documents</span>
+                </li>
+
+                <li class="active" onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+
+                <li class="notifications" onclick="location.href='/notifications'">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </li>
+
+
+                <li class="logout" id="logoutBtn">
+                    <i class="fas fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </li>
+
+            </ul>
+        </aside>
+
+        <main class="main">
+            <h2>Reports</h2>
+
+            <section class="panel">
+                <h3>Summary</h3>
+                <div class="summary-grid">
+                    <div class="card stat"><strong id="rTotalSales">0</strong>
+                        <div class="meta">Total Sales</div>
+                    </div>
+                    <div class="card stat"><strong id="rRevenue">₹0</strong>
+                        <div class="meta">Revenue</div>
+                    </div>
+                    <div class="card stat"><strong id="rVehicles">0</strong>
+                        <div class="meta">Total Vehicles</div>
+                    </div>
+                    <div class="card stat"><strong id="rSold">0</strong>
+                        <div class="meta">Sold Cars</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>Sales by Date Range</h3>
+                <div class="form-row">
+                    <input type="date" id="fromDate">
+                    <input type="date" id="toDate">
+                    <button class="btn-primary" onclick="loadSalesRange()">Load</button>
+                    <button class="btn-secondary" onclick="exportSalesCsv()">Export CSV</button>
+                </div>
+                <div class="sales-table-wrapper">
+                    <table class="sales-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Buyer</th>
+                                <th>Car</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportSalesBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>Revenue by Month</h3>
+                <div class="form-row">
+                    <select id="yearSelect"></select>
+                    <button class="btn-primary" onclick="loadRevenue()">Load</button>
+                </div>
+                <div id="revenueBars" class="bar-row"></div>
+            </section>
+
+            <section class="panel">
+                <h3>Top Brands</h3>
+                <div id="topBrandsList"></div>
+            </section>
+
+        </main>
     </div>
-</header>
 
-<div class="container">
-    <aside class="sidebar">
-        <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
-            <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
-            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
-            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
-            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
-            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
-            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
-            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
-            <li class="active" onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
-            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
-        </ul>
-    </aside>
-
-    <main class="main">
-        <h2>Reports</h2>
-
-        <section class="panel">
-            <h3>Summary</h3>
-            <div class="summary-grid">
-                <div class="card stat"><strong id="rTotalSales">0</strong><div class="meta">Total Sales</div></div>
-                <div class="card stat"><strong id="rRevenue">₹0</strong><div class="meta">Revenue</div></div>
-                <div class="card stat"><strong id="rVehicles">0</strong><div class="meta">Total Vehicles</div></div>
-                <div class="card stat"><strong id="rSold">0</strong><div class="meta">Sold Cars</div></div>
-            </div>
-        </section>
-
-        <section class="panel">
-            <h3>Sales by Date Range</h3>
-            <div class="form-row">
-                <input type="date" id="fromDate">
-                <input type="date" id="toDate">
-                <button class="btn-primary" onclick="loadSalesRange()">Load</button>
-                <button class="btn-secondary" onclick="exportSalesCsv()">Export CSV</button>
-            </div>
-            <div class="sales-table-wrapper"><table class="sales-table"><thead><tr><th>Date</th><th>Buyer</th><th>Car</th><th>Price</th><th>Status</th></tr></thead><tbody id="reportSalesBody"></tbody></table></div>
-        </section>
-
-        <section class="panel">
-            <h3>Revenue by Month</h3>
-            <div class="form-row">
-                <select id="yearSelect"></select>
-                <button class="btn-primary" onclick="loadRevenue()">Load</button>
-            </div>
-            <div id="revenueBars" class="bar-row"></div>
-        </section>
-
-        <section class="panel">
-            <h3>Top Brands</h3>
-            <div id="topBrandsList"></div>
-        </section>
-
-    </main>
-</div>
-
-<script src="/js/reports.js"></script>
+    <script src="/js/reports.js"></script>
 </body>
+
 </html>

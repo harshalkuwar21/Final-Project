@@ -3,13 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <title>DK3 Cars | Login</title>
-    <link rel="stylesheet" th:href="@{/css/register.css}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+           *{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+/* BODY */
+
+body{
+min-height:100vh;
+background:#ffffff;
+display:flex;
+flex-direction:column;
+color:#333;
+}
+
+/* NAVBAR */
+
+.navbar{
+height:75px;
+padding:0 60px;
+ background: linear-gradient(90deg, #c8c8c8, #5f23cc);
+display:flex;
+align-items:center;
+justify-content:space-between;
+box-shadow:0 5px 18px rgba(0,0,0,0.08);
+position:sticky;
+top:0;
+z-index:1000;
+color: #0b0a0a;
+}
+
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:24px;
+    font-weight:700;
+    color:white;
+}
+.logo img{
+    height:80px;
+}
+.logo span{
+    color:#000000;
+}
+
+/* Nav Links */
+.navbar nav{
+    display:flex;
+    align-items:center;
+    gap:25px;
+}
+
+.navbar nav a{
+    position:relative;
+    color:white;
+    text-decoration:none;
+    font-weight:500;
+    font-size:14px;
+    transition:0.3s;
+}
+
+/* Underline animation */
+.navbar nav a::after{
+    content:"";
+    position:absolute;
+    width:0%;
+    height:2px;
+    left:0;
+    bottom:-5px;
+    background:white;
+    transition:0.3s;
+}
+
+.navbar nav a:hover::after{
+    width:100%;
+}
+.navbar nav a.active::after{
+    width:100%;
+}
+
+/* MENU */
+
+.nav-menu a{
+color:#3b2f7a;
+margin-left:26px;
+text-decoration:none;
+font-size:14px;
+font-weight:500;
+position:relative;
+transition:0.3s;
+}
+
+.nav-menu a::after{
+content:"";
+position:absolute;
+left:0;
+bottom:-5px;
+width:0%;
+height:2px;
+background:#6d4aff;
+transition:0.3s;
+}
+
+.nav-menu a:hover{
+color:#5f2eea;
+}
+
+.nav-menu a:hover::after{
+width:100%;
+}
+
+/* WRAPPER */
+
+.wrapper{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:60px 20px;
+}
+
+/* CARD */
+
+.card{
+width:420px;
+background:white;
+padding:36px;
+border-radius:20px;
+box-shadow:
+0 25px 60px rgba(0,0,0,0.08);
+transition:0.35s;
+border:1px solid #f1f1f1;
+}
+
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 35px 70px rgba(0,0,0,0.12);
+}
+
+.card h2{
+text-align:center;
+color:#5f2eea;
+font-weight:700;
+margin-bottom:6px;
+}
+
+.subtitle{
+text-align:center;
+font-size:13px;
+color:#777;
+margin-bottom:24px;
+}
+
+/* INPUT */
+
+.input-group{
+display:flex;
+align-items:center;
+background:#fafafa;
+padding:13px 14px;
+border-radius:12px;
+margin-bottom:16px;
+border:1px solid #eee;
+transition:0.3s;
+}
+
+.input-group:hover{
+background:#f7f6ff;
+}
+
+.input-group:focus-within{
+border:1px solid #a78bfa;
+box-shadow:0 0 0 3px rgba(167,139,250,0.2);
+background:white;
+}
+
+.input-group span{
+margin-right:10px;
+font-size:15px;
+color:#6b6b6b;
+}
+
+.input-group input{
+border:none;
+background:none;
+outline:none;
+width:100%;
+font-size:14px;
+color:#333;
+}
+
+/* CHECKBOX */
+
+.checkbox{
+display:flex;
+align-items:center;
+font-size:13px;
+margin-bottom:18px;
+color:#555;
+}
+
+.checkbox input{
+margin-right:8px;
+cursor:pointer;
+}
+
+/* BUTTON */
+
+.btn{
+width:100%;
+background:linear-gradient(120deg,#7c5cff,#a78bfa);
+border:none;
+padding:13px;
+color:#fff;
+font-size:15px;
+border-radius:12px;
+cursor:pointer;
+font-weight:600;
+transition:0.35s;
+box-shadow:0 10px 25px rgba(124,92,255,0.35);
+}
+
+.btn:hover{
+transform:translateY(-2px);
+box-shadow:0 14px 35px rgba(124,92,255,0.45);
+}
+
+.btn:active{
+transform:scale(0.97);
+}
+
+/* OR */
+
+.or{
+text-align:center;
+font-size:12px;
+margin:18px 0;
+color:#777;
+position:relative;
+}
+
+.or::before,
+.or::after{
+content:"";
+position:absolute;
+top:50%;
+width:35%;
+height:1px;
+background:#ddd;
+}
+
+.or::before{
+left:0;
+}
+
+.or::after{
+right:0;
+}
+
+/* SOCIAL */
+
+.social{
+display:flex;
+gap:12px;
+}
+
+.social button{
+flex:1;
+padding:11px;
+border:none;
+border-radius:10px;
+font-size:13px;
+cursor:pointer;
+font-weight:500;
+transition:0.3s;
+}
+
+.google{
+background:#fff;
+border:1px solid #ddd;
+}
+
+.google:hover{
+background:#f7f7f7;
+transform:translateY(-2px);
+}
+
+.facebook{
+background:#1877f2;
+color:#fff;
+}
+
+.facebook:hover{
+background:#0f66d1;
+transform:translateY(-2px);
+}
+
+/* LOGIN */
+
+.login{
+text-align:center;
+margin-top:18px;
+font-size:13px;
+color:#666;
+}
+
+.login a{
+color:#6d4aff;
+font-weight:600;
+text-decoration:none;
+}
+
+.login a:hover{
+text-decoration:underline;
+}
+
+/* MESSAGE */
+
+.form-message{
+margin-bottom:12px;
+padding:10px 12px;
+border-radius:10px;
+font-size:14px;
+display:none;
+}
+
+.form-message.success{
+display:block;
+background:#e6ffed;
+color:#127a2a;
+border:1px solid #b6f0c9;
+}
+
+.form-message.error{
+display:block;
+background:#fff1f0;
+color:#820000;
+border:1px solid #f5c6c6;
+}
+    </style>
 </head>
 <body>
-<nav class="navbar">
-    <img th:src="@{/images/logo.png}" alt="Logo">
-</nav>
+
+<!-- NAVBAR -->
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <span>DK3 Cars</span>
+    </div>
+
+    <nav>
+        <a href="/">Home</a>
+        <a href="/login" class="active">Login</a>
+        <a href="/register">Register</a>
+    </nav>
+</header>
 
 <div class="wrapper">
     <div class="card">
@@ -20,7 +375,7 @@
         <form id="loginForm">
             <div class="input-group">
                 <span>✉️</span>
-                <input type="email" id="email" placeholder="Email Address" required>
+                <input type="text" id="email" placeholder="Email " required>
             </div>
 
             <div class="input-group">
@@ -60,4 +415,3 @@
 <script th:src="@{/js/login.js}" defer></script>
 </body>
 </html>
-

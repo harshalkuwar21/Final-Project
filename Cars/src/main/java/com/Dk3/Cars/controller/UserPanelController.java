@@ -114,6 +114,24 @@ public class UserPanelController {
         return "user-showrooms";
     }
 
+    @GetMapping("/liked-cars")
+    public String userLikedCarsPage(HttpSession session) {
+        if (!isUser(session)) return "redirect:/login";
+        return "user-liked-cars";
+    }
+
+    @GetMapping("/profile")
+    public String userProfilePage(HttpSession session) {
+        if (!isUser(session)) return "redirect:/login";
+        return "user-profile";
+    }
+
+    @GetMapping("/map")
+    public String userMapPage(HttpSession session) {
+        if (!isUser(session)) return "redirect:/login";
+        return "user-map";
+    }
+
     @GetMapping("/buy-now")
     public String buyNowPage(HttpSession session) {
         if (!isUser(session)) return "redirect:/login";
@@ -219,6 +237,7 @@ public class UserPanelController {
             m.put("contactNumber", s.getContactNumber());
             m.put("mapUrl", s.getMapUrl());
             m.put("workingHours", s.getWorkingHours());
+            m.put("imageUrl", s.getImageUrl());
             m.put("availableCarsCount", counts.getOrDefault(s.getId(), 0L));
             out.add(m);
         }
@@ -466,7 +485,7 @@ public class UserPanelController {
             @RequestParam String pinCode,
             @RequestParam Double bookingAmount,
             @RequestParam String paymentMode,
-            @RequestParam String transactionId,
+            @RequestParam(required = false) String transactionId,
             @RequestParam(required = false) String paymentGateway,
             @RequestParam(required = false, defaultValue = "Success") String paymentOutcome,
             @RequestParam(required = false, defaultValue = "Pending Selection") String paymentOption,
@@ -497,7 +516,7 @@ public class UserPanelController {
             @RequestPart MultipartFile panPhoto,
             @RequestPart MultipartFile signaturePhoto,
             @RequestPart MultipartFile passportPhoto,
-            @RequestPart MultipartFile paymentScreenshot,
+            @RequestPart(required = false) MultipartFile paymentScreenshot,
             @RequestPart(required = false) MultipartFile downPaymentReceipt,
             HttpSession session) {
         if (!isUser(session)) return unauthorized();
@@ -534,6 +553,10 @@ public class UserPanelController {
         }
         customer = customerRepository.save(customer);
 
+        String resolvedTransactionId = (transactionId == null || transactionId.isBlank())
+                ? "TXN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase()
+                : transactionId;
+
         Booking booking = new Booking();
         booking.setCustomer(customer);
         booking.setCar(car);
@@ -551,7 +574,7 @@ public class UserPanelController {
         booking.setPinCode(pinCode);
         booking.setBookingAmount(bookingAmount);
         booking.setPaymentMode(paymentMode);
-        booking.setTransactionId(transactionId);
+        booking.setTransactionId(resolvedTransactionId);
         booking.setPaymentGateway(paymentGateway == null || paymentGateway.isBlank() ? "Razorpay" : paymentGateway);
         booking.setPaymentOutcome(paymentOutcome);
         booking.setPaymentOption("Pending Selection");
@@ -610,7 +633,7 @@ public class UserPanelController {
         payment.setBooking(saved);
         payment.setAmount(bookingAmount);
         payment.setPaymentMethod(paymentMode);
-        payment.setTransactionId(transactionId);
+        payment.setTransactionId(resolvedTransactionId);
         payment.setStatus("Completed");
         paymentService.savePayment(payment);
 
@@ -620,8 +643,8 @@ public class UserPanelController {
         bookingTx.setAmount(bookingAmount);
         bookingTx.setPaymentMethod(paymentMode);
         bookingTx.setPaymentGateway(saved.getPaymentGateway());
-        bookingTx.setTransactionId(transactionId);
-        bookingTx.setReferenceNumber(transactionId);
+        bookingTx.setTransactionId(resolvedTransactionId);
+        bookingTx.setReferenceNumber(resolvedTransactionId);
         bookingTx.setReceiptUrl(saved.getPaymentScreenshotUrl());
         bookingTx.setStatus("Completed");
         bookingTx.setNotes("Booking amount paid online.");

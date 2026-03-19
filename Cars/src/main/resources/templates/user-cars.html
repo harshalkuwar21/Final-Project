@@ -1,128 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Cars</title>
-    <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f8ff; color: #13223b; }
-        .wrap { max-width: 1200px; margin: 20px auto; padding: 0 14px; }
-        .top, .filters, .compare { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 20px rgba(19,34,59,.1); }
-        .top { display: flex; justify-content: space-between; align-items: center; }
-        .filters { margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 10px; }
-        input, select, button { padding: 10px; border-radius: 8px; border: 1px solid #dbe5f5; font-size: 14px; }
-        button { background: #005bbb; border: none; color: #fff; cursor: pointer; }
-        .grid { margin-top: 14px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 8px 18px rgba(19,34,59,.09); overflow: hidden; }
-        .card img { width: 100%; height: 190px; object-fit: cover; background: #eef3fc; }
-        .content { padding: 12px; }
-        .content h3 { margin: 0 0 6px; }
-        .line { color: #5f6f87; font-size: 13px; margin: 3px 0; }
-        .actions { margin-top: 10px; display: flex; gap: 8px; }
-        .actions a, .actions button { flex: 1; text-align: center; text-decoration: none; padding: 9px; border-radius: 8px; font-size: 13px; }
-        .btn-light { background: #eef5ff; color: #004a9a; border: 1px solid #c9dcff; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>All Cars</title>
+
+<!-- Better Font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:'Poppins',sans-serif;
+background:linear-gradient(120deg,#eef3ff,#f9fbff);
+color:#1a2b4b;
+}
+
+.wrap{
+max-width:1200px;
+margin:auto;
+padding:20px;
+}
+
+/* Top Bar */
+
+.top{
+background:#fff;
+padding:16px 20px;
+border-radius:14px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.top h2{
+font-weight:600;
+}
+
+.top a{
+text-decoration:none;
+background:#eef4ff;
+color:#005bbb;
+padding:8px 14px;
+border-radius:8px;
+font-size:14px;
+}
+
+/* Filters */
+
+.filters{
+margin-top:16px;
+background:#fff;
+padding:18px;
+border-radius:14px;
+box-shadow:0 8px 20px rgba(0,0,0,0.07);
+
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+gap:12px;
+}
+
+input,select{
+padding:10px;
+border-radius:8px;
+border:1px solid #dce4f5;
+font-family:'Poppins';
+}
+
+/* Button */
+
+button{
+border:none;
+border-radius:8px;
+padding:10px;
+font-family:'Poppins';
+font-weight:500;
+cursor:pointer;
+background:linear-gradient(135deg,#005bbb,#0077ff);
+color:white;
+transition:0.3s;
+}
+
+button:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 14px rgba(0,0,0,0.15);
+}
+
+/* Compare Section */
+
+.compare{
+margin-top:16px;
+background:#fff;
+padding:16px;
+border-radius:14px;
+box-shadow:0 8px 20px rgba(0,0,0,0.07);
+}
+
+/* Grid */
+
+.grid{
+margin-top:18px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:16px;
+}
+
+/* Card */
+
+.card{
+background:#fff;
+border-radius:14px;
+overflow:hidden;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+transition:0.3s;
+position:relative;
+}
+
+.card:hover{
+transform:translateY(-6px);
+box-shadow:0 16px 32px rgba(0,0,0,0.15);
+}
+
+.card img{
+width:100%;
+height:190px;
+object-fit:cover;
+}
+
+.heart-btn{
+position:absolute;
+top:14px;
+right:14px;
+width:42px;
+height:42px;
+border:none;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(255,255,255,0.96);
+color:#5d6882;
+cursor:pointer;
+font-size:18px;
+box-shadow:0 8px 18px rgba(0,0,0,0.14);
+transition:0.25s;
+}
+
+.heart-btn.active{
+background:#fff0f5;
+color:#e54579;
+}
+
+/* Content */
+
+.content{
+padding:16px;
+}
+
+.content h3{
+font-size:18px;
+margin-bottom:6px;
+}
+
+.line{
+font-size:13px;
+color:#6b7b93;
+margin:4px 0;
+}
+
+/* Buttons */
+
+.actions{
+margin-top:12px;
+display:flex;
+gap:8px;
+}
+
+.actions a{
+flex:1;
+text-align:center;
+text-decoration:none;
+padding:9px;
+border-radius:8px;
+font-size:13px;
+font-weight:500;
+}
+
+.btn-light{
+background:#eef5ff;
+color:#005bbb;
+}
+
+.btn-buy{
+background:linear-gradient(135deg,#005bbb,#0077ff);
+color:#fff;
+}
+
+.btn-buy:hover{
+opacity:0.9;
+}
+
+</style>
 </head>
+
 <body>
+
 <div class="wrap">
-    <div class="top">
-        <h2 id="carsTitle">View All Cars</h2>
-        <a href="/user-dashboard">Back to Dashboard</a>
-    </div>
 
-    <div class="filters">
-        <input id="brand" placeholder="Brand (e.g. Hyundai)">
-        <select id="fuelType">
-            <option value="">All Fuel Type</option>
-            <option>Petrol</option>
-            <option>Diesel</option>
-            <option>EV</option>
-            <option>CNG</option>
-        </select>
-        <input id="minPrice" type="number" placeholder="Min Price">
-        <input id="maxPrice" type="number" placeholder="Max Price">
-        <button onclick="loadCars()">Search Cars</button>
-    </div>
+<div class="top">
+<h2 id="carsTitle">View All Cars</h2>
+<a href="/user-dashboard">Back to Dashboard</a>
+</div>
 
-    <div class="compare" style="margin-top:14px;">
-        <strong>Compare Cars:</strong>
-        <button onclick="compareSelected()">Compare Selected</button>
-        <div id="compareResult" style="margin-top:10px; font-size:13px;"></div>
-    </div>
+<div class="filters">
 
-    <div id="carsGrid" class="grid"></div>
+<input id="brand" placeholder="Brand (Hyundai)">
+
+<select id="fuelType">
+<option value="">All Fuel Type</option>
+<option>Petrol</option>
+<option>Diesel</option>
+<option>EV</option>
+<option>CNG</option>
+</select>
+
+<input id="minPrice" type="number" placeholder="Min Price">
+<input id="maxPrice" type="number" placeholder="Max Price">
+
+<button onclick="loadCars()">Search Cars</button>
+
+</div>
+
+<div class="compare">
+
+<strong>Compare Cars</strong>
+
+<button onclick="compareSelected()">Compare Selected</button>
+
+<div id="compareResult" style="margin-top:10px;font-size:13px;"></div>
+
+</div>
+
+<div id="carsGrid" class="grid"></div>
+
 </div>
 
 <script>
-    function applyUrlFilters() {
-        const params = new URLSearchParams(window.location.search);
-        const brand = params.get("brand") || "";
-        const fuelType = params.get("fuelType") || "";
-        const minPrice = params.get("minPrice") || "";
-        const maxPrice = params.get("maxPrice") || "";
 
-        if (brand) document.getElementById("brand").value = brand;
-        if (fuelType) document.getElementById("fuelType").value = fuelType;
-        if (minPrice) document.getElementById("minPrice").value = minPrice;
-        if (maxPrice) document.getElementById("maxPrice").value = maxPrice;
+const LIKED_CARS_KEY="dk3-liked-cars";
 
-        const titleEl = document.getElementById("carsTitle");
-        if (titleEl && brand) {
-            titleEl.textContent = `${brand} Cars`;
-        }
-    }
+function getStoredLikedCars(){
+try{
+const parsed=JSON.parse(localStorage.getItem(LIKED_CARS_KEY) || "[]");
+return Array.isArray(parsed) ? parsed.map(Number).filter(Number.isFinite) : [];
+}catch(e){
+return [];
+}
+}
 
-    async function loadCars() {
-        const params = new URLSearchParams();
-        ["brand","fuelType","minPrice","maxPrice"].forEach(id => {
-            const v = document.getElementById(id).value.trim();
-            if (v) params.append(id, v);
-        });
-        const res = await fetch("/user-panel/api/cars?" + params.toString());
-        const data = await res.json();
-        const grid = document.getElementById("carsGrid");
-        if (!data.ok || !data.cars.length) {
-            grid.innerHTML = "<div>No cars found.</div>";
-            return;
-        }
-        grid.innerHTML = data.cars.map(car => `
-            <div class="card">
-                <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="car">
-                <div class="content">
-                    <h3>${car.brand || ""} ${car.model || ""}</h3>
-                    <div class="line"><strong>Price:</strong> Rs ${car.price || "-"}</div>
-                    <div class="line"><strong>Fuel:</strong> ${car.fuelType || "-"}</div>
-                    <div class="line"><strong>Transmission:</strong> ${car.transmission || "-"}</div>
-                    <div class="line"><strong>Mileage:</strong> ${car.mileage || "-"}</div>
-                    <div class="line"><strong>Showroom:</strong> ${car.showroom ? car.showroom.name : "-"}</div>
-                    <div style="margin-top:8px;"><label><input type="checkbox" class="cmp" value="${car.id}"> Add to compare</label></div>
-                    <div class="actions">
-                        <a href="/user-panel/car-details?carId=${car.id}" class="btn-light">View Details</a>
-                        <a href="/user-panel/buy-now?carId=${car.id}" style="background:#005bbb;color:#fff;">Buy Now</a>
-                    </div>
-                </div>
-            </div>
-        `).join("");
-    }
+function saveLikedCars(ids){
+localStorage.setItem(LIKED_CARS_KEY, JSON.stringify(ids));
+}
 
-    async function compareSelected() {
-        const ids = Array.from(document.querySelectorAll(".cmp:checked")).map(x => x.value);
-        if (ids.length < 2) return alert("Select at least 2 cars.");
-        const body = new URLSearchParams();
-        ids.forEach(id => body.append("carIds", id));
-        const res = await fetch("/user-panel/api/compare", { method: "POST", body });
-        const data = await res.json();
-        const box = document.getElementById("compareResult");
-        if (!data.ok) {
-            box.textContent = data.error || "Cannot compare now.";
-            return;
-        }
-        box.innerHTML = "<strong>Comparison:</strong><br>" + data.cars.map(c =>
-            `${c.brand} ${c.model}: Price Rs ${c.price}, Fuel ${c.fuelType}, Transmission ${c.transmission}, Mileage ${c.mileage || "-"}`).join("<br>");
-    }
+function isLiked(carId){
+return getStoredLikedCars().includes(Number(carId));
+}
 
-    applyUrlFilters();
-    loadCars();
+function toggleLike(carId,btn){
+let likedIds=getStoredLikedCars();
+const numericId=Number(carId);
+const alreadyLiked=likedIds.includes(numericId);
+
+likedIds=alreadyLiked
+? likedIds.filter(id=>id!==numericId)
+: [...likedIds,numericId];
+
+saveLikedCars(likedIds);
+btn.classList.toggle("active", !alreadyLiked);
+btn.innerHTML=`<span>${!alreadyLiked ? "♥" : "♡"}</span>`;
+btn.title=!alreadyLiked ? "Remove from liked cars" : "Add to liked cars";
+}
+
+/* same JS you already wrote */
+
+function applyUrlFilters(){
+const params=new URLSearchParams(window.location.search);
+
+["brand","fuelType","minPrice","maxPrice"].forEach(id=>{
+if(params.get(id)) document.getElementById(id).value=params.get(id);
+});
+
+}
+
+async function loadCars(){
+
+const params=new URLSearchParams();
+
+["brand","fuelType","minPrice","maxPrice"].forEach(id=>{
+const v=document.getElementById(id).value.trim();
+if(v) params.append(id,v);
+});
+
+const res=await fetch("/user-panel/api/cars?"+params.toString());
+const data=await res.json();
+
+const grid=document.getElementById("carsGrid");
+
+if(!data.ok || !data.cars.length){
+grid.innerHTML="<div>No cars found.</div>";
+return;
+}
+
+grid.innerHTML=data.cars.map(car=>`
+
+<div class="card">
+
+<button class="heart-btn ${isLiked(car.id) ? "active" : ""}" type="button" onclick="toggleLike(${car.id},this)" title="${isLiked(car.id) ? "Remove from liked cars" : "Add to liked cars"}">
+${isLiked(car.id) ? "♥" : "♡"}
+</button>
+
+<img src="${(car.imageUrls && car.imageUrls.length)?car.imageUrls[0]:'/images/car.jpg'}">
+
+<div class="content">
+
+<h3>${car.brand} ${car.model}</h3>
+
+<div class="line"><b>Price:</b> ₹ ${car.price}</div>
+<div class="line"><b>Fuel:</b> ${car.fuelType}</div>
+<div class="line"><b>Transmission:</b> ${car.transmission}</div>
+<div class="line"><b>Mileage:</b> ${car.mileage||"-"}</div>
+<div class="line"><b>Showroom:</b> ${car.showroom?car.showroom.name:"-"}</div>
+
+<div style="margin-top:8px">
+<label><input type="checkbox" class="cmp" value="${car.id}"> Compare</label>
+</div>
+
+<div class="actions">
+
+<a href="/user-panel/car-details?carId=${car.id}" class="btn-light">Details</a>
+
+<a href="/user-panel/buy-now?carId=${car.id}" class="btn-buy">Buy Now</a>
+
+</div>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
+
+async function compareSelected(){
+
+const ids=[...document.querySelectorAll(".cmp:checked")].map(x=>x.value);
+
+if(ids.length<2) return alert("Select at least 2 cars");
+
+const body=new URLSearchParams();
+
+ids.forEach(id=>body.append("carIds",id));
+
+const res=await fetch("/user-panel/api/compare",{method:"POST",body});
+
+const data=await res.json();
+
+document.getElementById("compareResult").innerHTML=data.cars.map(c=>
+`${c.brand} ${c.model} - ₹${c.price} - ${c.fuelType}`
+).join("<br>");
+
+}
+
+applyUrlFilters();
+loadCars();
+
 </script>
+
 </body>
 </html>

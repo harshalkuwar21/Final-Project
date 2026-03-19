@@ -1,50 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Showrooms</title>
-    <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f7fafc; }
-        .wrap { max-width: 1100px; margin: 22px auto; padding: 0 14px; }
-        .top { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 18px rgba(0,0,0,.08); display: flex; justify-content: space-between; }
-        .grid { margin-top: 14px; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
-        .card { background: #fff; border-radius: 12px; padding: 14px; box-shadow: 0 8px 18px rgba(0,0,0,.08); }
-        .title { margin: 0 0 5px; font-size: 18px; }
-        .muted { color: #5f6f87; font-size: 13px; margin: 4px 0; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Showrooms</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#eef3ff,#f8f7ff);
+color:#1a2b4b;
+min-height:100vh;
+}
+
+.wrap{
+max-width:1240px;
+margin:auto;
+padding:24px;
+}
+
+.top{
+background:#fff;
+padding:18px 20px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.top h2{
+font-size:30px;
+}
+
+.top p{
+margin-top:4px;
+font-size:14px;
+color:#68758d;
+}
+
+.top a{
+text-decoration:none;
+background:#eef4ff;
+color:#005bbb;
+padding:10px 14px;
+border-radius:10px;
+font-size:14px;
+font-weight:600;
+}
+
+.grid{
+margin-top:22px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:18px;
+}
+
+.card{
+background:#fff;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 14px 30px rgba(0,0,0,0.08);
+border:1px solid #e5e7f2;
+}
+
+.card img{
+width:100%;
+height:220px;
+object-fit:cover;
+background:#eef3ff;
+}
+
+.content{
+padding:18px;
+}
+
+.content h3{
+font-size:24px;
+margin-bottom:10px;
+}
+
+.detail{
+font-size:14px;
+color:#5e6d86;
+line-height:1.7;
+margin-bottom:8px;
+}
+
+.actions{
+margin-top:14px;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.btn{
+text-decoration:none;
+padding:10px 15px;
+border-radius:10px;
+font-weight:600;
+font-size:14px;
+}
+
+.call-btn{
+background:#eef5ff;
+color:#005bbb;
+border:1px solid #c9dcff;
+}
+
+.map-btn{
+background:linear-gradient(135deg,#005bbb,#0077ff);
+color:#fff;
+}
+
+.empty{
+margin-top:22px;
+background:#fff;
+padding:30px 20px;
+border-radius:18px;
+text-align:center;
+color:#67758d;
+box-shadow:0 12px 26px rgba(0,0,0,0.06);
+}
+</style>
 </head>
 <body>
 <div class="wrap">
     <div class="top">
-        <h2>View Showrooms</h2>
+        <div>
+            <h2>Contact Showrooms</h2>
+        </div>
         <a href="/user-dashboard">Back to Dashboard</a>
     </div>
-    <div class="grid" id="showroomsGrid"></div>
+
+    <div id="showroomGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">No showroom details available.</div>
 </div>
+
 <script>
-    async function loadShowrooms() {
-        const res = await fetch("/user-panel/api/showrooms");
-        const data = await res.json();
-        const grid = document.getElementById("showroomsGrid");
-        if (!data.ok || !data.showrooms.length) {
-            grid.innerHTML = "<div>No showrooms found.</div>";
-            return;
-        }
-        grid.innerHTML = data.showrooms.map(s => `
-            <div class="card">
-                <h3 class="title">${s.name || "-"}</h3>
-                <div class="muted"><strong>Address:</strong> ${s.address || "-"}</div>
-                <div class="muted"><strong>Contact:</strong> ${s.contactNumber || "-"}</div>
-                <div class="muted"><strong>Available Cars:</strong> ${s.availableCarsCount ?? 0}</div>
-                <div class="muted"><strong>Working Hours:</strong> ${s.workingHours || "-"}</div>
-                <div class="muted"><strong>City:</strong> ${s.city || "-"}</div>
-                ${s.mapUrl ? `<a target="_blank" href="${s.mapUrl}">Open Location Map</a>` : ""}
-            </div>
-        `).join("");
-    }
-    loadShowrooms();
+function showroomImage(showroom){
+return showroom.imageUrl || "/images/background.jpg";
+}
+
+function mapLink(showroom){
+if(showroom.mapUrl){
+return showroom.mapUrl;
+}
+return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([showroom.name, showroom.address, showroom.city].filter(Boolean).join(", "))}`;
+}
+
+async function loadShowrooms(){
+const res = await fetch("/user-panel/api/showrooms");
+const data = await res.json();
+const grid = document.getElementById("showroomGrid");
+const empty = document.getElementById("emptyState");
+const showrooms = data && data.ok && Array.isArray(data.showrooms) ? data.showrooms : [];
+
+if(!showrooms.length){
+grid.innerHTML = "";
+empty.style.display = "block";
+return;
+}
+
+empty.style.display = "none";
+grid.innerHTML = showrooms.map(showroom => `
+<div class="card">
+    <img src="${showroomImage(showroom)}" alt="${showroom.name || 'Showroom'}">
+    <div class="content">
+        <h3>${showroom.name || "-"}</h3>
+        <div class="detail"><strong>City:</strong> ${showroom.city || "-"}</div>
+        <div class="detail"><strong>Address:</strong> ${showroom.address || "-"}</div>
+        <div class="detail"><strong>Working Hours:</strong> ${showroom.workingHours || "-"}</div>
+        <div class="detail"><strong>Contact:</strong> ${showroom.contactNumber || "-"}</div>
+        <div class="actions">
+            <a class="btn call-btn" href="${showroom.contactNumber ? `tel:${showroom.contactNumber}` : '#'}">Call Now</a>
+            <a class="btn map-btn" href="${mapLink(showroom)}" target="_blank" rel="noopener noreferrer">View Map</a>
+        </div>
+    </div>
+</div>
+`).join("");
+}
+
+loadShowrooms().catch(() => {
+document.getElementById("showroomGrid").innerHTML = "";
+document.getElementById("emptyState").style.display = "block";
+});
 </script>
 </body>
 </html>
-
