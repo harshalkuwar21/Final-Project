@@ -49,3 +49,10 @@ server:
       max: 200
       min-spare: 10
   port: 9094
+
+app:
+  admin:
+    username: admin@gmail.com
+    password: admin
+    first-name: System
+    last-name: Admin

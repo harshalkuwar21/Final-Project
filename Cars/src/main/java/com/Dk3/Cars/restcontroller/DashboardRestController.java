@@ -202,9 +202,38 @@ public class DashboardRestController {
                     map.put("name", s.getName());
                     map.put("city", s.getCity());
                     map.put("image", s.getImageUrl());
+                    map.put("address", s.getAddress());
+                    map.put("contactNumber", s.getContactNumber());
+                    map.put("workingHours", s.getWorkingHours());
+                    map.put("mapUrl", s.getMapUrl());
                     return map;
                 })
                 .toList();
+    }
+
+    @GetMapping("/me")
+    public Map<String, Object> getCurrentStaff(HttpSession session) {
+        Map<String, Object> resp = new HashMap<>();
+        User user = getSessionUser(session);
+        if (user == null) {
+            resp.put("ok", false);
+            resp.put("message", "User not found");
+            return resp;
+        }
+
+        resp.put("ok", true);
+        resp.put("userid", user.getUserid());
+        resp.put("first", user.getFirst());
+        resp.put("last", user.getLast());
+        resp.put("email", user.getEmail());
+        resp.put("contact", user.getContact());
+        resp.put("role", user.getRole());
+        resp.put("profilePhotoUrl", user.getProfilePhotoUrl());
+        resp.put("showroomId", user.getShowroomId());
+        String showroomName = user.getShowroomId() == null ? null :
+                showroomRepository.findById(user.getShowroomId()).map(Showroom::getName).orElse(null);
+        resp.put("showroomName", showroomName);
+        return resp;
     }
 
     @GetMapping("/overview")

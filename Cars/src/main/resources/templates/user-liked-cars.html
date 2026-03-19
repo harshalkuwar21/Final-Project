@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liked Cars</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#eef3ff,#f8f7ff);
+color:#1b2742;
+min-height:100vh;
+}
+
+.wrap{
+max-width:1200px;
+margin:auto;
+padding:24px;
+}
+
+.top{
+background:#fff;
+padding:18px 20px;
+border-radius:18px;
+box-shadow:0 12px 30px rgba(0,0,0,0.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.top h2{
+font-size:30px;
+}
+
+.top p{
+color:#68758d;
+font-size:14px;
+margin-top:4px;
+}
+
+.links{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.links a{
+text-decoration:none;
+padding:10px 16px;
+border-radius:10px;
+font-weight:600;
+font-size:14px;
+}
+
+.primary-link{
+background:linear-gradient(135deg,#6c4ef6,#8d77ff);
+color:#fff;
+}
+
+.light-link{
+background:#eef2ff;
+color:#3350aa;
+}
+
+.grid{
+margin-top:22px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:18px;
+}
+
+.card{
+background:#fff;
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 14px 30px rgba(0,0,0,0.08);
+border:1px solid #e7e6f4;
+}
+
+.thumb{
+position:relative;
+height:220px;
+}
+
+.thumb img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.heart-btn{
+position:absolute;
+top:14px;
+right:14px;
+width:44px;
+height:44px;
+border:none;
+border-radius:50%;
+background:#fff0f5;
+color:#e54579;
+cursor:pointer;
+font-size:18px;
+box-shadow:0 8px 18px rgba(0,0,0,0.14);
+}
+
+.content{
+padding:18px;
+}
+
+.content h3{
+font-size:22px;
+margin-bottom:8px;
+}
+
+.price{
+font-size:26px;
+font-weight:700;
+color:#2f3eb4;
+margin-bottom:10px;
+}
+
+.meta{
+color:#65738a;
+font-size:14px;
+line-height:1.7;
+min-height:72px;
+}
+
+.actions{
+margin-top:14px;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.actions a{
+text-align:center;
+text-decoration:none;
+padding:11px 12px;
+border-radius:10px;
+font-size:14px;
+font-weight:600;
+}
+
+.btn-secondary{
+background:#eef2ff;
+color:#2e4cb1;
+}
+
+.btn-primary{
+background:linear-gradient(135deg,#6c4ef6,#8d77ff);
+color:#fff;
+}
+
+.empty{
+margin-top:22px;
+background:#fff;
+border:1px dashed #d4d7ea;
+border-radius:18px;
+padding:36px 24px;
+text-align:center;
+color:#647188;
+box-shadow:0 12px 30px rgba(0,0,0,0.05);
+}
+
+@media(max-width:640px){
+.wrap{
+padding:16px;
+}
+
+.actions{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <div>
+            <h2>Liked Cars</h2>
+            <p>Your saved cars are shown on this separate page.</p>
+        </div>
+        <div class="links">
+            <a class="light-link" href="/user-dashboard">Back to Dashboard</a>
+            <a class="primary-link" href="/user-panel/cars">Browse More Cars</a>
+        </div>
+    </div>
+
+    <div id="likedCarsGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">
+        No liked cars yet. Go to inventory or dashboard and tap the heart icon on any car.
+    </div>
+</div>
+
+<script>
+const LIKED_CARS_KEY = "dk3-liked-cars";
+let likedCarIds = [];
+let allCars = [];
+
+function money(v){
+return v == null ? "N/A" : "Rs " + Number(v).toLocaleString("en-IN");
+}
+
+function getStoredLikedCars(){
+try{
+const parsed = JSON.parse(localStorage.getItem(LIKED_CARS_KEY) || "[]");
+return Array.isArray(parsed) ? parsed.map(Number).filter(Number.isFinite) : [];
+}catch(e){
+return [];
+}
+}
+
+function saveLikedCars(){
+localStorage.setItem(LIKED_CARS_KEY, JSON.stringify(likedCarIds));
+}
+
+function carMeta(car){
+return [
+car.fuelType,
+car.transmission,
+car.mileage,
+car.showroom && car.showroom.name
+].filter(Boolean).join(" | ");
+}
+
+function removeLikedCar(carId){
+likedCarIds = likedCarIds.filter(id => id !== Number(carId));
+saveLikedCars();
+renderLikedCars();
+}
+
+function renderLikedCars(){
+const grid = document.getElementById("likedCarsGrid");
+const empty = document.getElementById("emptyState");
+const likedCars = allCars.filter(car => likedCarIds.includes(Number(car.id)));
+
+if(!likedCars.length){
+grid.innerHTML = "";
+empty.style.display = "block";
+return;
+}
+
+empty.style.display = "none";
+grid.innerHTML = likedCars.map(car => `
+<div class="card">
+    <div class="thumb">
+        <button class="heart-btn" type="button" onclick="removeLikedCar(${car.id})" title="Remove from liked cars">
+            <i class="fa-solid fa-heart"></i>
+        </button>
+        <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="${car.brand || ''}">
+    </div>
+    <div class="content">
+        <h3>${car.brand || ''} ${car.model || ''}</h3>
+        <div class="price">${money(car.price)}</div>
+        <div class="meta">${carMeta(car) || "Premium features available"}</div>
+        <div class="actions">
+            <a class="btn-secondary" href="/user-panel/car-details?carId=${car.id}">View Details</a>
+            <a class="btn-primary" href="/user-panel/buy-now?carId=${car.id}">Book Car</a>
+        </div>
+    </div>
+</div>
+`).join("");
+}
+
+async function loadLikedCars(){
+likedCarIds = getStoredLikedCars();
+if(!likedCarIds.length){
+renderLikedCars();
+return;
+}
+
+const res = await fetch("/user-panel/api/cars?includeAll=true");
+const data = await res.json();
+allCars = data && data.ok && Array.isArray(data.cars) ? data.cars : [];
+renderLikedCars();
+}
+
+window.removeLikedCar = removeLikedCar;
+loadLikedCars();
+</script>
+</body>
+</html>

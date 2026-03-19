@@ -19,6 +19,9 @@ public class SecurityConfig {
         // Allow all requests (app-level login handled by controllers) and disable CSRF for simplicity.
         http
             .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+            )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/", "/register", "/login", "/css/**", "/js/**", "/images/**", "/error"

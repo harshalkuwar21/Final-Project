@@ -6,198 +6,343 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/css/cars.css">
     <style>
-        :root {
-            --primary: #6c4ef6;
-            --accent: #9f7bff;
-            --glass: rgba(255, 255, 255, 0.95);
-            --shadow: 0 18px 45px rgba(0, 0, 0, .15);
-            --bg: #f1f5f9;
-        }
+       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+:root{
+    --primary:#6c4ef6;
+    --accent:#9f7bff;
+    --bg:#f5f7ff;
+    --card:#ffffff;
+    --glass:rgba(255,255,255,0.85);
+    --shadow:0 15px 40px rgba(0,0,0,.08);
+}
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
-        }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
 
-        .navbar {
-            max-width: 1500px;
-            margin: 25px auto;
-            padding: 14px 28px;
-            background: var(--glass);
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 20px;
-            z-index: 999;
-        }
+body{
+min-height:100vh;
+background:linear-gradient(135deg,#eef2ff,#f6f4ff);
+color:#333;
+}
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            font-size: 28px;
-            font-weight: 700;
-        }
 
-        .sidebar {
-            background: var(--glass);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
-        }
 
-        .sidebar ul {
-            list-style: none;
-        }
+/* NAVBAR */
 
-        .sidebar li {
-            padding: 12px 16px;
-            margin: 8px 0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
+.navbar{
+max-width:1500px;
+margin:25px auto;
+padding:16px 30px;
+background:var(--glass);
+backdrop-filter:blur(10px);
+border-radius:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:var(--shadow);
+}
 
-        .sidebar li:hover {
-            background: rgba(108, 78, 246, .1);
-            transform: translateX(6px);
-        }
+.logo{
+display:flex;
+align-items:center;
+gap:14px;
+font-size:24px;
+font-weight:600;
+color:#222;
+}
 
-        .sidebar li.active {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: #fff;
-        }
+.logo img{
+transition:.3s;
+}
 
-        .main {
-            flex: 1;
-            background: var(--bg);
-            border-radius: 28px;
-            padding: 30px;
-            box-shadow: var(--shadow);
-        }
+.logo img:hover{
+transform:rotate(8deg) scale(1.05);
+}
 
-        .car-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
+.nav-icons i{
+font-size:20px;
+margin-left:16px;
+padding:10px;
+border-radius:50%;
+cursor:pointer;
+transition:.3s;
+}
 
-        .car-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
+.nav-icons i:hover{
+background:#eef1ff;
+color:var(--primary);
+}
 
-        .car-card:hover {
-            transform: translateY(-5px);
-        }
 
-        .car-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
 
-        .car-details h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
+/* SIDEBAR */
 
-        .car-details p {
-            margin: 5px 0;
-            font-size: 13px;
-            color: #555;
-        }
+.sidebar{
+width:230px;
+background:var(--glass);
+border-radius:20px;
+padding:20px;
+box-shadow:var(--shadow);
+height:fit-content;
+}
 
-        .car-info-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #eee;
-        }
+.sidebar ul{
+list-style:none;
+}
 
-        .info-item {
-            font-size: 12px;
-        }
+.sidebar li{
+padding:13px 16px;
+margin:8px 0;
+border-radius:12px;
+cursor:pointer;
+font-weight:500;
+display:flex;
+gap:10px;
+align-items:center;
+transition:.25s;
+}
 
-        .info-label {
-            color: #999;
-            font-weight: 600;
-        }
+.sidebar li:hover{
+background:rgba(108,78,246,.1);
+transform:translateX(5px);
+}
 
-        .info-value {
-            color: #333;
-            font-weight: 500;
-        }
+.sidebar li.active{
+background:linear-gradient(135deg,var(--primary),var(--accent));
+color:white;
+}
 
-        .car-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
 
-        .car-actions button {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
 
-        .edit-btn {
-            background: #2196F3;
-            color: white;
-        }
+/* MAIN */
 
-        .delete-btn {
-            background: #f44336;
-            color: white;
-        }
+.main{
+flex:1;
+background:var(--bg);
+border-radius:26px;
+padding:32px;
+box-shadow:var(--shadow);
+}
 
-        .status-available { color: #4caf50; font-weight: 600; }
-        .status-sold { color: #f44336; font-weight: 600; }
-        .status-other { color: #ff9800; font-weight: 600; }
 
-        .breadcrumb {
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #666;
-        }
 
-        .breadcrumb a {
-            color: var(--primary);
-            text-decoration: none;
-        }
+/* BUTTON */
 
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
+.btn{
+background:linear-gradient(135deg,var(--primary),var(--accent));
+color:white;
+padding:10px 20px;
+border-radius:8px;
+text-decoration:none;
+font-size:14px;
+font-weight:500;
+border:none;
+cursor:pointer;
+transition:.3s;
+display:inline-flex;
+align-items:center;
+gap:6px;
+}
+
+.btn:hover{
+transform:translateY(-2px);
+box-shadow:0 8px 20px rgba(108,78,246,.35);
+}
+
+
+
+/* CAR GRID */
+
+.car-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+gap:22px;
+}
+
+
+
+/* CAR CARD */
+
+.car-card{
+background:var(--card);
+border-radius:16px;
+padding:20px;
+box-shadow:0 8px 25px rgba(0,0,0,.07);
+transition:.3s;
+position:relative;
+overflow:hidden;
+}
+
+.car-card:hover{
+transform:translateY(-8px);
+box-shadow:0 18px 40px rgba(0,0,0,.15);
+}
+
+
+
+/* IMAGE */
+
+.car-image{
+width:100%;
+height:200px;
+object-fit:cover;
+border-radius:10px;
+margin-bottom:14px;
+transition:.4s;
+}
+
+.car-card:hover .car-image{
+transform:scale(1.05);
+}
+
+
+
+/* DETAILS */
+
+.car-details h3{
+margin-bottom:8px;
+font-size:18px;
+color:var(--primary);
+}
+
+.car-details p{
+font-size:13px;
+margin:5px 0;
+color:#555;
+}
+
+
+
+/* INFO GRID */
+
+.car-info-group{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:12px;
+padding-top:12px;
+border-top:1px solid #eee;
+}
+
+.info-item{
+font-size:12px;
+}
+
+.info-label{
+color:#888;
+font-weight:600;
+}
+
+.info-value{
+color:#333;
+font-weight:500;
+}
+
+
+
+/* ACTION BUTTONS */
+
+.car-actions{
+display:flex;
+gap:10px;
+margin-top:16px;
+}
+
+.car-actions a{
+flex:1;
+text-align:center;
+padding:8px;
+border-radius:6px;
+font-size:13px;
+font-weight:500;
+text-decoration:none;
+transition:.25s;
+}
+
+.edit-btn{
+background:#2196F3;
+color:white;
+}
+
+.edit-btn:hover{
+background:#1976d2;
+}
+
+.delete-btn{
+background:#f44336;
+color:white;
+}
+
+.delete-btn:hover{
+background:#d32f2f;
+}
+
+
+
+/* STATUS */
+
+.status-available{
+color:#22c55e;
+font-weight:600;
+}
+
+.status-sold{
+color:#ef4444;
+font-weight:600;
+}
+
+.status-other{
+color:#f59e0b;
+font-weight:600;
+}
+
+
+
+/* BREADCRUMB */
+
+.breadcrumb{
+margin-bottom:20px;
+font-size:14px;
+color:#777;
+}
+
+.breadcrumb a{
+color:var(--primary);
+text-decoration:none;
+font-weight:500;
+}
+
+.breadcrumb a:hover{
+text-decoration:underline;
+}
+
+
+
+/* EMPTY STATE */
+
+.empty{
+text-align:center;
+padding:50px;
+color:#666;
+}
+
+.empty i{
+font-size:50px;
+color:#ccc;
+margin-bottom:20px;
+}
     </style>
 </head>
 <body>
 <header class="navbar">
     <div class="logo">
         <img src="/images/logo.png" alt="logo" style="width: 60px; height: 60px; border-radius: 10px;">
-        DK3 Cars - Showroom Inventory
+        DK3 Cars
     </div>
     <div class="nav-icons">
         <i class="fas fa-bell"></i>
@@ -208,7 +353,7 @@
 <div class="container" style="display: flex; gap: 30px; max-width: 1500px; margin: 0 auto; padding: 0 20px;">
     <aside class="sidebar">
         <ul>
-            <li onclick="location.href='/dashboard'"><i class="fas fa-tachometer-alt"></i> Dashboard</li>
+            <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
             
             <li class="active"><i class="fas fa-store"></i> Showroom View</li>
         </ul>
@@ -216,7 +361,7 @@
 
     <main class="main">
         <div class="breadcrumb">
-            <a href="/cars/all"><i class="fas fa-home"></i> All Vehicles</a> / <span th:text="'Showroom #' + ${showroomId}"></span>
+            <a href="/cars/all"><i class="fas fa-home"></i> All Vehicles</a> <span th:text="'Showroom #' + ${showroomId}"></span>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">

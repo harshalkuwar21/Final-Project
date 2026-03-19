@@ -5,29 +5,321 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buy Now</title>
     <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f7ff; color: #13223b; }
-        .wrap { max-width: 1020px; margin: 20px auto; padding: 0 14px; }
-        .top, .card { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 20px rgba(19,34,59,.08); }
-        .top { display: flex; justify-content: space-between; align-items: center; }
-        .steps { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
-        .step { padding: 7px 10px; border-radius: 999px; background: #e6eefc; font-size: 13px; }
-        .step.active { background: #005bbb; color: #fff; }
-        .grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
-        input, select, textarea, button { width: 100%; padding: 10px; border: 1px solid #d6e3f8; border-radius: 8px; font-size: 14px; }
-        textarea { min-height: 70px; }
-        .hidden { display: none; }
-        .actions { margin-top: 12px; display: flex; gap: 8px; }
-        .actions button { cursor: pointer; border: none; }
-        .primary { background: #005bbb; color: #fff; }
-        .light { background: #edf4ff; color: #004a9a; }
-        .msg { margin-top: 10px; font-size: 14px; font-weight: 600; }
-        .sub { margin: 12px 0 6px; font-weight: 700; color: #2b4773; }
-        .hint { font-size: 12px; color: #5b6f90; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-        .table th, .table td { border: 1px solid #d9e4f6; padding: 8px; font-size: 13px; text-align: left; }
-        .table th { background: #f1f6ff; }
-        .pill { display:inline-block; padding:3px 8px; border-radius:999px; background:#edf4ff; color:#154a92; font-size:12px; }
-        .warn { color: #c43838; font-size: 12px; }
+       /* ===== GLOBAL ===== */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins','Segoe UI',sans-serif;
+}
+
+body{
+background:linear-gradient(120deg,#eef4ff,#f8fbff);
+color:#1e293b;
+}
+
+/* ===== PAGE WRAPPER ===== */
+
+.wrap{
+max-width:1150px;
+margin:auto;
+padding:25px;
+}
+
+/* ===== TOP HEADER ===== */
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:linear-gradient(90deg,#003c8f,#007bff);
+color:white;
+padding:18px 22px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+.top h2{
+font-weight:600;
+letter-spacing:.5px;
+}
+
+.top a{
+background:white;
+color:#003c8f;
+padding:8px 16px;
+border-radius:8px;
+text-decoration:none;
+font-weight:600;
+transition:.3s;
+}
+
+.top a:hover{
+background:#e6f0ff;
+transform:translateY(-2px);
+}
+
+/* ===== CARD ===== */
+
+.card{
+background:white;
+border-radius:16px;
+padding:25px;
+margin-top:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.08);
+transition:.3s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+box-shadow:0 18px 45px rgba(0,0,0,0.12);
+}
+
+/* ===== STEPS ===== */
+
+.steps{
+display:flex;
+gap:12px;
+margin:20px 0;
+flex-wrap:wrap;
+}
+
+.step{
+padding:10px 16px;
+border-radius:30px;
+background:#e8f0ff;
+font-size:13px;
+font-weight:600;
+color:#004aad;
+transition:.3s;
+}
+
+.step.active{
+background:linear-gradient(90deg,#005bbb,#007bff);
+color:white;
+box-shadow:0 6px 15px rgba(0,91,187,0.3);
+}
+
+/* ===== GRID FORM ===== */
+
+.grid{
+display:grid;
+gap:15px;
+grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+}
+
+/* ===== LABEL ===== */
+
+label{
+font-size:13px;
+font-weight:600;
+color:#334155;
+margin-bottom:4px;
+display:block;
+}
+
+/* ===== INPUT ===== */
+
+input,select,textarea{
+width:100%;
+padding:11px;
+border-radius:8px;
+border:1px solid #d6e3f8;
+font-size:14px;
+transition:.2s;
+}
+
+textarea{
+min-height:70px;
+}
+
+input:focus,select:focus,textarea:focus{
+outline:none;
+border-color:#007bff;
+box-shadow:0 0 0 2px rgba(0,123,255,0.15);
+}
+
+/* ===== SUB TITLES ===== */
+
+.sub{
+margin:18px 0 8px;
+font-weight:700;
+color:#004aad;
+}
+
+/* ===== BUTTON AREA ===== */
+
+.actions{
+margin-top:20px;
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+}
+
+/* ===== BUTTONS ===== */
+
+button{
+cursor:pointer;
+border:none;
+font-size:14px;
+font-weight:600;
+padding:11px 18px;
+border-radius:8px;
+transition:.3s;
+}
+
+/* NEXT BUTTON */
+
+.primary{
+background:linear-gradient(135deg,#005bbb,#008cff);
+color:white;
+box-shadow:0 8px 18px rgba(0,91,187,0.35);
+}
+
+.primary:hover{
+transform:translateY(-2px);
+box-shadow:0 12px 25px rgba(0,91,187,0.45);
+}
+
+/* PREVIOUS BUTTON */
+
+.light{
+background:#edf4ff;
+color:#004aad;
+}
+
+.light:hover{
+background:#dfeaff;
+}
+
+/* ===== TABLE ===== */
+
+.table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+.table th{
+background:#f2f6ff;
+color:#004aad;
+font-size:13px;
+padding:10px;
+}
+
+.table td{
+border-bottom:1px solid #eef2f7;
+padding:10px;
+font-size:13px;
+}
+
+/* ===== STATUS PILLS ===== */
+
+.pill{
+display:inline-block;
+padding:4px 10px;
+border-radius:20px;
+background:#edf4ff;
+color:#004aad;
+font-size:12px;
+font-weight:600;
+}
+
+/* ===== MESSAGE ===== */
+
+.msg{
+margin-top:10px;
+font-size:14px;
+font-weight:600;
+}
+
+/* ===== WARNINGS ===== */
+
+.warn{
+color:#dc2626;
+font-size:12px;
+margin-top:6px;
+}
+
+/* ===== HINT TEXT ===== */
+
+.hint{
+font-size:12px;
+color:#64748b;
+}
+
+/* ===== HIDDEN ===== */
+
+.hidden{
+display:none;
+}
+
+.toast-container{
+position:fixed;
+top:20px;
+right:20px;
+display:flex;
+flex-direction:column;
+gap:10px;
+z-index:9999;
+}
+
+.toast{
+min-width:280px;
+max-width:360px;
+padding:12px 16px;
+border-radius:12px;
+color:#fff;
+font-size:14px;
+font-weight:600;
+box-shadow:0 14px 30px rgba(15,23,42,0.22);
+animation:slideInRight .25s ease;
+}
+
+.toast.error{
+background:linear-gradient(135deg,#dc2626,#b91c1c);
+}
+
+.toast.success{
+background:linear-gradient(135deg,#16a34a,#15803d);
+}
+
+@keyframes slideInRight{
+from{
+opacity:0;
+transform:translateX(24px);
+}
+
+to{
+opacity:1;
+transform:translateX(0);
+}
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width:768px){
+
+.steps{
+justify-content:center;
+}
+
+.top{
+flex-direction:column;
+gap:10px;
+text-align:center;
+}
+
+.actions{
+flex-direction:column;
+}
+
+button{
+width:100%;
+}
+
+}
     </style>
 </head>
 <body>
@@ -42,7 +334,7 @@
         <div class="step" id="s3">Step 3 Delivery</div>
     </div>
     <div class="card">
-        <form id="buyNowForm" enctype="multipart/form-data">
+        <form id="buyNowForm" enctype="multipart/form-data" novalidate>
             <div id="step1">
                 <div class="grid">
                     <div><label>Car ID</label><input name="carId" id="carId" required></div>
@@ -67,26 +359,24 @@
                 <div class="grid">
                     <div>
                         <label>Booking Amount (Rs 5,000 - 25,000)</label>
-                        <input name="bookingAmount" id="bookingAmount" type="number" value="10000" min="5000" max="25000" required>
+                        <input name="bookingAmount" id="bookingAmount" type="number" value="10000" min="5000" max="25000" readonly required>
                     </div>
                     <div><label>Payment Mode</label>
-                        <select name="paymentMode" required>
-                            <option>UPI</option>
+                        <select name="paymentMode" id="paymentMode" required>
+                            <option value="UPI">UPI</option>
+                            <option value="Card">Card</option>
+                            <option value="Net Banking">Net Banking</option>
                         </select>
                     </div>
-                    <div><label>Gateway</label>
-                        <select name="paymentGateway" required>
-                            <option>Razorpay</option><option>Paytm</option><option>Stripe</option>
-                        </select>
+                    <div>
+                        <label>&nbsp;</label>
+                        <button type="button" id="payNowBtn" class="primary">Pay Now</button>
                     </div>
-                    <div><label>Simulate Payment Result</label>
-                        <select name="paymentOutcome" id="paymentOutcome" required>
-                            <option>Success</option><option>Failed</option>
-                        </select>
-                    </div>
-                    <div><label>Transaction ID</label><input name="transactionId" required></div>
-                    <div><label>Payment Screenshot</label><input type="file" name="paymentScreenshot" required></div>
                 </div>
+                <input type="hidden" name="paymentGateway" id="paymentGateway" value="Razorpay">
+                <input type="hidden" name="paymentOutcome" id="paymentOutcome" value="Success">
+                <input type="hidden" name="transactionId" id="transactionId" value="">
+                <div id="formMessage" class="msg"></div>
 
                 <div class="sub">2) Cost Breakdown & Auto Calculation</div>
                 <div class="grid">
@@ -177,7 +467,6 @@
                     <div><label>Delivery Type</label>
                         <select name="deliveryType" required>
                             <option>Showroom Pickup</option>
-                            <option>Home Delivery</option>
                         </select>
                     </div>
                 </div>
@@ -196,6 +485,79 @@
 <script>
     let step = 1;
     let currentCarPrice = 0;
+    const buyNowForm = document.getElementById("buyNowForm");
+
+    function showToast(message, type = "error") {
+        let container = document.getElementById("toastContainer");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "toastContainer";
+            container.className = "toast-container";
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.remove();
+            if (!container.children.length) {
+                container.remove();
+            }
+        }, 3000);
+    }
+
+    function getFieldLabel(field) {
+        const directLabel = field.id ? document.querySelector(`label[for="${field.id}"]`) : null;
+        if (directLabel) return directLabel.textContent.trim().replace(/[:*]+$/, "");
+
+        const nearestLabel = field.closest("div")?.querySelector("label");
+        if (nearestLabel) return nearestLabel.textContent.trim().replace(/[:*]+$/, "");
+
+        return field.name || "Field";
+    }
+
+    function getFieldStep(field) {
+        const stepNode = field.closest("#step1, #step2, #step3");
+        return stepNode ? Number(stepNode.id.replace("step", "")) : step;
+    }
+
+    function focusField(field) {
+        const targetStep = getFieldStep(field);
+        if (targetStep !== step) {
+            step = targetStep;
+            setStep();
+        }
+        field.focus();
+        field.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function validateFields(fields) {
+        const invalidField = fields.find(field => {
+            if (field.disabled || field.type === "hidden") return false;
+            if (field.type === "file") return field.required && (!field.files || field.files.length === 0);
+            return !field.checkValidity();
+        });
+
+        if (!invalidField) return true;
+
+        const label = getFieldLabel(invalidField);
+        showToast(`${label} is required. Please fill ${label}.`, "error");
+        focusField(invalidField);
+        return false;
+    }
+
+    function validateCurrentStep() {
+        const currentStep = document.getElementById(`step${step}`);
+        if (!currentStep) return true;
+        return validateFields([...currentStep.querySelectorAll("[required]")]);
+    }
+
+    function validateFullForm() {
+        return validateFields([...buyNowForm.querySelectorAll("[required]")]);
+    }
 
     function setStep() {
         [1,2,3].forEach(i => {
@@ -206,7 +568,10 @@
         document.getElementById("nextBtn").classList.toggle("hidden", step === 3);
         document.getElementById("submitBtn").classList.toggle("hidden", step !== 3);
     }
-    function nextStep() { if (step < 3) { step++; setStep(); } }
+    function nextStep() {
+        if (!validateCurrentStep()) return;
+        if (step < 3) { step++; setStep(); }
+    }
     function prevStep() { if (step > 1) { step--; setStep(); } }
 
     function getNum(id) {
@@ -321,9 +686,38 @@
     document.getElementById("paymentOption").dispatchEvent(new Event("change"));
     loadCarAndBanks();
 
+    function paymentGatewayFor(mode) {
+        if (mode === "Card") return "Stripe";
+        if (mode === "Net Banking") return "Paytm";
+        return "Razorpay";
+    }
+
+    function createTransactionId() {
+        return `TXN-${Date.now()}`;
+    }
+
+    document.getElementById("payNowBtn").addEventListener("click", () => {
+        if (!validateFields([document.getElementById("bookingAmount"), document.getElementById("paymentMode")])) {
+            return;
+        }
+        const paymentMode = document.getElementById("paymentMode").value;
+        document.getElementById("paymentGateway").value = paymentGatewayFor(paymentMode);
+        document.getElementById("paymentOutcome").value = "Success";
+        document.getElementById("transactionId").value = createTransactionId();
+
+        const formMessage = document.getElementById("formMessage");
+        formMessage.style.color = "#15803d";
+        formMessage.textContent = "Payment successful. You can continue.";
+        showToast("Payment successful.", "success");
+    });
+
     document.getElementById("buyNowForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("msg");
+        if (!validateFullForm()) {
+            msg.textContent = "";
+            return;
+        }
         const paymentOutcome = document.getElementById("paymentOutcome").value;
         if (paymentOutcome === "Failed") {
             location.href = "/user-panel/payment-failure";
@@ -341,10 +735,12 @@
             } else {
                 msg.style.color = "red";
                 msg.textContent = data.error || "Submission failed";
+                showToast(data.error || "Submission failed", "error");
             }
         } catch (err) {
             msg.style.color = "red";
             msg.textContent = "Network error";
+            showToast("Network error. Please try again.", "error");
         }
     });
 </script>

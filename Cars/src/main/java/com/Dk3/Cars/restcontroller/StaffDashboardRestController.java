@@ -138,7 +138,14 @@ public class StaffDashboardRestController {
             price = car.getPrice();
         }
         m.put("id", b.getId());
-        m.put("customerName", c != null ? c.getName() : "N/A");
+        m.put("customerName", c != null && c.getName() != null && !c.getName().isBlank()
+                ? c.getName()
+                : (b.getFullName() != null && !b.getFullName().isBlank() ? b.getFullName() : "N/A"));
+        m.put("customerMobile", c != null ? c.getMobile() : "");
+        m.put("customerEmail", c != null ? c.getEmail() : "");
+        m.put("customerAddress", c != null && c.getAddress() != null && !c.getAddress().isBlank()
+                ? c.getAddress()
+                : b.getAddress());
         m.put("carName", carName.trim());
         m.put("carImage", carImage);
         m.put("fuelType", fuelType);

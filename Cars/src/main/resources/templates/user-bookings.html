@@ -1,148 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bookings</title>
+
+    <title>My Bookings | DK3 Cars</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f4f8ff; color: #13223b; }
-        .wrap { max-width: 1100px; margin: 20px auto; padding: 0 14px; }
-        .panel { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 8px 18px rgba(19,34,59,.09); margin-bottom: 14px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #e6edf8; padding: 9px; font-size: 14px; text-align: left; }
-        th { color: #5f6f87; }
-        .badge { padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-        .pending { background: #fff3cd; color: #7a5a00; }
-        .approved { background: #d1fae5; color: #065f46; }
-        .rejected { background: #fee2e2; color: #991b1b; }
-        .step-card { border: 1px solid #e6edf8; border-radius: 8px; padding: 6px 8px; background: #fafcff; min-width: 210px; }
-        .step-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; }
-        .step-label { color: #334155; font-weight: 600; }
-        .step-badge { padding: 2px 6px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
-        .step-completed { background: #d1fae5; color: #065f46; }
-        .step-pending { background: #fff3cd; color: #7a5a00; }
-        .step-rejected { background: #fee2e2; color: #991b1b; }
-        .step-not-required { background: #e2e8f0; color: #334155; }
-        .grid { display:grid; gap:10px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
-        input, select, button { width:100%; padding:10px; border:1px solid #d6e3f8; border-radius:8px; font-size:14px; }
-        button { background:#005bbb; color:#fff; border:none; cursor:pointer; }
-        .hidden { display:none; }
-        .hint { font-size:12px; color:#5b6f90; margin-top:6px; }
-        .next-action { font-size: 12px; color: #0f172a; line-height: 1.45; }
+        /* ===== GLOBAL ===== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eef4ff, #f7faff);
+            color: #13223b;
+        }
+
+        /* ===== WRAPPER ===== */
+
+        .wrap {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        /* ===== TOP HEADER ===== */
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, #004aad, #007bff);
+            color: white;
+            padding: 16px 22px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar h2 {
+            font-weight: 600;
+            letter-spacing: .5px;
+        }
+
+        /* ===== DASHBOARD BUTTON ===== */
+
+        .dashboard-btn {
+            background: white;
+            color: #004aad;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all .3s;
+        }
+
+        .dashboard-btn:hover {
+            background: #e6f0ff;
+            transform: translateY(-2px);
+        }
+
+        /* ===== PANELS ===== */
+
+        .panel {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            transition: .3s;
+        }
+
+        .panel:hover {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h3 {
+            margin-bottom: 15px;
+            color: #004aad;
+            font-weight: 600;
+        }
+
+        /* ===== TABLE ===== */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f3f7ff;
+            color: #004aad;
+            font-size: 14px;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #edf1f8;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f7faff;
+            transition: .2s;
+        }
+
+        /* ===== STATUS BADGES ===== */
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .pending {
+            background: #fff3cd;
+            color: #7a5a00;
+        }
+
+        .approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ===== STEP CARD ===== */
+
+        .step-card {
+            border: 1px solid #e6edf8;
+            border-radius: 10px;
+            padding: 8px 10px;
+            background: #fafcff;
+            min-width: 210px;
+        }
+
+        .step-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 12px;
+        }
+
+        .step-label {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .step-badge {
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .step-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .step-pending {
+            background: #fff3cd;
+            color: #7a5a00;
+        }
+
+        .step-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .step-not-required {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        /* ===== GRID FORM ===== */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        /* ===== INPUTS ===== */
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d7e3f9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: .2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+        }
+
+        /* ===== BUTTON AREA ===== */
+
+        .btn-area {
+            margin-top: 18px;
+        }
+
+        /* ===== SAVE BUTTON ===== */
+
+        .save-btn {
+            background: linear-gradient(135deg, #005bbb, #008cff);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(0, 91, 187, 0.3);
+            transition: .3s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(0, 91, 187, 0.35);
+        }
+
+        /* ===== LINKS ===== */
+
+        a {
+            color: #005bbb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== MESSAGE TEXT ===== */
+
+        .hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        /* ===== HIDDEN ===== */
+
+        .hidden {
+            display: none;
+        }
+
+        /* ===== PAYMENT TABLE STYLE ===== */
+
+        #paymentsBody td {
+            font-size: 13px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+
+        @media(max-width:768px) {
+
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            .step-card {
+                min-width: 180px;
+            }
+
+        }
     </style>
 </head>
+
 <body>
-<div class="wrap">
-    <div class="panel" style="display:flex;justify-content:space-between;align-items:center;">
-        <h2>Booking Status & Payment History</h2>
-        <a href="/user-dashboard">Back to Dashboard</a>
-    </div>
-    <div class="panel">
-        <h3>My Bookings</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>Booking ID</th>
-                <th>Car</th>
-                <th>Status</th>
-                <th>Step by Step Status</th>
-                <th>Next Action</th>
-                <th>Delivery Date</th>
-                <th>Documents</th>
-            </tr>
-            </thead>
-            <tbody id="bookingsBody"><tr><td colspan="7">Loading...</td></tr></tbody>
-        </table>
-    </div>
-    <div class="panel">
-        <h3>Post-Booking Payment Plan Selection</h3>
-        <div class="grid">
-            <div>
-                <label>Booking</label>
-                <select id="planBookingId"></select>
-            </div>
-            <div id="planOptionWrap">
-                <label>Payment Option</label>
-                <select id="planPaymentOption">
-                    <option value="Full Payment">Full Payment</option>
-                    <option value="Loan Required">Loan Required</option>
-                </select>
-            </div>
-            <div>
-                <label>Down Payment Amount</label>
-                <input id="planDownPaymentAmount" type="number" value="0" min="0">
-            </div>
-            <div>
-                <label>Down Payment Method</label>
-                <select id="planDownPaymentMethod">
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="NEFT">NEFT</option>
-                    <option value="RTGS">RTGS</option>
-                    <option value="Net Banking">Net Banking</option>
-                    <option value="UPI">UPI</option>
-                    <option value="Card">Card</option>
-                </select>
-            </div>
-            <div>
-                <label>Down Payment Reference</label>
-                <input id="planDownPaymentReference">
-            </div>
+    <div class="wrap">
+        <div class="panel" style="display:flex;justify-content:space-between;align-items:center;">
+            <h2>Booking Status & Payment History</h2>
+            <a href="/user-dashboard" class="dashboard-btn">
+                ⬅ Back to Dashboard
+            </a>
         </div>
-        <div id="loanPlanFields" class="grid hidden" style="margin-top:10px;">
-            <div><label>Loan Bank</label><input id="planLoanBank" placeholder="State Bank of India / HDFC Bank"></div>
-            <div><label>Salary</label><input id="planSalary" type="number" value="0"></div>
-            <div><label>Employment Type</label><input id="planEmploymentType" value="Salaried"></div>
-            <div><label>Monthly Income</label><input id="planMonthlyIncome" type="number" value="0"></div>
-            <div><label>PAN</label><input id="planLoanPan"></div>
-            <div><label>Aadhaar</label><input id="planLoanAadhaar"></div>
-            <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
-            <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
+        <div class="panel">
+            <h3>My Bookings</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Car</th>
+                        <th>Status</th>
+                        <th>Step by Step Status</th>
+                        <th>Delivery Date</th>
+                        <th>Documents</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsBody">
+                    <tr>
+                        <td colspan="6">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div id="planFlowHint" class="hint">Follow this sequence: booking confirmation -> submit down payment reference -> staff verifies -> choose full payment or loan.</div>
-        <div style="margin-top:10px;">
-            <button id="planSaveBtn" type="button" onclick="savePaymentPlan()">Save</button>
+        <div class="panel">
+            <h3>Post-Booking Payment Plan Selection</h3>
+            <div class="grid">
+                <div>
+                    <label>Booking</label>
+                    <select id="planBookingId"></select>
+                </div>
+                <div>
+                    <label>Payment Option</label>
+                    <select id="planPaymentOption">
+                        <option value="Full Payment">Full Payment</option>
+                        <option value="Loan Required">Loan Required</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Down Payment (Optional)</label>
+                    <input id="planDownPaymentAmount" type="number" value="0" min="0">
+                </div>
+                <div>
+                    <label>Down Payment Method</label>
+                    <select id="planDownPaymentMethod">
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="NEFT">NEFT</option>
+                        <option value="RTGS">RTGS</option>
+                        <option value="Net Banking">Net Banking</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Down Payment Reference</label>
+                    <input id="planDownPaymentReference">
+                </div>
+            </div>
+            <div id="loanPlanFields" class="grid hidden" style="margin-top:10px;">
+                <div><label>Loan Bank</label><input id="planLoanBank" placeholder="State Bank of India / HDFC Bank">
+                </div>
+                <div><label>Salary</label><input id="planSalary" type="number" value="0"></div>
+                <div><label>Employment Type</label><input id="planEmploymentType" value="Salaried"></div>
+                <div><label>Monthly Income</label><input id="planMonthlyIncome" type="number" value="0"></div>
+                <div><label>PAN</label><input id="planLoanPan"></div>
+                <div><label>Aadhaar</label><input id="planLoanAadhaar"></div>
+                <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
+                <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
+            </div>
+            <div class="hint">Booking payment आधीच झालेले असते. इथून Down Payment / Full Payment / Loan option निवडा.
+            </div>
+            <div style="margin-top:10px;">
+                <button class="save-btn" onclick="savePaymentPlan()">Save Payment Plan</button>
+            </div>
+            <div id="planMsg" class="hint"></div>
         </div>
-        <div id="planMsg" class="hint"></div>
+        <div class="panel">
+            <h3>Payment History</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Booking ID</th>
+                        <th>Amount</th>
+                        <th>Mode</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsBody">
+                    <tr>
+                        <td colspan="6">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="panel">
-        <h3>Payment History</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>Payment ID</th>
-                <th>Booking ID</th>
-                <th>Amount</th>
-                <th>Mode</th>
-                <th>Status</th>
-                <th>Date</th>
-            </tr>
-            </thead>
-            <tbody id="paymentsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
-        </table>
-    </div>
-</div>
 
-<script>
-    let bookingsCache = [];
+    <script>
+        let bookingsCache = [];
 
-    function badgeClass(status) {
-        const s = (status || "").toLowerCase();
-        if (s.includes("approved") || s.includes("confirmed") || s.includes("delivered")) return "approved";
-        if (s.includes("reject")) return "rejected";
-        return "pending";
-    }
+        function badgeClass(status) {
+            const s = (status || "").toLowerCase();
+            if (s.includes("approved") || s.includes("confirmed") || s.includes("delivered")) return "approved";
+            if (s.includes("reject")) return "rejected";
+            return "pending";
+        }
 
-    function stepBadgeClass(status) {
-        const s = (status || "").toLowerCase();
-        if (s.includes("complete")) return "step-completed";
-        if (s.includes("reject")) return "step-rejected";
-        if (s.includes("not required")) return "step-not-required";
-        return "step-pending";
-    }
+        function stepBadgeClass(status) {
+            const s = (status || "").toLowerCase();
+            if (s.includes("complete")) return "step-completed";
+            if (s.includes("reject")) return "step-rejected";
+            if (s.includes("not required")) return "step-not-required";
+            return "step-pending";
+        }
 
-    function renderStepTracker(step) {
-        const s = step || {};
-        return `
+        function renderStepTracker(step) {
+            const s = step || {};
+            return `
             <div class="step-card">
                 <div class="step-row">
                     <span class="step-label">1. ${s.step1Label || "Booking Amount Paid"}</span>
@@ -153,53 +430,30 @@
                     <span class="step-badge ${stepBadgeClass(s.step2Status)}">${s.step2Status || "Pending"}</span>
                 </div>
                 <div class="step-row">
-                    <span class="step-label">3. ${s.step3Label || "Full Payment on Delivery Day"}</span>
+                    <span class="step-label">3. ${s.step3Label || "Full Payment Paid"}</span>
                     <span class="step-badge ${stepBadgeClass(s.step3Status)}">${s.step3Status || "Pending"}</span>
                 </div>
             </div>
         `;
-    }
-
-    function nextActionMessage(booking) {
-        const workflow = String(booking.workflowStatus || booking.status || "").toLowerCase();
-        const paymentOption = String(booking.paymentOption || "").toLowerCase();
-        if (workflow.includes("reject") || workflow.includes("cancel")) return "Booking closed.";
-        if (workflow.includes("deliver")) return "Vehicle delivered.";
-
-        const confirmed = workflow.includes("approved") || String(booking.status || "").toLowerCase() === "confirmed";
-        if (!confirmed) return "Waiting for staff to verify payment and documents, then confirm booking.";
-
-        if (booking.downPaymentVerified !== true) {
-            return "Booking confirmed. Please pay down payment using non-cash mode and submit payment reference.";
         }
 
-        if (paymentOption.includes("loan")) {
-            return workflow.includes("loan approved")
-                ? "Loan approved. Staff can continue with re-verification."
-                : "Down payment verified. Loan approval is pending.";
-        }
-        return "Down payment verified. Please pay full amount on delivery day.";
-    }
-
-    async function loadBookings() {
-        const res = await fetch("/user-panel/api/bookings");
-        const data = await res.json();
-        const body = document.getElementById("bookingsBody");
-        const tracker = data.stepTracker || {};
-        if (!data.ok || !data.bookings.length) {
-            body.innerHTML = "<tr><td colspan='7'>No bookings found.</td></tr>";
-            document.getElementById("planBookingId").innerHTML = "<option value=''>No active bookings</option>";
-            syncPlanFormState();
-            return;
-        }
-        bookingsCache = data.bookings || [];
-        body.innerHTML = data.bookings.map(b => `
+        async function loadBookings() {
+            const res = await fetch("/user-panel/api/bookings");
+            const data = await res.json();
+            const body = document.getElementById("bookingsBody");
+            const tracker = data.stepTracker || {};
+            if (!data.ok || !data.bookings.length) {
+                body.innerHTML = "<tr><td colspan='6'>No bookings found.</td></tr>";
+                document.getElementById("planBookingId").innerHTML = "<option value=''>No active bookings</option>";
+                return;
+            }
+            bookingsCache = data.bookings || [];
+            body.innerHTML = data.bookings.map(b => `
             <tr>
                 <td>#${b.id}</td>
                 <td>${b.car ? (b.car.brand + " " + b.car.model) : "-"}</td>
                 <td><span class="badge ${badgeClass(b.workflowStatus || b.status)}">${b.workflowStatus || b.status || "-"}</span></td>
                 <td>${renderStepTracker(tracker[b.id])}</td>
-                <td><div class="next-action">${nextActionMessage(b)}</div></td>
                 <td>${b.expectedDeliveryDate || "-"}</td>
                 <td>
                     ${b.bookingReceiptUrl ? `<a href="${b.bookingReceiptUrl}" target="_blank">Receipt</a> ` : ""}
@@ -210,26 +464,25 @@
                 </td>
             </tr>
         `).join("");
-        const openBookings = bookingsCache.filter(b => {
-            const s = String(b.workflowStatus || b.status || "").toLowerCase();
-            return !s.includes("reject") && !s.includes("cancel") && !s.includes("deliver");
-        });
-        const select = document.getElementById("planBookingId");
-        select.innerHTML = openBookings.length
-            ? openBookings.map(b => `<option value="${b.id}">#${b.id} - ${(b.car ? (b.car.brand + " " + b.car.model) : "Booking")}</option>`).join("")
-            : "<option value=''>No active bookings</option>";
-        syncPlanFormState();
-    }
-
-    async function loadPayments() {
-        const res = await fetch("/user-panel/api/payments");
-        const data = await res.json();
-        const body = document.getElementById("paymentsBody");
-        if (!data.ok || !data.payments.length) {
-            body.innerHTML = "<tr><td colspan='6'>No payments found.</td></tr>";
-            return;
+            const openBookings = bookingsCache.filter(b => {
+                const s = String(b.workflowStatus || b.status || "").toLowerCase();
+                return !s.includes("reject") && !s.includes("cancel") && !s.includes("deliver");
+            });
+            const select = document.getElementById("planBookingId");
+            select.innerHTML = openBookings.length
+                ? openBookings.map(b => `<option value="${b.id}">#${b.id} - ${(b.car ? (b.car.brand + " " + b.car.model) : "Booking")}</option>`).join("")
+                : "<option value=''>No active bookings</option>";
         }
-        body.innerHTML = data.payments.map(p => `
+
+        async function loadPayments() {
+            const res = await fetch("/user-panel/api/payments");
+            const data = await res.json();
+            const body = document.getElementById("paymentsBody");
+            if (!data.ok || !data.payments.length) {
+                body.innerHTML = "<tr><td colspan='6'>No payments found.</td></tr>";
+                return;
+            }
+            body.innerHTML = data.payments.map(p => `
             <tr>
                 <td>#${p.id}</td>
                 <td>${p.booking ? ("#" + p.booking.id) : "-"}</td>
@@ -239,120 +492,56 @@
                 <td>${p.paymentDate || "-"}</td>
             </tr>
         `).join("");
-    }
-
-    function syncPlanFormState() {
-        const bookingId = Number(document.getElementById("planBookingId").value || 0);
-        const booking = bookingsCache.find(b => Number(b.id) === bookingId);
-
-        const optionWrap = document.getElementById("planOptionWrap");
-        const paymentOption = document.getElementById("planPaymentOption");
-        const downAmount = document.getElementById("planDownPaymentAmount");
-        const downMethod = document.getElementById("planDownPaymentMethod");
-        const downRef = document.getElementById("planDownPaymentReference");
-        const saveBtn = document.getElementById("planSaveBtn");
-        const hint = document.getElementById("planFlowHint");
-        const msg = document.getElementById("planMsg");
-
-        if (!booking) {
-            optionWrap.style.display = "none";
-            document.getElementById("loanPlanFields").classList.add("hidden");
-            downAmount.disabled = true;
-            downMethod.disabled = true;
-            downRef.disabled = true;
-            saveBtn.disabled = true;
-            hint.textContent = "Select a booking to continue.";
-            return;
         }
 
-        const workflow = String(booking.workflowStatus || booking.status || "").toLowerCase();
-        const confirmed = workflow.includes("approved") || String(booking.status || "").toLowerCase() === "confirmed";
-        const downVerified = booking.downPaymentVerified === true;
+        loadBookings();
+        loadPayments();
 
-        if (!confirmed) {
-            optionWrap.style.display = "none";
-            document.getElementById("loanPlanFields").classList.add("hidden");
-            downAmount.disabled = true;
-            downMethod.disabled = true;
-            downRef.disabled = true;
-            saveBtn.disabled = true;
-            hint.textContent = "Staff confirmation pending. Payment actions are locked.";
-            return;
-        }
+        document.getElementById("planPaymentOption").addEventListener("change", () => {
+            const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
+            document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
+        });
 
-        saveBtn.disabled = false;
-        downAmount.disabled = downVerified;
-        downMethod.disabled = downVerified;
-        downRef.disabled = downVerified;
-        optionWrap.style.display = downVerified ? "" : "none";
-
-        if (!downVerified) {
-            document.getElementById("loanPlanFields").classList.add("hidden");
-            hint.textContent = "Step 1: submit down payment reference. Staff verification is required before selecting Full Payment or Loan.";
-            msg.textContent = "";
-            return;
-        }
-
-        const isLoan = paymentOption.value === "Loan Required";
-        document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
-        hint.textContent = "Step 2: choose Full Payment or Loan Required after down payment verification.";
-    }
-
-    loadBookings();
-    loadPayments();
-
-    document.getElementById("planPaymentOption").addEventListener("change", () => {
-        const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
-        document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
-    });
-    document.getElementById("planBookingId").addEventListener("change", syncPlanFormState);
-
-    async function savePaymentPlan() {
-        const bookingId = document.getElementById("planBookingId").value;
-        if (!bookingId) return;
-        const booking = bookingsCache.find(b => String(b.id) === String(bookingId));
-        if (!booking) return;
-
-        const paymentOption = document.getElementById("planPaymentOption").value;
-        const downVerified = booking.downPaymentVerified === true;
-        const payload = {
-            downPaymentAmount: Number(document.getElementById("planDownPaymentAmount").value || 0),
-            downPaymentMethod: document.getElementById("planDownPaymentMethod").value,
-            downPaymentReference: document.getElementById("planDownPaymentReference").value || ""
-        };
-        if (downVerified) {
-            payload.paymentOption = paymentOption;
-        }
-        if (downVerified && paymentOption === "Loan Required") {
-            payload.loanBank = document.getElementById("planLoanBank").value || "";
-            payload.salary = Number(document.getElementById("planSalary").value || 0);
-            payload.employmentType = document.getElementById("planEmploymentType").value || "Salaried";
-            payload.monthlyIncome = Number(document.getElementById("planMonthlyIncome").value || 0);
-            payload.loanPanNumber = document.getElementById("planLoanPan").value || "";
-            payload.loanAadhaarNumber = document.getElementById("planLoanAadhaar").value || "";
-            payload.loanInterestRate = Number(document.getElementById("planLoanRate").value || 9);
-            payload.loanTenureMonths = Number(document.getElementById("planLoanTenure").value || 60);
-        }
-
-        const msg = document.getElementById("planMsg");
-        msg.textContent = "Saving...";
-        try {
-            const res = await fetch(`/user-panel/api/bookings/${bookingId}/payment-plan`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (data.ok) {
-                msg.textContent = data.message || "Updated successfully.";
-                await loadBookings();
-            } else {
-                msg.textContent = data.error || "Failed to update payment plan.";
+        async function savePaymentPlan() {
+            const bookingId = document.getElementById("planBookingId").value;
+            if (!bookingId) return;
+            const paymentOption = document.getElementById("planPaymentOption").value;
+            const payload = {
+                paymentOption,
+                downPaymentAmount: Number(document.getElementById("planDownPaymentAmount").value || 0),
+                downPaymentMethod: document.getElementById("planDownPaymentMethod").value,
+                downPaymentReference: document.getElementById("planDownPaymentReference").value || ""
+            };
+            if (paymentOption === "Loan Required") {
+                payload.loanBank = document.getElementById("planLoanBank").value || "";
+                payload.salary = Number(document.getElementById("planSalary").value || 0);
+                payload.employmentType = document.getElementById("planEmploymentType").value || "Salaried";
+                payload.monthlyIncome = Number(document.getElementById("planMonthlyIncome").value || 0);
+                payload.loanPanNumber = document.getElementById("planLoanPan").value || "";
+                payload.loanAadhaarNumber = document.getElementById("planLoanAadhaar").value || "";
+                payload.loanInterestRate = Number(document.getElementById("planLoanRate").value || 9);
+                payload.loanTenureMonths = Number(document.getElementById("planLoanTenure").value || 60);
             }
-        } catch (e) {
-            msg.textContent = "Network error.";
+            const msg = document.getElementById("planMsg");
+            msg.textContent = "Saving...";
+            try {
+                const res = await fetch(`/user-panel/api/bookings/${bookingId}/payment-plan`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    msg.textContent = "Payment plan updated successfully.";
+                    await loadBookings();
+                } else {
+                    msg.textContent = data.error || "Failed to update payment plan.";
+                }
+            } catch (e) {
+                msg.textContent = "Network error.";
+            }
         }
-    }
-</script>
+    </script>
 </body>
+
 </html>

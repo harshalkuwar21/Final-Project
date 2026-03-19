@@ -3,9 +3,9 @@
 // ============================================
 
 let currentDocumentId = null;
+let currentGroup = null;
 let allDocuments = [];
 
-// Initialize page on load
 document.addEventListener('DOMContentLoaded', function() {
     loadDocuments();
     loadCarsAndCustomers();
@@ -21,9 +21,10 @@ function loadDocuments() {
     fetch('/api/documents/all')
         .then(response => response.json())
         .then(data => {
-            allDocuments = data;
-            displayDocuments(data);
-            updateStatistics(data);
+            allDocuments = Array.isArray(data) ? data : [];
+            refreshTypeFilter(allDocuments);
+            displayDocuments(allDocuments);
+            updateStatistics(allDocuments);
         })
         .catch(error => {
             console.error('Error loading documents:', error);
@@ -33,8 +34,9 @@ function loadDocuments() {
 
 function displayDocuments(documents) {
     const tbody = document.getElementById('documentsTable');
-    
-    if (documents.length === 0) {
+    const groups = groupDocuments(documents);
+
+    if (groups.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7">
@@ -49,37 +51,116 @@ function displayDocuments(documents) {
         return;
     }
 
-    tbody.innerHTML = documents.map(doc => `
+    tbody.innerHTML = groups.map(group => `
         <tr class="document-row">
+            <td>${escapeHtml(group.customerLabel)}</td>
+            <td>${escapeHtml(group.carLabel)}</td>
             <td>
-                <span class="doc-type-badge ${getDocTypeClass(doc.documentType)}">
-                    ${doc.documentType}
-                </span>
+                <div style="font-size:12px;color:#64748b;">${escapeHtml(group.sourceLabel)}</div>
+                ${group.bookingId ? `<div style="font-size:12px;color:#64748b;">Booking #${group.bookingId}</div>` : ''}
             </td>
-            <td>${doc.fileName}</td>
-            <td>
-                ${doc.car ? `<strong>Car:</strong> ${doc.car.brand} ${doc.car.model}` : 
-                  (doc.customer ? `<strong>Customer:</strong> ${doc.customer.firstName} ${doc.customer.lastName}` : 
-                   '—')}
-            </td>
-            <td>${formatDate(doc.uploadDate)}</td>
-            <td>${doc.expiryDate ? formatDate(doc.expiryDate) : '—'}</td>
-            <td>${getStatusBadge(doc)}</td>
+            <td>${renderDocumentTags(group.documents)}</td>
+            <td>${formatDate(group.latestUploadDate)}</td>
+            <td>${renderGroupStatus(group.documents)}</td>
             <td>
                 <div class="doc-actions">
-                    <button class="action-icon download" title="Download" onclick="downloadDocument(${doc.id})">
-                        <i class="fas fa-download"></i>
-                    </button>
-                    <button class="action-icon" title="View" onclick="viewDocument(${doc.id})">
+                    <button class="action-icon" title="View All" onclick="viewGroupDocuments('${escapeJsValue(group.groupId)}')">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="action-icon delete" title="Delete" onclick="deleteDocument(${doc.id})">
-                        <i class="fas fa-trash"></i>
+                    <button class="action-icon download" title="Download All" onclick="downloadGroupDocuments('${escapeJsValue(group.groupId)}')">
+                        <i class="fas fa-download"></i>
                     </button>
                 </div>
             </td>
         </tr>
     `).join('');
+}
+
+function groupDocuments(documents) {
+    const groupedMap = new Map();
+
+    documents.forEach(doc => {
+        const groupId = getGroupId(doc);
+        if (!groupedMap.has(groupId)) {
+            groupedMap.set(groupId, {
+                groupId,
+                bookingId: doc.bookingId || null,
+                customerLabel: getCustomerLabel(doc.customer) || 'Unknown Customer',
+                carLabel: getCarLabel(doc.car) || '-',
+                sourceLabel: doc.source === 'BOOKING' ? 'Booking Documents' : 'Manual Upload',
+                latestUploadDate: doc.uploadDate || null,
+                documents: []
+            });
+        }
+
+        const group = groupedMap.get(groupId);
+        group.documents.push(doc);
+
+        if (doc.uploadDate && (!group.latestUploadDate || String(doc.uploadDate) > String(group.latestUploadDate))) {
+            group.latestUploadDate = doc.uploadDate;
+        }
+
+        if (doc.source === 'BOOKING') {
+            group.sourceLabel = 'Booking Documents';
+        }
+
+        if (!group.carLabel || group.carLabel === '-') {
+            group.carLabel = getCarLabel(doc.car) || '-';
+        }
+    });
+
+    return [...groupedMap.values()]
+        .map(group => {
+            group.documents.sort(compareDocuments);
+            return group;
+        })
+        .sort((a, b) => {
+            const aBooking = a.sourceLabel === 'Booking Documents';
+            const bBooking = b.sourceLabel === 'Booking Documents';
+            if (aBooking !== bBooking) return aBooking ? -1 : 1;
+            return String(b.latestUploadDate || '').localeCompare(String(a.latestUploadDate || ''));
+        });
+}
+
+function getGroupId(doc) {
+    if (doc.bookingId) {
+        return `booking-${doc.bookingId}`;
+    }
+    if (doc.customer && doc.customer.id) {
+        return `customer-${doc.customer.id}`;
+    }
+    if (doc.car && doc.car.id) {
+        return `car-${doc.car.id}`;
+    }
+    return `single-${doc.id}`;
+}
+
+function compareDocuments(left, right) {
+    const leftBooking = left.source === 'BOOKING';
+    const rightBooking = right.source === 'BOOKING';
+    if (leftBooking !== rightBooking) return leftBooking ? -1 : 1;
+    return String(right.uploadDate || '').localeCompare(String(left.uploadDate || ''));
+}
+
+function renderDocumentTags(documents) {
+    return documents.map(doc => `
+        <button type="button"
+                class="badge"
+                style="margin:4px 6px 4px 0;border:none;cursor:pointer;"
+                onclick="viewDocument('${escapeJsValue(doc.id)}')">
+            ${escapeHtml(doc.documentType)}
+        </button>
+    `).join('');
+}
+
+function renderGroupStatus(documents) {
+    if (documents.some(doc => getDocumentStatus(doc) === 'expired')) {
+        return '<span class="badge badge-expired">Has Expired</span>';
+    }
+    if (documents.some(doc => getDocumentStatus(doc) === 'expiring')) {
+        return '<span class="badge badge-expiring">Expiring Soon</span>';
+    }
+    return '<span class="badge badge-active">Complete</span>';
 }
 
 // ============================================
@@ -89,7 +170,7 @@ function displayDocuments(documents) {
 function updateStatistics(documents) {
     const now = new Date();
     const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 30); // 30 days from now
+    futureDate.setDate(futureDate.getDate() + 30);
 
     let totalDocs = documents.length;
     let activeDocs = 0;
@@ -122,8 +203,7 @@ function updateStatistics(documents) {
 // ============================================
 
 function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', function() {
+    document.getElementById('searchInput').addEventListener('input', function() {
         applyFilters();
     });
 }
@@ -134,20 +214,14 @@ function applyFilters() {
     const statusFilter = document.getElementById('filterStatus').value;
 
     const filtered = allDocuments.filter(doc => {
-        // Search filter
-        const matchesSearch = !searchTerm || 
-            doc.fileName.toLowerCase().includes(searchTerm) ||
-            doc.documentType.toLowerCase().includes(searchTerm);
+        const matchesSearch = !searchTerm ||
+            String(doc.fileName || '').toLowerCase().includes(searchTerm) ||
+            String(doc.documentType || '').toLowerCase().includes(searchTerm) ||
+            getCustomerLabel(doc.customer).toLowerCase().includes(searchTerm) ||
+            getCarLabel(doc.car).toLowerCase().includes(searchTerm);
 
-        // Type filter
-        const matchesType = !typeFilter || doc.documentType === typeFilter;
-
-        // Status filter
-        let matchesStatus = true;
-        if (statusFilter) {
-            const status = getDocumentStatus(doc);
-            matchesStatus = status === statusFilter;
-        }
+        const matchesType = !typeFilter || (doc.documentCategory || doc.documentType) === typeFilter;
+        const matchesStatus = !statusFilter || getDocumentStatus(doc) === statusFilter;
 
         return matchesSearch && matchesType && matchesStatus;
     });
@@ -160,6 +234,18 @@ function clearFilters() {
     document.getElementById('filterType').value = '';
     document.getElementById('filterStatus').value = '';
     displayDocuments(allDocuments);
+}
+
+function refreshTypeFilter(documents) {
+    const filterType = document.getElementById('filterType');
+    const selectedValue = filterType.value;
+    const uniqueTypes = [...new Set(documents.map(doc => doc.documentCategory || doc.documentType).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b));
+
+    filterType.innerHTML = '<option value="">All Types</option>' +
+        uniqueTypes.map(type => `<option value="${escapeHtml(type)}">${escapeHtml(formatTypeLabel(type))}</option>`).join('');
+
+    filterType.value = selectedValue;
 }
 
 // ============================================
@@ -176,16 +262,15 @@ function closeAddDocumentModal() {
 }
 
 function closeViewDocumentModal() {
+    currentGroup = null;
     document.getElementById('viewDocumentModal').style.display = 'none';
 }
 
-// Close modal when clicking outside
 window.onclick = function(event) {
-    const modal = event.target;
-    if (modal.classList.contains('modal')) {
-        modal.style.display = 'none';
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
     }
-}
+};
 
 // ============================================
 // FORM SUBMISSION
@@ -202,7 +287,7 @@ function setupFormSubmit() {
 function uploadDocument() {
     const formData = new FormData();
     const fileInput = document.getElementById('docFile');
-    
+
     if (!fileInput.files[0]) {
         showToast('Please select a file', 'error');
         return;
@@ -218,74 +303,170 @@ function uploadDocument() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Document uploaded successfully', 'success');
-            closeAddDocumentModal();
-            loadDocuments();
-        } else {
-            showToast(data.message || 'Failed to upload document', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error uploading document:', error);
-        showToast('Error uploading document', 'error');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Document uploaded successfully', 'success');
+                closeAddDocumentModal();
+                loadDocuments();
+            } else {
+                showToast(data.message || 'Failed to upload document', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading document:', error);
+            showToast('Error uploading document', 'error');
+        });
 }
 
 // ============================================
 // DOCUMENT ACTIONS
 // ============================================
 
-function viewDocument(id) {
-    const doc = allDocuments.find(d => d.id === id);
-    if (!doc) return;
+function viewGroupDocuments(groupId) {
+    const group = groupDocuments(allDocuments).find(item => item.groupId === groupId);
+    if (!group) return;
 
-    currentDocumentId = id;
+    currentGroup = group;
+    currentDocumentId = group.documents[0] ? group.documents[0].id : null;
+
     const content = document.getElementById('viewDocumentContent');
-    
-    const documentInfo = `
-        <div class="file-info">
-            <p><span class="file-info-label">Type:</span> ${doc.documentType}</p>
-            <p><span class="file-info-label">File:</span> ${doc.fileName}</p>
-            <p><span class="file-info-label">Uploaded:</span> ${formatDate(doc.uploadDate)}</p>
-            ${doc.expiryDate ? `<p><span class="file-info-label">Expiry:</span> ${formatDate(doc.expiryDate)}</p>` : ''}
-            ${doc.car ? `<p><span class="file-info-label">Car:</span> ${doc.car.brand} ${doc.car.model}</p>` : ''}
-            ${doc.customer ? `<p><span class="file-info-label">Customer:</span> ${doc.customer.firstName} ${doc.customer.lastName}</p>` : ''}
-            <p><span class="file-info-label">Status:</span> ${getStatusBadge(doc)}</p>
+    content.innerHTML = `
+        <div class="file-info" style="margin-bottom:20px;">
+            <p><span class="file-info-label">Customer:</span> ${escapeHtml(group.customerLabel)}</p>
+            <p><span class="file-info-label">Car:</span> ${escapeHtml(group.carLabel)}</p>
+            ${group.bookingId ? `<p><span class="file-info-label">Booking ID:</span> ${group.bookingId}</p>` : ''}
+            <p><span class="file-info-label">Documents:</span> ${group.documents.length}</p>
         </div>
-        <iframe src="${doc.fileUrl}" style="width: 100%; height: 500px; border-radius: 12px; border: 1px solid #ddd;" title="Document Preview"></iframe>
+        ${group.documents.map(doc => renderDocumentPreviewCard(doc)).join('')}
     `;
-    
-    content.innerHTML = documentInfo;
+
     document.getElementById('downloadBtn').onclick = function() {
-        downloadDocument(id);
+        downloadGroupDocuments(groupId);
     };
+    document.getElementById('deleteDocBtn').style.display = 'none';
     document.getElementById('viewDocumentModal').style.display = 'block';
 }
 
-function downloadDocument(id) {
-    const doc = allDocuments.find(d => d.id === id);
-    if (doc && doc.fileUrl) {
-        const link = document.createElement('a');
-        link.href = doc.fileUrl;
-        link.download = doc.fileName;
-        link.click();
+function viewDocument(id) {
+    const doc = allDocuments.find(item => String(item.id) === String(id));
+    if (!doc) return;
+
+    currentDocumentId = id;
+    currentGroup = null;
+    const content = document.getElementById('viewDocumentContent');
+
+    content.innerHTML = renderDocumentPreviewCard(doc, true);
+    document.getElementById('downloadBtn').onclick = function() {
+        downloadDocument(id);
+    };
+    document.getElementById('deleteDocBtn').style.display = doc.source === 'DOCUMENT' ? 'inline-flex' : 'none';
+    document.getElementById('viewDocumentModal').style.display = 'block';
+}
+
+function renderDocumentPreviewCard(doc, singleView = false) {
+    return `
+        <div style="border:1px solid #e5e7eb;border-radius:14px;padding:16px;margin-bottom:16px;background:#fff;">
+            <div class="file-info" style="margin-bottom:14px;">
+                <p><span class="file-info-label">Type:</span> ${escapeHtml(doc.documentType || '-')}</p>
+                <p><span class="file-info-label">File:</span> ${escapeHtml(doc.fileName || '-')}</p>
+                ${doc.sourceLabel ? `<p><span class="file-info-label">Source:</span> ${escapeHtml(doc.sourceLabel)}</p>` : ''}
+                ${doc.bookingId ? `<p><span class="file-info-label">Booking ID:</span> ${doc.bookingId}</p>` : ''}
+                <p><span class="file-info-label">Uploaded:</span> ${formatDate(doc.uploadDate)}</p>
+                ${doc.customer ? `<p><span class="file-info-label">Customer:</span> ${escapeHtml(getCustomerLabel(doc.customer))}</p>` : ''}
+                ${doc.car ? `<p><span class="file-info-label">Car:</span> ${escapeHtml(getCarLabel(doc.car))}</p>` : ''}
+                <p><span class="file-info-label">Status:</span> ${getStatusBadge(doc)}</p>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                <button type="button" class="btn btn-secondary" onclick="downloadDocument('${escapeJsValue(doc.id)}')">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                ${doc.source === 'DOCUMENT' && !singleView ? `
+                    <button type="button" class="btn btn-secondary" onclick="deleteDocument(${doc.documentId})">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                ` : ''}
+                <button type="button" class="btn btn-secondary" onclick="openDocumentInNewTab('${escapeJsValue(doc.id)}')">
+                    <i class="fas fa-up-right-from-square"></i> Open
+                </button>
+            </div>
+            ${renderInlinePreview(doc)}
+        </div>
+    `;
+}
+
+function renderInlinePreview(doc) {
+    const fileUrl = doc.fileUrl || '';
+    const extension = getFileExtension(doc.fileName || fileUrl);
+
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(extension)) {
+        return `
+            <img src="${fileUrl}"
+                 alt="${escapeHtml(doc.fileName || 'Document preview')}"
+                 style="width:100%;max-height:520px;object-fit:contain;border-radius:12px;border:1px solid #ddd;background:#f8fafc;" />
+        `;
     }
+
+    if (extension === 'pdf') {
+        return `
+            <iframe src="${fileUrl}"
+                    style="width:100%;height:420px;border-radius:12px;border:1px solid #ddd;"
+                    title="Document Preview"></iframe>
+        `;
+    }
+
+    return `
+        <div style="padding:28px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;text-align:center;color:#475569;">
+            <div style="font-size:16px;font-weight:600;margin-bottom:8px;">Inline preview not available for this file type</div>
+            <div style="font-size:13px;margin-bottom:14px;">Open the file in a new tab or download it.</div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary" onclick="openDocumentInNewTab('${escapeJsValue(doc.id)}')">
+                    <i class="fas fa-up-right-from-square"></i> Open in New Tab
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="downloadDocument('${escapeJsValue(doc.id)}')">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function downloadDocument(id) {
+    const doc = allDocuments.find(item => String(item.id) === String(id));
+    if (!doc || !doc.fileUrl) return;
+
+    const link = document.createElement('a');
+    link.href = doc.fileUrl;
+    link.download = doc.fileName || 'document';
+    link.click();
+}
+
+function openDocumentInNewTab(id) {
+    const doc = allDocuments.find(item => String(item.id) === String(id));
+    if (!doc || !doc.fileUrl) return;
+    window.open(doc.fileUrl, '_blank', 'noopener,noreferrer');
+}
+
+function downloadGroupDocuments(groupId) {
+    const group = groupDocuments(allDocuments).find(item => item.groupId === groupId);
+    if (!group) return;
+    group.documents.forEach(doc => downloadDocument(doc.id));
 }
 
 function deleteDocument(id) {
-    if (confirm('Are you sure you want to delete this document?')) {
-        fetch(`/api/documents/${id}`, {
-            method: 'DELETE'
-        })
+    if (!confirm('Are you sure you want to delete this document?')) {
+        return;
+    }
+
+    fetch(`/api/documents/${id}`, {
+        method: 'DELETE'
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 showToast('Document deleted successfully', 'success');
-                loadDocuments();
                 closeViewDocumentModal();
+                loadDocuments();
             } else {
                 showToast('Failed to delete document', 'error');
             }
@@ -294,12 +475,12 @@ function deleteDocument(id) {
             console.error('Error deleting document:', error);
             showToast('Error deleting document', 'error');
         });
-    }
 }
 
 function deleteCurrentDocument() {
-    if (currentDocumentId) {
-        deleteDocument(currentDocumentId);
+    const doc = allDocuments.find(item => String(item.id) === String(currentDocumentId));
+    if (doc && doc.source === 'DOCUMENT' && doc.documentId) {
+        deleteDocument(doc.documentId);
     }
 }
 
@@ -312,25 +493,25 @@ function loadCarsAndCustomers() {
         fetch('/api/documents/cars').then(r => r.json()),
         fetch('/api/documents/customers').then(r => r.json())
     ])
-    .then(([cars, customers]) => {
-        const carSelect = document.getElementById('docCar');
-        const customerSelect = document.getElementById('docCustomer');
+        .then(([cars, customers]) => {
+            const carSelect = document.getElementById('docCar');
+            const customerSelect = document.getElementById('docCustomer');
 
-        cars.forEach(car => {
-            const option = document.createElement('option');
-            option.value = car.id;
-            option.textContent = `${car.brand} ${car.model} (${car.vin})`;
-            carSelect.appendChild(option);
-        });
+            cars.forEach(car => {
+                const option = document.createElement('option');
+                option.value = car.id;
+                option.textContent = `${car.brand} ${car.model} (${car.vin})`;
+                carSelect.appendChild(option);
+            });
 
-        customers.forEach(customer => {
-            const option = document.createElement('option');
-            option.value = customer.id;
-            option.textContent = `${customer.firstName} ${customer.lastName} (${customer.email})`;
-            customerSelect.appendChild(option);
-        });
-    })
-    .catch(error => console.error('Error loading cars/customers:', error));
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = `${getCustomerLabel(customer)} (${customer.email})`;
+                customerSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading cars/customers:', error));
 }
 
 // ============================================
@@ -338,67 +519,88 @@ function loadCarsAndCustomers() {
 // ============================================
 
 function getStatusBadge(doc) {
-    const now = new Date();
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 30);
-
-    if (!doc.expiryDate) {
-        return '<span class="badge badge-active">Active</span>';
-    }
-
-    const expiryDateObj = new Date(doc.expiryDate);
-    
-    if (expiryDateObj < now) {
+    const status = getDocumentStatus(doc);
+    if (status === 'expired') {
         return '<span class="badge badge-expired">Expired</span>';
-    } else if (expiryDateObj <= futureDate) {
-        return '<span class="badge badge-expiring">Expiring Soon</span>';
-    } else {
-        return '<span class="badge badge-active">Active</span>';
     }
+    if (status === 'expiring') {
+        return '<span class="badge badge-expiring">Expiring Soon</span>';
+    }
+    return '<span class="badge badge-active">Active</span>';
 }
 
 function getDocumentStatus(doc) {
+    if (!doc.expiryDate) return 'active';
+
     const now = new Date();
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 30);
-
-    if (!doc.expiryDate) {
-        return 'active';
-    }
-
     const expiryDateObj = new Date(doc.expiryDate);
-    
-    if (expiryDateObj < now) {
-        return 'expired';
-    } else if (expiryDateObj <= futureDate) {
-        return 'expiring';
-    } else {
-        return 'active';
-    }
+
+    if (expiryDateObj < now) return 'expired';
+    if (expiryDateObj <= futureDate) return 'expiring';
+    return 'active';
 }
 
-function getDocTypeClass(type) {
-    const typeMap = {
-        'RC': 'rc',
-        'Insurance': 'insurance',
-        'Invoice': 'invoice',
-        'Form20': 'form',
-        'Form21': 'form',
-        'CustomerID': 'id'
+function formatTypeLabel(type) {
+    const labelMap = {
+        CustomerID: 'Customer ID',
+        CustomerSignature: 'Signature',
+        PassportPhoto: 'Passport Photo',
+        PaymentProof: 'Payment Screenshot',
+        PaymentReceipt: 'Payment Receipt',
+        BookingReceipt: 'Booking Receipt',
+        AllotmentLetter: 'Allotment Letter',
+        DeliveryConfirmation: 'Delivery Confirmation',
+        TemporaryRegistration: 'Temporary Registration',
+        LoanDocument: 'Loan Document'
     };
-    return typeMap[type] || 'default';
+    return labelMap[type] || type;
 }
 
 function formatDate(dateString) {
-    if (!dateString) return '—';
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function getCarLabel(car) {
+    if (!car) return '';
+    return `${car.brand || ''} ${car.model || ''}`.trim();
+}
+
+function getCustomerLabel(customer) {
+    if (!customer) return '';
+    if (customer.name) return customer.name;
+    return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+}
+
+function getFileExtension(fileName) {
+    const safeName = String(fileName || '');
+    const dotIndex = safeName.lastIndexOf('.');
+    return dotIndex >= 0 ? safeName.substring(dotIndex + 1).toLowerCase() : '';
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeJsValue(value) {
+    return String(value ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast-message ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i> ${message}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation' : 'info'}-circle"></i> ${escapeHtml(message)}`;
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -408,7 +610,7 @@ function showToast(message, type = 'info') {
 }
 
 // ============================================
-// EXPORT FUNCTIONS (for other scripts if needed)
+// EXPORT FUNCTIONS
 // ============================================
 
 window.loadDocuments = loadDocuments;
@@ -418,7 +620,10 @@ window.openAddDocumentModal = openAddDocumentModal;
 window.closeAddDocumentModal = closeAddDocumentModal;
 window.closeViewDocumentModal = closeViewDocumentModal;
 window.viewDocument = viewDocument;
+window.viewGroupDocuments = viewGroupDocuments;
 window.downloadDocument = downloadDocument;
+window.downloadGroupDocuments = downloadGroupDocuments;
+window.openDocumentInNewTab = openDocumentInNewTab;
 window.deleteDocument = deleteDocument;
 window.deleteCurrentDocument = deleteCurrentDocument;
 window.applyFilters = applyFilters;

@@ -57,7 +57,7 @@ public class UserRestcontroller {
             String token = tokenService.createToken(user);
 
             // Send email
-            emailService.sendVerificationEmail(user.getEmail(), "https://7mf91x75-9094.inc1.devtunnels.ms/verify?token=" + token);
+            emailService.sendVerificationEmail(user.getEmail(), "https://qp2d1349-9094.inc1.devtunnels.ms/verify?token=" + token);
 
             response.put("success", true);
             response.put("message", "Registration successful. Please verify your email.");
@@ -77,14 +77,14 @@ public class UserRestcontroller {
 
         Map<String, String> response = new HashMap<>();
 
-        String email = request.get("email");
+        String email = request.get("email") == null ? "" : request.get("email").trim();
         String password = request.get("password");
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
         if (optionalUser.isEmpty()) {
             response.put("status", "error");
-            response.put("message", "Email not registered");
+            response.put("message", "Email or username not registered");
             return ResponseEntity.ok(response);
         }
 
