@@ -79,6 +79,20 @@ public class DashboardRestController {
         return staffShowroomId != null && staffShowroomId.equals(carShowroomId);
     }
 
+    private String normalizeColorOptions(String colorOptions) {
+        if (colorOptions == null || colorOptions.isBlank()) {
+            return null;
+        }
+        List<String> rows = new ArrayList<>();
+        for (String entry : colorOptions.split("[\\r\\n|]+")) {
+            String cleaned = entry == null ? "" : entry.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows.isEmpty() ? null : String.join("|", rows);
+    }
+
     @GetMapping("/stats")
     public Map<String, Object> getStats() {
 
@@ -513,6 +527,7 @@ public class DashboardRestController {
             @RequestParam(required = false) Long showroom,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "1") Integer stockQuantity,
+            @RequestParam(required = false) String imageUrls,
             @RequestParam(required = false) MultipartFile[] images,
             HttpSession session) {
 
@@ -552,7 +567,7 @@ public class DashboardRestController {
         car.setTransmissionOptions(transmissionOptions);
         car.setMileageDetails(mileageDetails);
         car.setVariantDetails(variantDetails);
-        car.setColorOptions(colorOptions);
+        car.setColorOptions(normalizeColorOptions(colorOptions));
         car.setReviewScore(reviewScore);
         car.setReviewExterior(reviewExterior);
         car.setReviewPerformance(reviewPerformance);
@@ -580,12 +595,22 @@ public class DashboardRestController {
 
         Car savedCar = carRepository.save(car);
 
-        // handle images if any
+        java.util.List<String> urls = new java.util.ArrayList<>();
+
+        if (imageUrls != null && !imageUrls.isBlank()) {
+            for (String rawUrl : imageUrls.split("[\\r\\n,]+")) {
+                String cleanedUrl = rawUrl == null ? "" : rawUrl.trim();
+                if (!cleanedUrl.isEmpty()) {
+                    urls.add(cleanedUrl);
+                }
+            }
+        }
+
+        // handle uploaded images if any
         if (images != null && images.length > 0) {
             try {
                 String uploadDir = "uploads/cars/";
                 Files.createDirectories(Paths.get(uploadDir));
-                java.util.List<String> urls = new java.util.ArrayList<>();
                 for (MultipartFile img : images) {
                     if (img == null || img.isEmpty()) continue;
                     String original = img.getOriginalFilename();
@@ -594,13 +619,14 @@ public class DashboardRestController {
                     Files.write(p, img.getBytes());
                     urls.add("/uploads/cars/" + fileName);
                 }
-                if (!urls.isEmpty()) {
-                    savedCar.setImageUrls(urls);
-                    carRepository.save(savedCar);
-                }
             } catch (Exception ex) {
                 logger.warn("Failed to save uploaded images", ex);
             }
+        }
+
+        if (!urls.isEmpty()) {
+            savedCar.setImageUrls(urls);
+            carRepository.save(savedCar);
         }
 
         response.put("success", true);
