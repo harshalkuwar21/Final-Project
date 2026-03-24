@@ -318,12 +318,15 @@ public class StaffBookingWorkflowRestController {
 
         booking.setInsuranceCompanyName(companyName);
         booking.setInsurancePolicyNumber(policyNumber.trim());
-        booking.setInsuranceDocumentUrl(insuranceDocumentUrl);
+        if (insuranceDocumentUrl != null && !insuranceDocumentUrl.isBlank()) {
+            booking.setInsuranceDocumentUrl(insuranceDocumentUrl);
+        }
         booking.setInsuranceGeneratedAt(LocalDateTime.now());
         booking.setWorkflowStatus("Insurance Generated");
         booking.setStatus("Insurance Generated");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateInsuranceDocuments(booking);
         markStage(id, "Delivery Ready", "Pending", "Insurance generated. RTO application pending.");
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
@@ -356,13 +359,16 @@ public class StaffBookingWorkflowRestController {
         booking.setInsuranceSubmittedToRto(true);
         booking.setRtoAuthority("Ministry of Road Transport and Highways");
         booking.setTemporaryRegistrationNumber(temporaryRegistrationNumber.trim());
-        booking.setTemporaryRegistrationUrl(temporaryRegistrationUrl);
+        if (temporaryRegistrationUrl != null && !temporaryRegistrationUrl.isBlank()) {
+            booking.setTemporaryRegistrationUrl(temporaryRegistrationUrl);
+        }
         booking.setRtoApplicationStatus("TR Issued");
         booking.setRtoAppliedAt(LocalDateTime.now());
         booking.setWorkflowStatus("RTO Applied");
         booking.setStatus("RTO Applied");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateRtoDocuments(booking);
         markStage(id, "Delivery Ready", "Pending", "TR issued. Delivery-day verification pending.");
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
@@ -396,14 +402,15 @@ public class StaffBookingWorkflowRestController {
         booking.setOriginalDocumentsVerified(true);
         booking.setPhysicalVerificationDone(true);
         booking.setDeliveryNoteSigned(true);
-        booking.setFinalInvoiceUrl(finalInvoiceUrl);
-        booking.setWarrantyDocumentUrl(warrantyDocumentUrl);
-        booking.setLoanDocumentUrl(loanDocumentUrl);
+        if (finalInvoiceUrl != null && !finalInvoiceUrl.isBlank()) booking.setFinalInvoiceUrl(finalInvoiceUrl);
+        if (warrantyDocumentUrl != null && !warrantyDocumentUrl.isBlank()) booking.setWarrantyDocumentUrl(warrantyDocumentUrl);
+        if (loanDocumentUrl != null && !loanDocumentUrl.isBlank()) booking.setLoanDocumentUrl(loanDocumentUrl);
         booking.setDeliveryCompletedAt(LocalDateTime.now());
         booking.setWorkflowStatus("Delivered");
         booking.setStatus("Delivered");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateDeliveryDocumentsAndNotify(booking);
         markStage(id, "Delivery Ready", "Completed", "Vehicle handed over to customer.");
 
         Map<String, Object> docs = new LinkedHashMap<>();
@@ -411,7 +418,14 @@ public class StaffBookingWorkflowRestController {
         docs.put("insurance", booking.getInsuranceDocumentUrl());
         docs.put("temporaryRegistration", booking.getTemporaryRegistrationNumber());
         docs.put("temporaryRegistrationUrl", booking.getTemporaryRegistrationUrl());
+        docs.put("registrationCertificateUrl", booking.getRegistrationCertificateUrl());
+        docs.put("pucCertificateUrl", booking.getPucCertificateUrl());
         docs.put("warranty", booking.getWarrantyDocumentUrl());
+        docs.put("serviceBook", booking.getServiceBookUrl());
+        docs.put("deliveryNote", booking.getDeliveryNoteUrl());
+        docs.put("roadTaxReceipt", booking.getRoadTaxReceiptUrl());
+        docs.put("financeSanctionLetter", booking.getFinanceSanctionLetterUrl());
+        docs.put("financeAgreement", booking.getFinanceAgreementUrl());
         docs.put("loanDocuments", booking.getLoanDocumentUrl());
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "handoverDocuments", docs));
     }

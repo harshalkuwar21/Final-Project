@@ -210,81 +210,33 @@
 
         /* ================= HERO ================= */
 
+        /* ================= HERO ================= */
         .hero {
-            min-height: 320px;
+            height: 450px;
+            padding: 55px;
             border-radius: 26px;
-            background:
-                linear-gradient(115deg, rgba(15, 23, 42, .78), rgba(15, 23, 42, .35)),
-                url("/images/background.jpg") center/cover no-repeat;
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(260px, 360px);
+            background: url("/IMAGES/staff.png") center / cover;
+            position: relative;
+            display: flex;
             align-items: center;
-            gap: 24px;
-            padding: 30px;
-            color: white;
             box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(90deg, rgba(255, 255, 255, .08), transparent 55%);
-        }
-
-        .hero-content,
-        .hero-media {
-            position: relative;
-            z-index: 2;
         }
 
         .hero-content {
             max-width: 560px;
+            padding: 34px;
+            border-radius: 34px;
         }
 
-        .hero-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            margin-bottom: 16px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, .14);
-            border: 1px solid rgba(255, 255, 255, .22);
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: .04em;
-            text-transform: uppercase;
+        .hero-content h1 {
+            font-size: 36px;
+            font-weight: 700;
         }
 
-        .hero h1 {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-
-        .hero p {
-            max-width: 520px;
-            font-size: 15px;
-            line-height: 1.7;
-            color: rgba(255, 255, 255, .9);
-        }
-
-        .hero-media {
-            justify-self: end;
-            width: min(100%, 360px);
-        }
-
-        .hero img {
-            display: block;
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            border: 3px solid rgba(255, 255, 255, .2);
-            background: rgba(255, 255, 255, .12);
+        .hero-content p {
+            margin-top: 10px;
+            font-size: 16px;
+            color: black;
         }
 
         /* ================= STATS ================= */
@@ -586,10 +538,10 @@
             <img src="/images/logo.png">
             DK3 Cars
         </div>
-        <div class="nav-icons">
+        <!-- <div class="nav-icons">
             <i onclick="location.href='/showrooms'" class="fa fa-bell" id="notifIcon"></i>
             <i class="fa fa-user-circle" id="userIcon"></i>
-        </div>
+        </div> -->
     </header>
 
     <div class="container">
@@ -669,12 +621,8 @@
             <section class="page-section active" id="dashboard">
                 <div class="hero">
                     <div class="hero-content">
-                        <div class="hero-tag">Admin Control Center</div>
                         <h1>Welcome, Admin!</h1>
                         <p>Manage system overview, inventory, sales, and team activity from one place.</p>
-                    </div>
-                    <div class="hero-media">
-                        <img src="/images/car.jpg" alt="Featured car in the admin dashboard hero section">
                     </div>
                 </div>
                 <div class="stats-grid">
@@ -794,7 +742,7 @@
                 <input id="pFirst" placeholder="First name">
                 <input id="pLast" placeholder="Last name">
                 <input id="pEmail" placeholder="Email">
-                <input id="pContact" placeholder="Contact">
+                <input id="pContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
                 <input id="pPassword" placeholder="New password (optional)">
                 <div style="margin-top:8px;"><button class="btn" id="pSaveBtn">Save</button></div>
             </div>

@@ -170,12 +170,15 @@ public class UserRestcontroller {
         User u = opt.get();
         String first = body.getOrDefault("first", u.getFirst());
         String last = body.getOrDefault("last", u.getLast());
-        String email = body.getOrDefault("email", u.getEmail());
-        String contact = body.getOrDefault("contact", u.getContact());
+        String email = body.getOrDefault("email", u.getEmail()).trim();
+        String contact = normalizeDigits(body.getOrDefault("contact", u.getContact()), 10);
         String password = body.get("password");
 
         if (!email.equals(u.getEmail()) && userRepository.existsByEmail(email)) {
             resp.put("ok", false); resp.put("error","email exists"); return ResponseEntity.badRequest().body(resp);
+        }
+        if (!contact.isBlank() && !contact.matches("\\d{10}")) {
+            resp.put("ok", false); resp.put("error","Mobile number must be exactly 10 digits"); return ResponseEntity.badRequest().body(resp);
         }
 
         u.setFirst(first); u.setLast(last); u.setEmail(email); u.setContact(contact);
@@ -286,5 +289,13 @@ public class UserRestcontroller {
         Path target = folder.resolve(fileName);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
         return "/" + folderPath.replace("\\", "/") + "/" + fileName;
+    }
+
+    private String normalizeDigits(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > maxLength ? digits.substring(0, maxLength) : digits;
     }
 }

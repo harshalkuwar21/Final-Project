@@ -369,6 +369,10 @@ public class UserPanelController {
         if (!"Full Payment".equalsIgnoreCase(paymentOption) && !"Loan Required".equalsIgnoreCase(paymentOption)) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Payment option must be Full Payment or Loan Required"));
         }
+        String loanAadhaarNumber = normalizeDigits(String.valueOf(payload.getOrDefault("loanAadhaarNumber", "")), 12);
+        if (!loanAadhaarNumber.isBlank() && !loanAadhaarNumber.matches("\\d{12}")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Loan Aadhaar number must be exactly 12 digits"));
+        }
 
         double downPayment = parseDouble(payload.get("downPaymentAmount"), 0D);
         if (downPayment < 0) {
@@ -441,12 +445,12 @@ public class UserPanelController {
             loan.setEmploymentType(String.valueOf(payload.getOrDefault("employmentType", loan.getEmploymentType() == null ? "Salaried" : loan.getEmploymentType())));
             loan.setMonthlyIncome(parseDouble(payload.get("monthlyIncome"), loan.getMonthlyIncome() == null ? 0D : loan.getMonthlyIncome()));
             loan.setPanNumber(String.valueOf(payload.getOrDefault("loanPanNumber", loan.getPanNumber() == null ? "" : loan.getPanNumber())));
-            loan.setAadhaarNumber(String.valueOf(payload.getOrDefault("loanAadhaarNumber", loan.getAadhaarNumber() == null ? "" : loan.getAadhaarNumber())));
+            loan.setAadhaarNumber(loanAadhaarNumber.isBlank() ? (loan.getAadhaarNumber() == null ? "" : loan.getAadhaarNumber()) : loanAadhaarNumber);
             loan.setInterestRate(parseDouble(payload.get("loanInterestRate"), loan.getInterestRate() == null ? 9D : loan.getInterestRate()));
             loan.setTenureMonths(parseInteger(payload.get("loanTenureMonths"), loan.getTenureMonths() == null ? 60 : loan.getTenureMonths()));
-            loan.setCarPrice(carPrice);
+            loan.setCarPrice(total);
             loan.setDownPaymentAmount(downPayment);
-            loan.setLoanAmount(Math.max(0D, carPrice - downPayment));
+            loan.setLoanAmount(Math.max(0D, total - booking.getBookingAmount() - downPayment));
             loan.setEmiAmount(calculateEmi(loan.getLoanAmount(), loan.getInterestRate(), loan.getTenureMonths()));
             if (loan.getStatus() == null || loan.getStatus().isBlank() || "Rejected".equalsIgnoreCase(loan.getStatus())) {
                 loan.setStatus("Pending");
@@ -533,6 +537,22 @@ public class UserPanelController {
         if ("Failed".equalsIgnoreCase(paymentOutcome)) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking payment failed. Please retry payment."));
         }
+        String normalizedAadhaar = normalizeDigits(aadhaarNumber, 12);
+        String normalizedPinCode = normalizeDigits(pinCode, 6);
+        String normalizedLoanAadhaar = normalizeDigits(loanAadhaarNumber, 12);
+        String normalizedCustomerContact = normalizeDigits(user.getContact(), 10);
+        if (!normalizedAadhaar.matches("\\d{12}")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Aadhaar number must be exactly 12 digits"));
+        }
+        if (!normalizedPinCode.matches("\\d{6}")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "PIN code must be exactly 6 digits"));
+        }
+        if (!normalizedCustomerContact.matches("\\d{10}")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Profile mobile number must be exactly 10 digits before booking"));
+        }
+        if (normalizedLoanAadhaar != null && !normalizedLoanAadhaar.isBlank() && !normalizedLoanAadhaar.matches("\\d{12}")) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Loan Aadhaar number must be exactly 12 digits"));
+        }
 
         double carPrice = car.getPrice();
         if (downPaymentAmount != null && downPaymentAmount > 0) {
@@ -546,7 +566,7 @@ public class UserPanelController {
         Customer customer = customerRepository.findByEmail(user.getEmail()).orElseGet(Customer::new);
         customer.setName((user.getFirst() == null ? "" : user.getFirst()) + " " + (user.getLast() == null ? "" : user.getLast()));
         customer.setEmail(user.getEmail());
-        customer.setMobile(user.getContact());
+        customer.setMobile(normalizedCustomerContact);
         customer.setAddress(address);
         if (customer.getLeadSource() == null || customer.getLeadSource().isBlank()) {
             customer.setLeadSource("Website");
@@ -566,12 +586,12 @@ public class UserPanelController {
         booking.setFullName(fullName);
         booking.setDob(dob);
         booking.setGender(gender);
-        booking.setAadhaarNumber(aadhaarNumber);
+        booking.setAadhaarNumber(normalizedAadhaar);
         booking.setPanNumber(panNumber);
         booking.setAddress(address);
         booking.setCity(city);
         booking.setState(state);
-        booking.setPinCode(pinCode);
+        booking.setPinCode(normalizedPinCode);
         booking.setBookingAmount(bookingAmount);
         booking.setPaymentMode(paymentMode);
         booking.setTransactionId(resolvedTransactionId);
@@ -674,7 +694,7 @@ public class UserPanelController {
             loan.setEmploymentType(employmentType);
             loan.setMonthlyIncome(monthlyIncome);
             loan.setPanNumber(loanPanNumber);
-            loan.setAadhaarNumber(loanAadhaarNumber);
+            loan.setAadhaarNumber(normalizedLoanAadhaar);
             loan.setInterestRate(loanInterestRate == null ? 9.0 : loanInterestRate);
             loan.setTenureMonths(loanTenureMonths == null || loanTenureMonths <= 0 ? 60 : loanTenureMonths);
             loan.setCarPrice(carPrice);
@@ -873,6 +893,14 @@ public class UserPanelController {
         } catch (Exception ex) {
             return defaultValue;
         }
+    }
+
+    private String normalizeDigits(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > maxLength ? digits.substring(0, maxLength) : digits;
     }
 
     private double roadTaxRateByState(String state) {

@@ -58,13 +58,18 @@ public class BookingRequestController {
         try {
             String name = payload.get("name") != null ? payload.get("name").toString().trim() : "";
             String email = payload.get("email") != null ? payload.get("email").toString().trim() : "";
-            String mobile = payload.get("mobile") != null ? payload.get("mobile").toString().trim() : "";
+            String mobile = normalizeDigits(payload.get("mobile") != null ? payload.get("mobile").toString() : "", 10);
             String address = payload.get("address") != null ? payload.get("address").toString().trim() : "";
             String paymentMode = payload.get("paymentMode") != null ? payload.get("paymentMode").toString().trim() : "";
 
             if (name.isEmpty() || email.isEmpty() || mobile.isEmpty()) {
                 response.put("success", false);
                 response.put("error", "Name, email, and mobile are required.");
+                return response;
+            }
+            if (!mobile.matches("\\d{10}")) {
+                response.put("success", false);
+                response.put("error", "Mobile number must be exactly 10 digits.");
                 return response;
             }
             if (payload.get("carId") == null) {
@@ -100,5 +105,13 @@ public class BookingRequestController {
             response.put("error", e.getMessage());
         }
         return response;
+    }
+
+    private String normalizeDigits(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > maxLength ? digits.substring(0, maxLength) : digits;
     }
 }

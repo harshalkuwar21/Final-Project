@@ -524,6 +524,7 @@
         .hero-content p {
             margin-top: 10px;
             font-size: 16px;
+            color: black;
         }
 
         /* ================= STATS CARDS ================= */
@@ -954,7 +955,7 @@
             <input id="profileFirst" placeholder="First Name">
             <input id="profileLast" placeholder="Last Name">
             <input id="profileEmail" type="email" placeholder="Email">
-            <input id="profileContact" placeholder="Phone Number">
+            <input id="profileContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Phone Number">
             <input id="profilePassword" type="password" placeholder="Change Password">
             <div class="profile-actions">
                 <button class="profile-action-btn primary" id="saveProfileBtn">Save Profile</button>
@@ -1699,7 +1700,7 @@
         if (profileFirst) profileFirst.value = profile.first || "";
         if (profileLast) profileLast.value = profile.last || "";
         if (profileEmail) profileEmail.value = profile.email || "";
-        if (profileContact) profileContact.value = profile.contact || "";
+        if (profileContact) profileContact.value = String(profile.contact || "").replace(/\D/g, "").slice(0, 10);
 
     }
 
@@ -1727,6 +1728,14 @@
     }
 
     function saveProfile() {
+        if (profileContact) {
+            profileContact.value = profileContact.value.replace(/\D/g, "").slice(0, 10);
+            if (profileContact.value && !/^\d{10}$/.test(profileContact.value)) {
+                setProfileMessage("Mobile number must be exactly 10 digits.", true);
+                profileContact.focus();
+                return;
+            }
+        }
 
         const payload = {
             first: profileFirst ? profileFirst.value.trim() : "",
@@ -1779,6 +1788,12 @@
 
     if (saveProfileBtn) {
         saveProfileBtn.addEventListener("click", saveProfile);
+    }
+
+    if (profileContact) {
+        profileContact.addEventListener("input", () => {
+            profileContact.value = profileContact.value.replace(/\D/g, "").slice(0, 10);
+        });
     }
 
     if (clearPasswordBtn) {

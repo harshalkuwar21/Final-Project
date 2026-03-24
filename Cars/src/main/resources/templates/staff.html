@@ -49,7 +49,7 @@
                 <input id="sFirst" placeholder="First name">
                 <input id="sLast" placeholder="Last name">
                 <input id="sEmail" placeholder="Email">
-                <input id="sContact" placeholder="Contact">
+                <input id="sContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
                 <select id="sRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
                 <select id="sShowroomId"><option value="">No Showroom</option></select>
                 <input id="sPassword" placeholder="Password (optional)">
@@ -78,7 +78,7 @@
             <h3>Edit Staff</h3>
             <input id="eFirst" placeholder="First">
             <input id="eLast" placeholder="Last">
-            <input id="eContact" placeholder="Contact">
+            <input id="eContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
             <select id="eRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
             <select id="eShowroomId"><option value="">No Showroom</option></select>
             <label><input type="checkbox" id="eEnabled"> Enabled</label>

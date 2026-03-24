@@ -393,8 +393,15 @@ public class DocumentsRestController {
         addBookingDocument(docs, booking, "Delivery Confirmation", "DeliveryConfirmation", booking.getDeliveryConfirmationLetterUrl(), null);
         addBookingDocument(docs, booking, "Insurance Policy", "Insurance", booking.getInsuranceDocumentUrl(), null);
         addBookingDocument(docs, booking, "Temporary Registration", "TemporaryRegistration", booking.getTemporaryRegistrationUrl(), null);
-        addBookingDocument(docs, booking, "Final Invoice", "Invoice", booking.getFinalInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Final Invoice / Sale Bill", "Invoice", booking.getFinalInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Registration Certificate", "RC", booking.getRegistrationCertificateUrl(), null);
+        addBookingDocument(docs, booking, "PUC Certificate", "PUC", booking.getPucCertificateUrl(), null);
         addBookingDocument(docs, booking, "Warranty Document", "Warranty", booking.getWarrantyDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Service Book", "ServiceBook", booking.getServiceBookUrl(), null);
+        addBookingDocument(docs, booking, "Delivery Note", "DeliveryNote", booking.getDeliveryNoteUrl(), null);
+        addBookingDocument(docs, booking, "Road Tax Receipt", "RoadTax", booking.getRoadTaxReceiptUrl(), null);
+        addBookingDocument(docs, booking, "Finance Sanction Letter", "FinanceSanction", booking.getFinanceSanctionLetterUrl(), null);
+        addBookingDocument(docs, booking, "Finance Agreement", "FinanceAgreement", booking.getFinanceAgreementUrl(), null);
         addBookingDocument(docs, booking, "Loan Document", "LoanDocument", booking.getLoanDocumentUrl(), null);
         return docs;
     }

@@ -257,6 +257,29 @@
             text-decoration: underline;
         }
 
+        .doc-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .doc-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #edf4ff;
+            color: #0f4ea8;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .doc-chip:hover {
+            background: #dfeeff;
+            text-decoration: none;
+        }
+
         /* ===== MESSAGE TEXT ===== */
 
         .hint {
@@ -339,6 +362,7 @@
                     <select id="planPaymentOption">
                         <option value="Full Payment">Full Payment</option>
                         <option value="Loan Required">Loan Required</option>
+                        <option value="Down Payment">Down Payment</option>
                     </select>
                 </div>
                 <div>
@@ -360,17 +384,30 @@
                 </div>
             </div>
             <div id="loanPlanFields" class="grid hidden" style="margin-top:10px;">
-                <div><label>Loan Bank</label><input id="planLoanBank" placeholder="State Bank of India / HDFC Bank">
+                <div> <label>Loan Bank</label>
+                    <select id="planLoanBank">
+                        <option>State Bank of India (SBI)</option>
+                        <option>HDFC Bank</option>
+                        <option>ICICI Bank</option>
+                        <option>Axis Bank</option>
+                        <option>Punjab National Bank (PNB)</option>
+                        <option>Bank of Baroda</option>
+                        <option>Kotak Mahindra Bank</option>
+                        <option>Canara Bank</option>
+                        <option>Union Bank of India</option>
+                        <option>IndusInd Bank</option>
+                    </select>
                 </div>
                 <div><label>Salary</label><input id="planSalary" type="number" value="0"></div>
                 <div><label>Employment Type</label><input id="planEmploymentType" value="Salaried"></div>
                 <div><label>Monthly Income</label><input id="planMonthlyIncome" type="number" value="0"></div>
                 <div><label>PAN</label><input id="planLoanPan"></div>
-                <div><label>Aadhaar</label><input id="planLoanAadhaar"></div>
+                <div><label>Aadhaar</label><input id="planLoanAadhaar" maxlength="12" pattern="[0-9]{12}"
+                        inputmode="numeric"></div>
                 <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
                 <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
             </div>
-            <div class="hint">Booking payment आधीच झालेले असते. इथून Down Payment / Full Payment / Loan option निवडा.
+            <div class="hint">“Booking payment is already completed. Please choose one option: Down Payment, Full Payment, or Loan.”
             </div>
             <div style="margin-top:10px;">
                 <button class="save-btn" onclick="savePaymentPlan()">Save Payment Plan</button>
@@ -437,6 +474,30 @@
         `;
         }
 
+        function renderDocs(b) {
+            const docs = [
+                ["Receipt", b.bookingReceiptUrl],
+                ["Proforma", b.proformaInvoiceUrl],
+                ["Allotment", b.allotmentLetterUrl],
+                ["Delivery", b.deliveryConfirmationLetterUrl],
+                ["Sale Bill", b.finalInvoiceUrl],
+                ["Insurance", b.insuranceDocumentUrl],
+                ["Temp Reg", b.temporaryRegistrationUrl],
+                ["RC", b.registrationCertificateUrl],
+                ["PUC", b.pucCertificateUrl],
+                ["Warranty", b.warrantyDocumentUrl],
+                ["Service Book", b.serviceBookUrl],
+                ["Delivery Note", b.deliveryNoteUrl],
+                ["Road Tax", b.roadTaxReceiptUrl],
+                ["Finance Letter", b.financeSanctionLetterUrl],
+                ["Finance Agreement", b.financeAgreementUrl],
+                ["Loan Doc", b.loanDocumentUrl]
+            ].filter(([, url]) => !!url);
+
+            if (!docs.length) return "-";
+            return `<div class="doc-links">${docs.map(([label, url]) => `<a class="doc-chip" href="${url}" target="_blank">${label}</a>`).join("")}</div>`;
+        }
+
         async function loadBookings() {
             const res = await fetch("/user-panel/api/bookings");
             const data = await res.json();
@@ -455,13 +516,7 @@
                 <td><span class="badge ${badgeClass(b.workflowStatus || b.status)}">${b.workflowStatus || b.status || "-"}</span></td>
                 <td>${renderStepTracker(tracker[b.id])}</td>
                 <td>${b.expectedDeliveryDate || "-"}</td>
-                <td>
-                    ${b.bookingReceiptUrl ? `<a href="${b.bookingReceiptUrl}" target="_blank">Receipt</a> ` : ""}
-                    ${b.proformaInvoiceUrl ? `<a href="${b.proformaInvoiceUrl}" target="_blank">Invoice</a> ` : ""}
-                    ${b.allotmentLetterUrl ? `<a href="${b.allotmentLetterUrl}" target="_blank">Allotment</a> ` : ""}
-                    ${b.deliveryConfirmationLetterUrl ? `<a href="${b.deliveryConfirmationLetterUrl}" target="_blank">Delivery</a>` : ""}
-                    ${!(b.bookingReceiptUrl || b.proformaInvoiceUrl || b.allotmentLetterUrl || b.deliveryConfirmationLetterUrl) ? "-" : ""}
-                </td>
+                <td>${renderDocs(b)}</td>
             </tr>
         `).join("");
             const openBookings = bookingsCache.filter(b => {
@@ -497,6 +552,10 @@
         loadBookings();
         loadPayments();
 
+        document.getElementById("planLoanAadhaar").addEventListener("input", (e) => {
+            e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
+        });
+
         document.getElementById("planPaymentOption").addEventListener("change", () => {
             const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
             document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
@@ -506,6 +565,7 @@
             const bookingId = document.getElementById("planBookingId").value;
             if (!bookingId) return;
             const paymentOption = document.getElementById("planPaymentOption").value;
+            const msg = document.getElementById("planMsg");
             const payload = {
                 paymentOption,
                 downPaymentAmount: Number(document.getElementById("planDownPaymentAmount").value || 0),
@@ -513,16 +573,20 @@
                 downPaymentReference: document.getElementById("planDownPaymentReference").value || ""
             };
             if (paymentOption === "Loan Required") {
+                const loanAadhaar = (document.getElementById("planLoanAadhaar").value || "").replace(/\D/g, "").slice(0, 12);
+                if (loanAadhaar && !/^\d{12}$/.test(loanAadhaar)) {
+                    msg.textContent = "Loan Aadhaar must be exactly 12 digits.";
+                    return;
+                }
                 payload.loanBank = document.getElementById("planLoanBank").value || "";
                 payload.salary = Number(document.getElementById("planSalary").value || 0);
                 payload.employmentType = document.getElementById("planEmploymentType").value || "Salaried";
                 payload.monthlyIncome = Number(document.getElementById("planMonthlyIncome").value || 0);
                 payload.loanPanNumber = document.getElementById("planLoanPan").value || "";
-                payload.loanAadhaarNumber = document.getElementById("planLoanAadhaar").value || "";
+                payload.loanAadhaarNumber = loanAadhaar;
                 payload.loanInterestRate = Number(document.getElementById("planLoanRate").value || 9);
                 payload.loanTenureMonths = Number(document.getElementById("planLoanTenure").value || 60);
             }
-            const msg = document.getElementById("planMsg");
             msg.textContent = "Saving...";
             try {
                 const res = await fetch(`/user-panel/api/bookings/${bookingId}/payment-plan`, {

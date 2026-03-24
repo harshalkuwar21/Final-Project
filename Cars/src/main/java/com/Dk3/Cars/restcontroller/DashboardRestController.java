@@ -360,7 +360,7 @@ public class DashboardRestController {
 
         String first = (String) body.getOrDefault("first", "");
         String last = (String) body.getOrDefault("last", "");
-        String contact = (String) body.getOrDefault("contact", "");
+        String contact = normalizeContact((String) body.getOrDefault("contact", ""));
         String pwd = (String) body.getOrDefault("password", "changeme123");
         String role = (String) body.getOrDefault("role", "ROLE_STAFF");
         boolean enabled = Boolean.parseBoolean(String.valueOf(body.getOrDefault("enabled", true)));
@@ -369,6 +369,11 @@ public class DashboardRestController {
         if (showroomId != null && showroomRepository.findById(showroomId).isEmpty()) {
             resp.put("ok", false);
             resp.put("message", "Invalid showroomId");
+            return resp;
+        }
+        if (contact != null && !contact.isBlank() && !contact.matches("\\d{10}")) {
+            resp.put("ok", false);
+            resp.put("message", "Mobile number must be exactly 10 digits");
             return resp;
         }
 
@@ -400,7 +405,15 @@ public class DashboardRestController {
 
         if (body.containsKey("first")) u.setFirst((String) body.get("first"));
         if (body.containsKey("last")) u.setLast((String) body.get("last"));
-        if (body.containsKey("contact")) u.setContact((String) body.get("contact"));
+        if (body.containsKey("contact")) {
+            String contact = normalizeContact((String) body.get("contact"));
+            if (contact != null && !contact.isBlank() && !contact.matches("\\d{10}")) {
+                resp.put("ok", false);
+                resp.put("message", "Mobile number must be exactly 10 digits");
+                return resp;
+            }
+            u.setContact(contact);
+        }
         if (body.containsKey("role")) u.setRole((String) body.get("role"));
         if (body.containsKey("enabled")) u.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
         if (body.containsKey("showroomId")) {
@@ -446,6 +459,14 @@ public class DashboardRestController {
         showroom.setImageUrl("/uploads/" + fileName);
 
         return showroomRepository.save(showroom);
+    }
+
+    private String normalizeContact(String value) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > 10 ? digits.substring(0, 10) : digits;
     }
 
     @GetMapping("/showrooms/{id}/cars")

@@ -428,33 +428,36 @@
         const carPrice = Number(car?.price || 0);
         const state = inferStateFromCar(car);
         const roadTax = roundAmount(carPrice * roadTaxRateByState(state));
-        const registration = roundAmount(carPrice * 0.0045);
-        const rto = roundAmount(carPrice * 0.0060);
-        const numberPlate = roundAmount(carPrice * 0.0020);
+        const rto = roundAmount(carPrice * 0.0125);
         const insurance = roundAmount(Math.max(carPrice * 0.035, 12000));
         const fastag = 500;
+        const handling = 8500;
+        const tcs = carPrice > 1000000 ? roundAmount(carPrice * 0.01) : 0;
         const accessories = 0;
+        const extendedWarranty = 0;
         const total = roundAmount(
             carPrice +
             roadTax +
-            registration +
             rto +
-            numberPlate +
             insurance +
             fastag +
-            accessories
+            handling +
+            tcs +
+            accessories +
+            extendedWarranty
         );
 
         return {
             state,
             carPrice,
             roadTax,
-            registration,
             rto,
-            numberPlate,
             insurance,
             fastag,
+            handling,
+            tcs,
             accessories,
+            extendedWarranty,
             total
         };
     }
@@ -468,21 +471,25 @@
     }
 
     function populateEmi(car) {
-        const basePrice = Number(car?.price || 0);
+        const charges = calculateEstimatedCharges(car);
+        const finalPrice = Number(charges.total || 0);
         const annualRate = 9.25;
+        const bookingAmount = 10000;
+        const downPayment = roundAmount(finalPrice * 0.10);
+        const financeAmount = Math.max(0, finalPrice - bookingAmount - downPayment);
         const tenures = [3, 5, 7];
         const emiGrid = document.getElementById("emiGrid");
         const emiValues = tenures.map(years => {
             return {
                 years,
-                monthlyEmi: roundAmount(calculateMonthlyEmi(basePrice, annualRate, years))
+                monthlyEmi: roundAmount(calculateMonthlyEmi(financeAmount, annualRate, years))
             };
         });
 
         const lowest = emiValues.reduce((best, item) => item.monthlyEmi < best.monthlyEmi ? item : best, emiValues[0]);
         document.getElementById("emiText").innerHTML = `
             Starting EMI ${formatINR(lowest.monthlyEmi)} / month
-            <div class="emi-subtext">Estimated at ${annualRate}% annual interest for ${lowest.years} years tenure.</div>
+            <div class="emi-subtext">Estimated on final on-road amount after booking amount and 10% down payment at ${annualRate}% annual interest for ${lowest.years} years tenure.</div>
         `;
 
         emiGrid.innerHTML = emiValues.map(item => `
@@ -496,10 +503,12 @@
 
     function openEmiOfferModal() {
         if (!currentCarData) return;
-        const basePrice = Number(currentCarData?.price || 0);
+        const charges = calculateEstimatedCharges(currentCarData);
+        const finalPrice = Number(charges.total || 0);
         const annualRate = 9.25;
-        const downPayment = roundAmount(basePrice * 0.10);
-        const financedAmount = Math.max(0, basePrice - downPayment);
+        const bookingAmount = 10000;
+        const downPayment = roundAmount(finalPrice * 0.10);
+        const financedAmount = Math.max(0, finalPrice - bookingAmount - downPayment);
         const offers = [3, 5, 7].map(years => ({
             years,
             amount: roundAmount(calculateMonthlyEmi(financedAmount, annualRate, years))
@@ -507,11 +516,13 @@
         const carName = `${currentCarData.brand || ""} ${currentCarData.model || ""}`.trim() || "Selected Car";
 
         document.getElementById("emiOfferTitle").textContent = `${carName} EMI Offers`;
-        document.getElementById("emiOfferSubtitle").textContent = `Estimated EMI after 10% down payment for ${currentCarData.showroom?.city || "your city"} showroom`;
+        document.getElementById("emiOfferSubtitle").textContent = `Estimated EMI on final on-road amount for ${currentCarData.showroom?.city || "your city"} showroom`;
         document.getElementById("emiOfferList").innerHTML = `
-            <div class="charge-row"><span>Car Price</span><strong>${formatCarPrice(basePrice)}</strong></div>
+            <div class="charge-row"><span>Ex-Showroom Car Price</span><strong>${formatCarPrice(charges.carPrice)}</strong></div>
+            <div class="charge-row"><span>Estimated Final On-Road Price</span><strong>${formatCarPrice(finalPrice)}</strong></div>
+            <div class="charge-row"><span>Booking Amount</span><strong>${formatCarPrice(bookingAmount)}</strong></div>
             <div class="charge-row"><span>Estimated Down Payment (10%)</span><strong>${formatCarPrice(downPayment)}</strong></div>
-            <div class="charge-row"><span>Loan Amount</span><strong>${formatCarPrice(financedAmount)}</strong></div>
+            <div class="charge-row"><span>Estimated Finance Amount</span><strong>${formatCarPrice(financedAmount)}</strong></div>
             ${offers.map(item => `
                 <div class="charge-row">
                     <span>${item.years} Years EMI Plan</span>
@@ -519,7 +530,7 @@
                 </div>
             `).join("")}
         `;
-        document.getElementById("emiOfferCaption").textContent = `He EMI offers ${annualRate}`;
+        document.getElementById("emiOfferCaption").textContent = `These EMI offers are based on the same estimated final price that is shown during booking and billing at ${annualRate}% annual interest.`;
         document.getElementById("emiBookNowBtn").onclick = () => {
             closeEmiOfferModal();
             openChargeModal();
@@ -537,15 +548,14 @@
         document.getElementById("chargeList").innerHTML = `
             <div class="charge-row"><span>Ex-Showroom Car Price</span><strong>${formatCarPrice(charges.carPrice)}</strong></div>
             <div class="charge-row"><span>Road Tax</span><strong>${formatCarPrice(charges.roadTax)}</strong></div>
-            <div class="charge-row"><span>Registration Charges</span><strong>${formatCarPrice(charges.registration)}</strong></div>
-            <div class="charge-row"><span>RTO Charges</span><strong>${formatCarPrice(charges.rto)}</strong></div>
-            <div class="charge-row"><span>Number Plate Charges</span><strong>${formatCarPrice(charges.numberPlate)}</strong></div>
+            <div class="charge-row"><span>RTO Registration Charges</span><strong>${formatCarPrice(charges.rto)}</strong></div>
             <div class="charge-row"><span>Insurance</span><strong>${formatCarPrice(charges.insurance)}</strong></div>
             <div class="charge-row"><span>FASTag</span><strong>${formatCarPrice(charges.fastag)}</strong></div>
-            <div class="charge-row"><span>Accessories</span><strong>${formatCarPrice(charges.accessories)}</strong></div>
+            <div class="charge-row"><span>Handling / Logistics</span><strong>${formatCarPrice(charges.handling)}</strong></div>
+            <div class="charge-row"><span>TCS</span><strong>${formatCarPrice(charges.tcs)}</strong></div>
             <div class="charge-row total"><span>Total Estimated On-Road Price</span><strong>${formatCarPrice(charges.total)}</strong></div>
         `;
-        document.getElementById("chargeCaption").textContent = `He estimated charges ${charges.state}`;
+        document.getElementById("chargeCaption").textContent = `This estimated final on-road price is the same base amount used in booking and final billing for ${charges.state}. Optional accessories and extended warranty, if chosen later, are added separately.`;
         document.getElementById("continueBookingBtn").onclick = () => {
             location.href = `/user-panel/buy-now?carId=${currentCarData.id}`;
         };

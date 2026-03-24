@@ -110,7 +110,14 @@ public class Booking {
     private Boolean deliveryNoteSigned;
     private LocalDateTime deliveryCompletedAt;
     private String finalInvoiceUrl;
+    private String registrationCertificateUrl;
+    private String pucCertificateUrl;
     private String warrantyDocumentUrl;
+    private String serviceBookUrl;
+    private String deliveryNoteUrl;
+    private String roadTaxReceiptUrl;
+    private String financeSanctionLetterUrl;
+    private String financeAgreementUrl;
     private String loanDocumentUrl;
 
     @PrePersist

@@ -249,7 +249,7 @@ grid-template-columns:1fr;
                 </div>
                 <div class="form-group">
                     <label for="contactInput">Contact</label>
-                    <input id="contactInput" type="text" placeholder="Contact Number">
+                    <input id="contactInput" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact Number">
                 </div>
                 <div class="form-group" style="grid-column:1 / -1;">
                     <label for="passwordInput">New Password</label>
@@ -309,7 +309,7 @@ document.getElementById("profileView").innerHTML = profileMarkup(profile);
 document.getElementById("firstNameInput").value = profile.first || "";
 document.getElementById("lastNameInput").value = profile.last || "";
 document.getElementById("emailInput").value = profile.email || "";
-document.getElementById("contactInput").value = profile.contact || "";
+document.getElementById("contactInput").value = String(profile.contact || "").replace(/\D/g, "").slice(0, 10);
 }
 
 function setMessage(text,color){
@@ -332,11 +332,18 @@ renderProfile(profile);
 }
 
 async function saveProfile(){
+const contactInput = document.getElementById("contactInput");
+contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+if (contactInput.value && !/^\d{10}$/.test(contactInput.value)) {
+setMessage("Mobile number must be exactly 10 digits.", "red");
+contactInput.focus();
+return;
+}
 const payload = {
 first: document.getElementById("firstNameInput").value.trim(),
 last: document.getElementById("lastNameInput").value.trim(),
 email: document.getElementById("emailInput").value.trim(),
-contact: document.getElementById("contactInput").value.trim()
+contact: contactInput.value.trim()
 };
 
 const password = document.getElementById("passwordInput").value.trim();
@@ -403,6 +410,9 @@ renderProfile(currentProfile);
 
 document.getElementById("saveProfileBtn").addEventListener("click", saveProfile);
 document.getElementById("uploadPhotoBtn").addEventListener("click", uploadPhoto);
+document.getElementById("contactInput").addEventListener("input", (e) => {
+e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+});
 
 loadProfile().catch(() => {
 document.getElementById("profileView").innerHTML = "Unable to load profile.";

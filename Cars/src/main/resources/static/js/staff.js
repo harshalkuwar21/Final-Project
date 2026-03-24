@@ -1,9 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadShowroomsForStaff();
     loadStaff();
+    ['sContact', 'eContact'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/\D/g, '').slice(0, 10);
+            });
+        }
+    });
 });
 
 let showroomOptions = [];
+
+function normalizeContact(value){
+    return String(value || '').replace(/\D/g, '').slice(0, 10);
+}
+
+function isValidContact(value){
+    return value === '' || /^\d{10}$/.test(value);
+}
 
 function loadShowroomsForStaff(){
     fetch('/api/dashboard/showrooms')
@@ -61,7 +77,7 @@ function addStaff(){
     const first = document.getElementById('sFirst').value.trim();
     const last = document.getElementById('sLast').value.trim();
     const email = document.getElementById('sEmail').value.trim();
-    const contact = document.getElementById('sContact').value.trim();
+    const contact = normalizeContact(document.getElementById('sContact').value);
     const role = document.getElementById('sRole').value;
     const showroomId = document.getElementById('sShowroomId').value;
     const password = document.getElementById('sPassword').value;
@@ -69,6 +85,7 @@ function addStaff(){
     const btn = document.getElementById('sAddBtn');
 
     if(!first || !email){ if(msg) msg.innerText = 'First and email required'; return; }
+    if(!isValidContact(contact)){ if(msg) msg.innerText = 'Contact must be exactly 10 digits'; return; }
 
     const body = { first, last, email, contact, role };
     body.showroomId = showroomId || null;
@@ -111,11 +128,13 @@ function hideEdit(){ document.getElementById('editModal').style.display = 'none'
 function saveEdit(id){
     const first = document.getElementById('eFirst').value.trim();
     const last = document.getElementById('eLast').value.trim();
-    const contact = document.getElementById('eContact').value.trim();
+    const contact = normalizeContact(document.getElementById('eContact').value);
     const role = document.getElementById('eRole').value;
     const showroomId = document.getElementById('eShowroomId').value;
     const enabled = document.getElementById('eEnabled').checked;
     const password = document.getElementById('ePassword').value;
+
+    if(!isValidContact(contact)){ alert('Contact must be exactly 10 digits'); return; }
 
     const body = { first, last, contact, role, enabled, showroomId: showroomId || null };
     if(password) body.password = password;
