@@ -10,6 +10,7 @@ import com.Dk3.Cars.repository.PaymentStageRepository;
 import com.Dk3.Cars.repository.PaymentTransactionRepository;
 import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.service.BookingService;
+import com.Dk3.Cars.service.NotificationService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,6 +38,7 @@ public class StaffBookingWorkflowRestController {
     @Autowired private PaymentTransactionRepository paymentTransactionRepository;
     @Autowired private PaymentStageRepository paymentStageRepository;
     @Autowired private LoanDetailRepository loanDetailRepository;
+    @Autowired private NotificationService notificationService;
 
     private boolean isStaffOrAdmin(HttpSession session) {
         String role = String.valueOf(session.getAttribute("USER_ROLE"));
@@ -474,6 +476,22 @@ public class StaffBookingWorkflowRestController {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Pre-verification is required before booking confirmation"));
         }
         Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Approved", null, confirmedDeliveryDate);
+        updated.ifPresent(b -> {
+            if (b.getCustomer() != null && b.getCustomer().getEmail() != null && !b.getCustomer().getEmail().isBlank()) {
+                String confirmedDate = b.getExpectedDeliveryDate() != null
+                        ? b.getExpectedDeliveryDate().toString()
+                        : (confirmedDeliveryDate != null ? confirmedDeliveryDate.toString() : "To be confirmed");
+                String slot = b.getDeliveryTimeSlot() == null || b.getDeliveryTimeSlot().isBlank() ? "scheduled slot" : b.getDeliveryTimeSlot();
+                notificationService.createUserNotification(
+                        b.getCustomer().getEmail(),
+                        "Car Available for Your Requested Date",
+                        "Showroom staff checked your booking and confirmed that the car is available. Delivery is scheduled for "
+                                + confirmedDate + " during " + slot + ".",
+                        "INFO",
+                        "/user-panel/bookings"
+                );
+            }
+        });
         return updated.<ResponseEntity<?>>map(b -> ResponseEntity.ok(Map.of("ok", true, "booking", b)))
                 .orElseGet(() -> ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found")));
     }
@@ -485,6 +503,17 @@ public class StaffBookingWorkflowRestController {
         if (existing.isEmpty()) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
         if (!canAccessBooking(session, existing.get())) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
         Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Rejected", reason, null);
+        updated.ifPresent(b -> {
+            if (b.getCustomer() != null && b.getCustomer().getEmail() != null && !b.getCustomer().getEmail().isBlank()) {
+                notificationService.createUserNotification(
+                        b.getCustomer().getEmail(),
+                        "Requested Car Date Not Available",
+                        "Showroom staff reviewed your booking request and could not confirm the requested schedule. Reason: " + reason,
+                        "WARNING",
+                        "/user-panel/bookings"
+                );
+            }
+        });
         return updated.<ResponseEntity<?>>map(b -> ResponseEntity.ok(Map.of("ok", true, "booking", b)))
                 .orElseGet(() -> ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found")));
     }

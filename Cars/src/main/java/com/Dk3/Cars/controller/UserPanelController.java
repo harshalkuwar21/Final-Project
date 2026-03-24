@@ -5,6 +5,7 @@ import com.Dk3.Cars.entity.BankDetail;
 import com.Dk3.Cars.entity.Car;
 import com.Dk3.Cars.entity.Customer;
 import com.Dk3.Cars.entity.LoanDetail;
+import com.Dk3.Cars.entity.Notification;
 import com.Dk3.Cars.entity.Payment;
 import com.Dk3.Cars.entity.PaymentStage;
 import com.Dk3.Cars.entity.PaymentTransaction;
@@ -23,6 +24,7 @@ import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.repository.PaymentRepository;
 import com.Dk3.Cars.service.BookingService;
 import com.Dk3.Cars.service.CarService;
+import com.Dk3.Cars.service.NotificationService;
 import com.Dk3.Cars.service.PaymentService;
 import com.Dk3.Cars.service.TestDriveService;
 import jakarta.servlet.http.HttpSession;
@@ -86,6 +88,8 @@ public class UserPanelController {
     private LoanDetailRepository loanDetailRepository;
     @Autowired
     private BankDetailRepository bankDetailRepository;
+    @Autowired
+    private NotificationService notificationService;
 
     private boolean isUser(HttpSession session) {
         return "ROLE_USER".equals(session.getAttribute("USER_ROLE"));
@@ -282,6 +286,48 @@ public class UserPanelController {
         if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
         List<Payment> payments = paymentRepository.findByBookingCustomerEmailOrderByPaymentDateDesc(user.getEmail());
         return ResponseEntity.ok(Map.of("ok", true, "payments", payments));
+    }
+
+    @GetMapping("/api/notifications")
+    @ResponseBody
+    public ResponseEntity<?> myNotifications(HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+        List<Map<String, Object>> notifications = notificationService.getNotificationsForRecipient(user.getEmail())
+                .stream()
+                .map(this::notificationToMap)
+                .toList();
+        return ResponseEntity.ok(Map.of("ok", true, "notifications", notifications));
+    }
+
+    @GetMapping("/api/notifications/unread-count")
+    @ResponseBody
+    public ResponseEntity<?> myNotificationCount(HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+        return ResponseEntity.ok(Map.of("ok", true, "count", notificationService.countUnreadForRecipient(user.getEmail())));
+    }
+
+    @PostMapping("/api/notifications/{id}/mark-read")
+    @ResponseBody
+    public ResponseEntity<?> markUserNotificationRead(@PathVariable Long id, HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+        notificationService.markAsReadForRecipient(id, user.getEmail());
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @PostMapping("/api/notifications/mark-all-read")
+    @ResponseBody
+    public ResponseEntity<?> markAllUserNotificationsRead(HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+        notificationService.markAllAsReadForRecipient(user.getEmail());
+        return ResponseEntity.ok(Map.of("ok", true));
     }
 
     @GetMapping("/api/payment-dashboard")
@@ -648,6 +694,15 @@ public class UserPanelController {
         booking.setPassportPhotoUrl(saveFile(passportPhoto, "uploads/documents"));
 
         Booking saved = bookingService.saveBooking(booking);
+        notificationService.createUserNotification(
+                user.getEmail(),
+                "Booking Request Sent",
+                "Your request for " + (car.getBrand() + " " + car.getModel()).trim()
+                        + " on " + expectedDeliveryDate + " during " + deliveryTimeSlot
+                        + " has been sent to showroom staff for availability check.",
+                "INFO",
+                "/user-panel/bookings"
+        );
 
         Payment payment = new Payment();
         payment.setBooking(saved);
@@ -916,6 +971,18 @@ public class UserPanelController {
 
     private double roundAmount(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    private Map<String, Object> notificationToMap(Notification notification) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", notification.getId());
+        map.put("title", notification.getTitle());
+        map.put("message", notification.getMessage());
+        map.put("type", notification.getType());
+        map.put("readFlag", notification.isReadFlag());
+        map.put("link", notification.getLink());
+        map.put("createdAt", notification.getCreatedAt());
+        return map;
     }
 
     private void ensureDefaultBanks() {

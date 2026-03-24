@@ -22,11 +22,30 @@ public class NotificationService {
         return notificationRepository.findByReadFlagFalseOrderByCreatedAtDesc();
     }
 
+    public List<Notification> getNotificationsForRecipient(String recipientEmail) {
+        return notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(recipientEmail);
+    }
+
+    public List<Notification> getUnreadNotificationsForRecipient(String recipientEmail) {
+        return notificationRepository.findByRecipientEmailAndReadFlagFalseOrderByCreatedAtDesc(recipientEmail);
+    }
+
     public Optional<Notification> getNotificationById(Long id) {
         return notificationRepository.findById(id);
     }
 
     public Notification saveNotification(Notification notification) {
+        return notificationRepository.save(notification);
+    }
+
+    public Notification createUserNotification(String recipientEmail, String title, String message, String type, String link) {
+        Notification notification = new Notification();
+        notification.setRecipientEmail(recipientEmail);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(type == null || type.isBlank() ? "INFO" : type);
+        notification.setLink(link);
+        notification.setReadFlag(false);
         return notificationRepository.save(notification);
     }
 
@@ -38,6 +57,10 @@ public class NotificationService {
         return notificationRepository.findByReadFlagFalseOrderByCreatedAtDesc().size();
     }
 
+    public long countUnreadForRecipient(String recipientEmail) {
+        return notificationRepository.findByRecipientEmailAndReadFlagFalseOrderByCreatedAtDesc(recipientEmail).size();
+    }
+
     public void markAsRead(Long id) {
         notificationRepository.findById(id).ifPresent(n -> {
             n.setReadFlag(true);
@@ -45,11 +68,22 @@ public class NotificationService {
         });
     }
 
-    public void markAllAsRead() {
-        notificationRepository.findByReadFlagFalseOrderByCreatedAtDesc().forEach(n -> {
+    public void markAsReadForRecipient(Long id, String recipientEmail) {
+        notificationRepository.findByIdAndRecipientEmail(id, recipientEmail).ifPresent(n -> {
             n.setReadFlag(true);
+            notificationRepository.save(n);
         });
-        // Save changes in bulk
-        notificationRepository.saveAll(notificationRepository.findAll());
+    }
+
+    public void markAllAsRead() {
+        List<Notification> unread = notificationRepository.findByReadFlagFalseOrderByCreatedAtDesc();
+        unread.forEach(n -> n.setReadFlag(true));
+        notificationRepository.saveAll(unread);
+    }
+
+    public void markAllAsReadForRecipient(String recipientEmail) {
+        List<Notification> unread = notificationRepository.findByRecipientEmailAndReadFlagFalseOrderByCreatedAtDesc(recipientEmail);
+        unread.forEach(n -> n.setReadFlag(true));
+        notificationRepository.saveAll(unread);
     }
 }

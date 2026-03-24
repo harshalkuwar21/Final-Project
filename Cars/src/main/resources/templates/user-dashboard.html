@@ -116,6 +116,116 @@
             gap: 14px;
         }
 
+        .notification-wrap {
+            position: relative;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -2px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        .notif-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: min(380px, 88vw);
+            background: #fff;
+            border: 1px solid #e5e3ef;
+            border-radius: 18px;
+            box-shadow: 0 22px 45px rgba(19, 26, 54, 0.18);
+            padding: 14px;
+            display: none;
+            z-index: 1200;
+        }
+
+        .notif-panel.open {
+            display: block;
+        }
+
+        .notif-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .notif-head h4 {
+            font-size: 16px;
+        }
+
+        .notif-markall {
+            border: none;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .notif-list {
+            display: grid;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #f8f7fc;
+            border: 1px solid #ece8f8;
+            cursor: pointer;
+        }
+
+        .notif-item.unread {
+            background: #eef3ff;
+            border-color: #d9e2ff;
+        }
+
+        .notif-item strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .notif-item p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #5d6480;
+            margin-bottom: 6px;
+        }
+
+        .notif-time {
+            font-size: 11px;
+            color: #7a829f;
+        }
+
+        .notif-empty {
+            padding: 16px;
+            border-radius: 14px;
+            background: #f8f7fc;
+            text-align: center;
+            color: #666f8d;
+            font-size: 13px;
+        }
+
         .icon-btn {
             width: 42px;
             height: 42px;
@@ -1009,6 +1119,21 @@
             <button class="icon-btn" id="mapNavBtn" title="Showroom Map" type="button">
                 <i class="fa-solid fa-location-dot"></i>
             </button>
+            <div class="notification-wrap">
+                <button class="icon-btn" id="notificationsBellBtn" title="Notifications" type="button">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-head">
+                        <h4>Notifications</h4>
+                        <button class="notif-markall" id="markAllNotifBtn" type="button">Mark all read</button>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">Loading notifications...</div>
+                    </div>
+                </div>
+            </div>
             <button class="contact-btn" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
             <button class="btn-logout" id="logoutBtn">Logout</button>
         </div>
@@ -1384,6 +1509,86 @@
             // Keep fallback greeting if profile is unavailable.
         }
     }
+    function formatNotificationTime(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+    }
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById("notifBadge");
+        if (!badge) return;
+        if (!count) {
+            badge.style.display = "none";
+            badge.textContent = "0";
+            return;
+        }
+        badge.style.display = "inline-flex";
+        badge.textContent = count > 9 ? "9+" : String(count);
+    }
+    function renderNotifications(list) {
+        const box = document.getElementById("notifList");
+        if (!box) return;
+        if (!Array.isArray(list) || !list.length) {
+            box.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+            return;
+        }
+        box.innerHTML = list.map(item => `
+            <div class="notif-item ${item.readFlag ? "" : "unread"}" onclick='openNotificationItem(${item.id}, ${JSON.stringify(item.link || "")})'>
+                <strong>${escapeHtml(item.title || "Notification")}</strong>
+                <p>${escapeHtml(item.message || "")}</p>
+                <div class="notif-time">${formatNotificationTime(item.createdAt)}</div>
+            </div>
+        `).join("");
+    }
+    async function loadUserNotifications() {
+        try {
+            const res = await fetch("/user-panel/api/notifications");
+            const data = await res.json();
+            if (data.ok) {
+                renderNotifications(data.notifications || []);
+            }
+        } catch (e) {
+            const box = document.getElementById("notifList");
+            if (box) box.innerHTML = '<div class="notif-empty">Unable to load notifications.</div>';
+        }
+    }
+    async function loadNotificationCount() {
+        try {
+            const res = await fetch("/user-panel/api/notifications/unread-count");
+            const data = await res.json();
+            updateNotificationBadge(data.ok ? Number(data.count || 0) : 0);
+        } catch (e) {
+            updateNotificationBadge(0);
+        }
+    }
+    async function openNotificationItem(id, link) {
+        try {
+            await fetch(`/user-panel/api/notifications/${id}/mark-read`, { method: "POST" });
+        } catch (e) {
+            // ignore read tracking failures and continue navigation
+        }
+        document.getElementById("notifPanel")?.classList.remove("open");
+        await loadNotificationCount();
+        await loadUserNotifications();
+        if (link) window.location.href = link;
+    }
+    async function markAllNotificationsRead() {
+        try {
+            await fetch("/user-panel/api/notifications/mark-all-read", { method: "POST" });
+        } catch (e) {
+            // ignore and refresh UI
+        }
+        await loadNotificationCount();
+        await loadUserNotifications();
+    }
     async function loadDashboard() {
         try {
             const [dashRes, carsRes] = await Promise.all([fetch("/user-panel/api/dashboard"), fetch("/user-panel/api/cars?includeAll=true")]);
@@ -1411,6 +1616,22 @@
     document.getElementById("likedNavBtn").addEventListener("click", () => { location.href = "/user-panel/liked-cars"; });
     document.getElementById("profileNavBtn").addEventListener("click", () => { location.href = "/user-panel/profile"; });
     document.getElementById("mapNavBtn").addEventListener("click", () => { location.href = "/user-panel/map"; });
+    document.getElementById("notificationsBellBtn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        document.getElementById("notifPanel").classList.toggle("open");
+        await loadUserNotifications();
+        await loadNotificationCount();
+    });
+    document.getElementById("markAllNotifBtn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await markAllNotificationsRead();
+    });
+    document.addEventListener("click", (e) => {
+        const wrap = document.querySelector(".notification-wrap");
+        if (wrap && !wrap.contains(e.target)) {
+            document.getElementById("notifPanel")?.classList.remove("open");
+        }
+    });
     document.getElementById("logoutBtn").addEventListener("click", async () => {
         try {
             await fetch("/user/logout", { method: "POST" });
@@ -1422,8 +1643,11 @@
     updateNavbarLikedState();
     window.selectBrandFromTile = selectBrandFromTile;
     window.toggleLikeCar = toggleLikeCar;
+    window.openNotificationItem = openNotificationItem;
     loadUserGreeting();
     loadDashboard();
+    loadNotificationCount();
+    loadUserNotifications();
 </script>
 </body>
 </html>
