@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Customers</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -32,7 +32,7 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins','Segoe UI',sans-serif;
+font-family: var(--font-body);
 }
 
 /* Body */
@@ -581,7 +581,7 @@ padding:20px;
 <!-- Edit modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="hideEdit()">✕</button>
+        <button class="close" onclick="hideEdit()">&times;</button>
         <div class="modal-body">
             <h3><i class="fas fa-edit"></i> Edit Customer</h3>
             <input id="eFirst" placeholder="First Name" required>

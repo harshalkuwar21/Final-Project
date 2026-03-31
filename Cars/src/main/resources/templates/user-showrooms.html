@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="/css/typography.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact Showrooms</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 body{
@@ -146,15 +146,26 @@ box-shadow:0 12px 26px rgba(0,0,0,0.06);
 </div>
 
 <script>
-function showroomImage(showroom){
-return showroom.imageUrl || "/images/background.jpg";
+function escapeHtml(value){
+return String(value ?? "")
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#39;");
 }
 
-function mapLink(showroom){
-if(showroom.mapUrl){
-return showroom.mapUrl;
+function showroomImage(showroom){
+return showroom.imageUrl || showroom.image || "/images/background.jpg";
 }
-return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([showroom.name, showroom.address, showroom.city].filter(Boolean).join(", "))}`;
+
+function showroomType(showroom){
+return showroom.type || "Normal";
+}
+
+function phoneLink(number){
+const cleaned = String(number || "").replace(/[^\d+]/g, "");
+return cleaned ? `tel:${cleaned}` : "#";
 }
 
 async function loadShowrooms(){
@@ -173,16 +184,17 @@ return;
 empty.style.display = "none";
 grid.innerHTML = showrooms.map(showroom => `
 <div class="card">
-    <img src="${showroomImage(showroom)}" alt="${showroom.name || 'Showroom'}">
+    <img src="${escapeHtml(showroomImage(showroom))}" alt="${escapeHtml(showroom.name || 'Showroom')}">
     <div class="content">
-        <h3>${showroom.name || "-"}</h3>
-        <div class="detail"><strong>City:</strong> ${showroom.city || "-"}</div>
-        <div class="detail"><strong>Address:</strong> ${showroom.address || "-"}</div>
-        <div class="detail"><strong>Working Hours:</strong> ${showroom.workingHours || "-"}</div>
-        <div class="detail"><strong>Contact:</strong> ${showroom.contactNumber || "-"}</div>
+        <h3>${escapeHtml(showroom.name || "-")}</h3>
+        <div class="detail"><strong>Type:</strong> ${escapeHtml(showroomType(showroom))}</div>
+        <div class="detail"><strong>City:</strong> ${escapeHtml(showroom.city || "-")}</div>
+        <div class="detail"><strong>Address:</strong> ${escapeHtml(showroom.address || "-")}</div>
+        <div class="detail"><strong>Working Hours:</strong> ${escapeHtml(showroom.workingHours || "-")}</div>
+        <div class="detail"><strong>Contact:</strong> ${escapeHtml(showroom.contactNumber || "-")}</div>
+        <div class="detail"><strong>Available Cars:</strong> ${escapeHtml(showroom.availableCarsCount ?? 0)}</div>
         <div class="actions">
-            <a class="btn call-btn" href="${showroom.contactNumber ? `tel:${showroom.contactNumber}` : '#'}">Call Now</a>
-            <a class="btn map-btn" href="${mapLink(showroom)}" target="_blank" rel="noopener noreferrer">View Map</a>
+            <a class="btn call-btn" href="${phoneLink(showroom.contactNumber)}">Call Now</a>
         </div>
     </div>
 </div>

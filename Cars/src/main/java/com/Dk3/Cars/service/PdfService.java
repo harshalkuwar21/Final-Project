@@ -39,6 +39,77 @@ public class PdfService {
                 "This showroom copy is generated from the DK3 Cars booking workflow.");
     }
 
+    public byte[] generateBookingAcknowledgementPdf(Booking b) throws IOException {
+        return render("Vehicle Booking Acknowledgement", "Customer Booking Request Confirmation",
+                "This acknowledgement confirms that DK3 Cars has received your booking request and initial payment details.",
+                rows("Acknowledgement No.", ref("ACK", b.getId()),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Booking Date", fmt(b.getBookingDate()),
+                        "Workflow Status", b.getWorkflowStatus(),
+                        "Expected Delivery", fmt(b.getExpectedDeliveryDate())),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Selected Showroom", showroom(b),
+                        "Delivery Type", b.getDeliveryType(),
+                        "Delivery Slot", b.getDeliveryTimeSlot(),
+                        "Payment Gateway", b.getPaymentGateway(),
+                        "Transaction ID", b.getTransactionId(),
+                        "Escrow Status", b.getEscrowStatus()),
+                "Please retain this acknowledgement for future communication with DK3 Cars.");
+    }
+
+    public byte[] generateBookingApplicationSummaryPdf(Booking b) throws IOException {
+        return render("Booking Application Summary", "Customer Submission Record",
+                "This document summarizes the details submitted by the customer at the time of booking.",
+                rows("Application Ref", ref("APP", b.getId()),
+                        "Submitted On", fmt(b.getStatusUpdatedAt()),
+                        "Customer Name", customerName(b),
+                        "Gender", b.getGender(),
+                        "Date of Birth", fmt(b.getDob())),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Residential City", b.getCity(),
+                        "State", b.getState(),
+                        "Pin Code", b.getPinCode(),
+                        "PAN", b.getPanNumber(),
+                        "Aadhaar", aadhaar(b.getAadhaarNumber()),
+                        "Showroom", showroom(b)),
+                "This summary is generated from the booking form and should be verified during showroom processing.");
+    }
+
+    public byte[] generateBookingAmountReceiptPdf(Booking b) throws IOException {
+        return render("Booking Amount Receipt", "Initial Payment Acknowledgement",
+                "This receipt confirms the booking amount received against the selected vehicle.",
+                rows("Receipt No.", ref("RCPT", b.getId()),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Payment Date", fmt(b.getStatusUpdatedAt()),
+                        "Payment Mode", b.getPaymentMode(),
+                        "Transaction ID", b.getTransactionId(),
+                        "Payment Gateway", b.getPaymentGateway()),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Booking Amount Received", money(b.getBookingAmount()),
+                        "Paid Amount", money(b.getPaidAmount()),
+                        "Estimated On-Road Total", money(b.getTotalAmount()),
+                        "Balance Amount", money(b.getRemainingAmount()),
+                        "Payment Outcome", b.getPaymentOutcome(),
+                        "Escrow Status", b.getEscrowStatus()),
+                "This is a dealer-generated booking amount receipt intended for customer reference.");
+    }
+
+    public byte[] generateBookingProformaInvoicePdf(Booking b) throws IOException {
+        return render("Proforma Invoice", "Estimated Vehicle Booking Invoice",
+                "This proforma invoice contains the current estimated cost breakup based on the booking details submitted.",
+                rows("Proforma No.", ref("PI", b.getId()),
+                        "Issue Date", fmt(b.getBookingDate()),
+                        "Booking Status", b.getWorkflowStatus(),
+                        "Expected Delivery", fmt(b.getExpectedDeliveryDate())),
+                customerRows(b),
+                vehicleRows(b),
+                finalAmountRows(b),
+                "This proforma invoice is provisional and subject to finance, insurance, RTO and delivery stage confirmation.");
+    }
+
     public byte[] generateInsurancePolicyPdf(Booking b) throws IOException {
         LocalDate start = pick(b.getDeliveryCompletedAt() != null ? b.getDeliveryCompletedAt().toLocalDate() : null, b.getExpectedDeliveryDate(), b.getBookingDate(), LocalDate.now());
         return render("Motor Insurance Certificate", "Private Car Package Policy", "Insurance coverage certificate issued as part of the vehicle delivery file.",

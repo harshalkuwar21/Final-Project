@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Add Vehicle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         :root {
@@ -18,7 +18,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -416,9 +416,14 @@
                     <input name="faqDetails" type="text" placeholder="What is on-road price?~Depends on city and taxes.|How many airbags?~Based on selected variant.">
                 </div>
                 <div class="form-group form-group-full">
-                    <label>Image URLs</label>
-                    <textarea name="imageUrls" placeholder="Paste one or more image URLs. Use a new line or comma between each URL."></textarea>
-                    <div class="hint">You can add direct image links, upload files below, or use both. All valid images will be saved for this vehicle.</div>
+                    <label>Image URL</label>
+                    <input name="imageUrl" type="url" placeholder="https://example.com/car-image.jpg">
+                    <div class="hint">Paste one direct car image URL if you want to use an online image.</div>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Car Image File</label>
+                    <input name="image" type="file" accept="image/*">
+                    <div class="hint">Choose one image file for this vehicle. You can use image URL, file upload, or both.</div>
                 </div>
              
                 <div class="form-group form-group-full" th:if="${showroomAllocationError}" style="color:#b91c1c; font-weight:600;">

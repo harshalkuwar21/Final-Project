@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Detail</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -13,7 +13,7 @@
             --glass: rgba(255, 255, 255, 0.95);
             --border: #7b7777;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Poppins, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); }
         body { background: radial-gradient(circle at top, #e6f7f4, #eef3f6); }
         .header { max-width: 1200px; margin: 20px auto; padding: 16px 26px; background: rgba(255,255,255,.96); border-radius: 22px; position: sticky; top: 16px; z-index: 1200; box-shadow: 0 25px 55px rgba(0,0,0,.25); }
         .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -311,7 +311,7 @@
     <div class="review-wrapper">
         <div class="review-summary">
             <div class="review-score-big" id="reviewScoreBig">4.5/5</div>
-            <div class="stars">★★★★</div>
+            <div class="stars">â˜…â˜…â˜…â˜…</div>
         </div>
         <div class="review-breakdown" id="reviewBreakdown"></div>
     </div>

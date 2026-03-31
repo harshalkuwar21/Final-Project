@@ -210,18 +210,7 @@ public class DashboardRestController {
 
         return showroomRepository.findAll()
                 .stream()
-                .map(s -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", s.getId());
-                    map.put("name", s.getName());
-                    map.put("city", s.getCity());
-                    map.put("image", s.getImageUrl());
-                    map.put("address", s.getAddress());
-                    map.put("contactNumber", s.getContactNumber());
-                    map.put("workingHours", s.getWorkingHours());
-                    map.put("mapUrl", s.getMapUrl());
-                    return map;
-                })
+                .map(this::showroomToMap)
                 .toList();
     }
 
@@ -441,24 +430,53 @@ public class DashboardRestController {
     }
 
     @PostMapping("/showroom")
-    public Showroom saveShowroom(
+    public Map<String, Object> saveShowroom(
             @RequestParam String name,
             @RequestParam String city,
-            @RequestParam MultipartFile image) throws Exception {
+            @RequestParam String address,
+            @RequestParam String contactNumber,
+            @RequestParam String type,
+            @RequestParam String workingHours,
+            @RequestParam(required = false) MultipartFile image) throws Exception {
 
-        String uploadDir = "uploads/";
-        Files.createDirectories(Paths.get(uploadDir));
+        Map<String, Object> response = new LinkedHashMap<>();
 
-        String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-        Path path = Paths.get(uploadDir + fileName);
-        Files.write(path, image.getBytes());
+        String showroomName = trimToNull(name);
+        String showroomCity = trimToNull(city);
+        String showroomAddress = trimToNull(address);
+        String showroomContact = trimToNull(contactNumber);
+        String showroomType = trimToNull(type);
+        String showroomWorkingHours = trimToNull(workingHours);
+
+        if (showroomName == null || showroomCity == null || showroomAddress == null
+                || showroomContact == null || showroomWorkingHours == null) {
+            response.put("ok", false);
+            response.put("message", "Name, city, address, contact number, and working details are required.");
+            return response;
+        }
+
+        String digits = showroomContact.replaceAll("\\D", "");
+        if (digits.length() != 10) {
+            response.put("ok", false);
+            response.put("message", "Contact number must be exactly 10 digits.");
+            return response;
+        }
 
         Showroom showroom = new Showroom();
-        showroom.setName(name);
-        showroom.setCity(city);
-        showroom.setImageUrl("/uploads/" + fileName);
+        showroom.setName(showroomName);
+        showroom.setCity(showroomCity);
+        showroom.setAddress(showroomAddress);
+        showroom.setContactNumber(digits);
+        showroom.setType(showroomType == null ? "Normal" : showroomType);
+        showroom.setWorkingHours(showroomWorkingHours);
+        showroom.setMapUrl(null);
+        showroom.setImageUrl(storeShowroomImage(image));
 
-        return showroomRepository.save(showroom);
+        Showroom saved = showroomRepository.save(showroom);
+        response.put("ok", true);
+        response.put("message", "Showroom added successfully.");
+        response.put("showroom", showroomToMap(saved));
+        return response;
     }
 
     private String normalizeContact(String value) {
@@ -467,6 +485,45 @@ public class DashboardRestController {
         }
         String digits = value.replaceAll("\\D", "");
         return digits.length() > 10 ? digits.substring(0, 10) : digits;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String storeShowroomImage(MultipartFile image) throws Exception {
+        if (image == null || image.isEmpty()) {
+            return "/images/background.jpg";
+        }
+
+        String originalName = image.getOriginalFilename() == null ? "showroom.jpg" : image.getOriginalFilename();
+        String sanitizedName = Paths.get(originalName).getFileName().toString().replaceAll("\\s+", "-");
+        String fileName = UUID.randomUUID() + "_" + sanitizedName;
+        Path uploadDir = Paths.get("uploads");
+        Files.createDirectories(uploadDir);
+        Path path = uploadDir.resolve(fileName);
+        Files.write(path, image.getBytes());
+        return "/uploads/" + fileName;
+    }
+
+    private Map<String, Object> showroomToMap(Showroom showroom) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", showroom.getId());
+        map.put("name", showroom.getName());
+        map.put("city", showroom.getCity());
+        map.put("address", showroom.getAddress());
+        map.put("contactNumber", showroom.getContactNumber());
+        map.put("type", showroom.getType());
+        map.put("workingHours", showroom.getWorkingHours());
+        map.put("mapUrl", showroom.getMapUrl());
+        map.put("managerName", showroom.getManagerName());
+        map.put("image", showroom.getImageUrl());
+        map.put("imageUrl", showroom.getImageUrl());
+        return map;
     }
 
     @GetMapping("/showrooms/{id}/cars")
@@ -548,8 +605,8 @@ public class DashboardRestController {
             @RequestParam(required = false) Long showroom,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "1") Integer stockQuantity,
-            @RequestParam(required = false) String imageUrls,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam(required = false) String imageUrl,
+            @RequestParam(required = false) MultipartFile image,
             HttpSession session) {
 
         java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -618,30 +675,24 @@ public class DashboardRestController {
 
         java.util.List<String> urls = new java.util.ArrayList<>();
 
-        if (imageUrls != null && !imageUrls.isBlank()) {
-            for (String rawUrl : imageUrls.split("[\\r\\n,]+")) {
-                String cleanedUrl = rawUrl == null ? "" : rawUrl.trim();
-                if (!cleanedUrl.isEmpty()) {
-                    urls.add(cleanedUrl);
-                }
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            String cleanedUrl = imageUrl.trim();
+            if (!cleanedUrl.isEmpty()) {
+                urls.add(cleanedUrl);
             }
         }
 
-        // handle uploaded images if any
-        if (images != null && images.length > 0) {
+        if (image != null && !image.isEmpty()) {
             try {
                 String uploadDir = "uploads/cars/";
                 Files.createDirectories(Paths.get(uploadDir));
-                for (MultipartFile img : images) {
-                    if (img == null || img.isEmpty()) continue;
-                    String original = img.getOriginalFilename();
-                    String fileName = UUID.randomUUID().toString() + "_" + (original == null ? "img" : original.replaceAll("\\s+", "_"));
-                    Path p = Paths.get(uploadDir + fileName);
-                    Files.write(p, img.getBytes());
-                    urls.add("/uploads/cars/" + fileName);
-                }
+                String original = image.getOriginalFilename();
+                String fileName = UUID.randomUUID().toString() + "_" + (original == null ? "img" : original.replaceAll("\\s+", "_"));
+                Path p = Paths.get(uploadDir + fileName);
+                Files.write(p, image.getBytes());
+                urls.add("/uploads/cars/" + fileName);
             } catch (Exception ex) {
-                logger.warn("Failed to save uploaded images", ex);
+                logger.warn("Failed to save uploaded image", ex);
             }
         }
 

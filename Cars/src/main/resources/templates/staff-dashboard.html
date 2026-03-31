@@ -2,11 +2,11 @@
 <html lang="en">
 
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DK3 Cars – Dashboard</title>
+    <title>DK3 Cars - Dashboard</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
@@ -27,7 +27,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -934,8 +934,9 @@
         </nav>
 
         <div class="nav-icons">
-            <div class="hello-admin">Hello Staff 👋</div>
+            <div class="hello-admin">Hello Staff &#128075;</div>
             <i class="fa fa-bell" id="messageBtn"></i>
+            <button class="contact-btn" id="contactBtn" type="button">Showroom Contacts</button>
             <i class="fa fa-user-circle" id="userIcon"></i>
         </div>
     </header>
@@ -944,6 +945,13 @@
     <div class="panel" id="messagePanel">
         <h3>User Booking Requests</h3>
         <div id="messageList"></div>
+    </div>
+
+    <div class="panel" id="contactPanel">
+        <h3>Showroom Contacts</h3>
+        <div id="contactList">
+            <div class="panel-empty">Loading showroom contacts...</div>
+        </div>
     </div>
 
     <div class="panel" id="profilePanel">
@@ -1061,7 +1069,7 @@
                     <!-- DETAILS PANEL -->
                     <div class="details">
                         <div class="details-top">
-                            <button class="detail-close" type="button" aria-label="Close details from left">×</button>
+                            <button class="detail-close" type="button" aria-label="Close details from left">&times;</button>
                         </div>
                         <img id="detail-img" src="" alt="Booked car image">
                         <h3 id="detail-name"></h3>
@@ -1140,15 +1148,15 @@
                     <div class="sales-cards">
                         <div class="sales-card total-sales">
                             <h3>Total Sales</h3>
-                            <p id="totalSales">₹0</p>
+                            <p id="totalSales">Rs. 0</p>
                         </div>
                         <div class="sales-card  pending-payments">
                             <h3>Pending Payments</h3>
-                            <p id="pendingPayments">₹0</p>
+                            <p id="pendingPayments">Rs. 0</p>
                         </div>
                         <div class="sales-card completed-payments">
                             <h3>Completed Payments</h3>
-                            <p id="completedPayments">₹0</p>
+                            <p id="completedPayments">Rs. 0</p>
                         </div>
                     </div>
                 </section>
@@ -1164,9 +1172,9 @@
     const messageBtn = document.getElementById("messageBtn");
     const messagePanel = document.getElementById("messagePanel");
 
-    const contactBtn = null;
-    const contactPanel = null;
-    const contactList = null;
+    const contactBtn = document.getElementById("contactBtn");
+    const contactPanel = document.getElementById("contactPanel");
+    const contactList = document.getElementById("contactList");
     const userIcon = document.getElementById("userIcon");
     const profilePanel = document.getElementById("profilePanel");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -1187,9 +1195,10 @@
     let selectedBooking = null;
     let latestBookings = [];
     let dismissedRequestIds = new Set();
+    let showroomCache = [];
 
     function hidePanels(exceptPanel = null) {
-        [messagePanel, profilePanel].forEach(panel => {
+        [messagePanel, contactPanel, profilePanel].forEach(panel => {
             if (panel && panel !== exceptPanel) {
                 panel.style.display = "none";
             }
@@ -1282,13 +1291,13 @@
                 document.getElementById("waitingCount").innerText = data.waiting || 0;
 
                 document.getElementById("totalSales").innerText =
-                    "₹" + (data.totalSales || 0);
+                    "Rs. " + (data.totalSales || 0);
 
                 document.getElementById("pendingPayments").innerText =
-                    "₹" + (data.pendingPayments || 0);
+                    "Rs. " + (data.pendingPayments || 0);
 
                 document.getElementById("completedPayments").innerText =
-                    "₹" + (data.completedPayments || 0);
+                    "Rs. " + (data.completedPayments || 0);
 
                 loadBookings(latestBookings);
                 loadMessagePanel(latestBookings);
@@ -1384,7 +1393,7 @@
         document.getElementById("detail-email").innerText = b.customerEmail || "-";
         document.getElementById("detail-address").innerText = b.customerAddress || "-";
         document.getElementById("detail-car").innerText = b.carName || "";
-        document.getElementById("detail-price").innerText = "₹" + (b.price || 0);
+        document.getElementById("detail-price").innerText = "Rs. " + (b.price || 0);
         document.getElementById("detail-date").innerText = b.bookingDate || "";
         document.getElementById("detail-fuel").innerText = b.fuelType || "";
         document.getElementById("detail-status").innerText = b.status || "";
@@ -1516,7 +1525,7 @@
                     <strong>${escapeHtml(b.customerName)}</strong><br>
                     ${escapeHtml(b.carName)} - ${escapeHtml(b.bookingDate)}
                 </div>
-                <button class="close-msg">✖</button>
+                <button class="close-msg">&times;</button>
             `;
 
             div.querySelector(".close-msg").addEventListener("click", e => {
@@ -1569,10 +1578,10 @@
             contactPanel.style.display === "block" ? "none" : "block";
 
         const showrooms = [
-            { name: "DK3 Cars – Delhi", phone: "+919876543210" },
-            { name: "DK3 Cars – Noida", phone: "+919123456780" },
-            { name: "DK3 Cars – Gurgaon", phone: "+919988776655" },
-            { name: "DK3 Cars – Mumbai", phone: "+918899776655" }
+            { name: "DK3 Cars - Delhi", phone: "+919876543210" },
+            { name: "DK3 Cars - Noida", phone: "+919123456780" },
+            { name: "DK3 Cars - Gurgaon", phone: "+919988776655" },
+            { name: "DK3 Cars - Mumbai", phone: "+918899776655" }
         ];
 
         const contactList = document.getElementById("contactList");
@@ -1623,13 +1632,17 @@
         showrooms.forEach(showroom => {
 
             const phone = showroom.contactNumber || "Not available";
-            const safePhone = String(phone).replace(/\s+/g, "");
-            const mapUrl = showroom.mapUrl || `https://www.google.com/maps/search/${encodeURIComponent(showroom.name || "")}`;
+            const safePhone = String(phone).replace(/[^\d+]/g, "");
             const div = document.createElement("div");
+            const showroomType = showroom.type || "Normal";
 
             div.className = "contact-card";
             div.innerHTML = `
                 <div class="contact-name">${escapeHtml(showroom.name || "DK3 Showroom")}</div>
+                <div class="contact-phone">
+                    <i class="fa fa-shop"></i>
+                    <span>${escapeHtml(showroomType)}</span>
+                </div>
                 <div class="contact-phone">
                     <i class="fa fa-phone"></i>
                     <span>${escapeHtml(phone)}</span>
@@ -1646,10 +1659,6 @@
                     <a class="contact-action call" href="tel:${escapeHtml(safePhone)}">
                         <i class="fa fa-phone"></i>
                         <span>Call Now</span>
-                    </a>
-                    <a class="contact-action whatsapp" href="${escapeHtml(mapUrl)}" target="_blank" rel="noopener noreferrer">
-                        <i class="fa fa-map-location-dot"></i>
-                        <span>View Map</span>
                     </a>
                 </div>
             `;

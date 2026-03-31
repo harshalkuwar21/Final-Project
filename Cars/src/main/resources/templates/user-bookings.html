@@ -2,13 +2,12 @@
 <html lang="en">
 
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>My Bookings | DK3 Cars</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
 
     <style>
         /* ===== GLOBAL ===== */
@@ -17,7 +16,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -327,7 +326,7 @@
         <div class="panel" style="display:flex;justify-content:space-between;align-items:center;">
             <h2>Booking Status & Payment History</h2>
             <a href="/user-dashboard" class="dashboard-btn">
-                ⬅ Back to Dashboard
+                &larr; Back to Dashboard
             </a>
         </div>
         <div class="panel">
@@ -407,7 +406,7 @@
                 <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
                 <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
             </div>
-            <div class="hint">“Booking payment is already completed. Please choose one option: Down Payment, Full Payment, or Loan.”
+            <div class="hint">Booking payment is already completed. Please choose one option: Down Payment, Full Payment, or Loan.
             </div>
             <div style="margin-top:10px;">
                 <button class="save-btn" onclick="savePaymentPlan()">Save Payment Plan</button>

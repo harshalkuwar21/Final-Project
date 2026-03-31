@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --font-heading: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-body: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html,
+body {
+    font-family: var(--font-body) !important;
+}
+
+body,
+p,
+span,
+a,
+li,
+td,
+th,
+label,
+input,
+textarea,
+select,
+button,
+small,
+strong,
+em,
+blockquote,
+figcaption,
+caption {
+    font-family: var(--font-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading) !important;
+    letter-spacing: -0.02em;
+}
+
+.fa,
+.fas,
+.far,
+.fab,
+.fa-solid,
+.fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
+}
+
+.fa-brands,
+.fab {
+    font-family: "Font Awesome 6 Brands" !important;
+}
+
+.material-icons,
+.material-icons-outlined,
+.material-symbols-outlined {
+    font-family: "Material Icons", "Material Symbols Outlined" !important;
+}

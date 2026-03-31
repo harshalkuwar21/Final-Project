@@ -2,12 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 
+<link rel="stylesheet" href="/css/typography.css">
+
 <meta charset="utf-8">
 <title>Vehicle Management | DK3 Cars</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
@@ -25,7 +26,7 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 body{
@@ -408,7 +409,7 @@ color:#777;
                         <p><strong>Fuel:</strong> <span th:text="${car.fuelType}"></span></p>
                         <p><strong>Transmission:</strong> <span th:text="${car.transmission}"></span></p>
                         <p><strong>Color:</strong> <span th:text="${car.color}"></span></p>
-                        <p><strong>Price:</strong> ₹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                        <p><strong>Price:</strong> Rs. <span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
                         <p><strong>Status:</strong>
                             <span th:class="${car.status == 'Available' ? 'status-available' : car.status == 'Sold' ? 'status-sold' : 'status-other'}"
                                   th:text="${car.status}"></span>
@@ -440,7 +441,7 @@ color:#777;
 
 <div id="carModal" class="modal" style="display:none">
     <div class="modal-content">
-        <button class="close" onclick="hideModal()">✕</button>
+        <button class="close" onclick="hideModal()">&times;</button>
         <div class="modal-body">
             <img id="modalImg" src="/images/car.jpg" alt="car">
             <div class="meta">

@@ -34,6 +34,8 @@ public class SampleCarDataInitializer implements ApplicationRunner {
             s.setCity("Nashik");
             s.setAddress("Mumbai Naka, Nashik");
             s.setContactNumber("+91-9876543210");
+            s.setType("Premium");
+            s.setMapUrl("https://www.google.com/maps/search/?api=1&query=DK3+Cars+Nashik");
             s.setWorkingHours("10:00 AM - 8:00 PM");
             s.setManagerName("DK3 Manager");
             s.setImageUrl("/images/background.jpg");

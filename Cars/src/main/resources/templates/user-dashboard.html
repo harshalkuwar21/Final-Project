@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DK3 Cars | User Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         :root {
@@ -24,7 +24,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -168,6 +168,12 @@
             font-size: 16px;
         }
 
+        .notif-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .notif-markall {
             border: none;
             background: #eef2ff;
@@ -176,6 +182,17 @@
             padding: 8px 12px;
             font-size: 12px;
             font-weight: 700;
+            cursor: pointer;
+        }
+
+        .notif-close {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 50%;
+            background: #f3f4f8;
+            color: #4b5563;
+            font-size: 18px;
             cursor: pointer;
         }
 
@@ -1127,7 +1144,10 @@
                 <div class="notif-panel" id="notifPanel">
                     <div class="notif-head">
                         <h4>Notifications</h4>
-                        <button class="notif-markall" id="markAllNotifBtn" type="button">Mark all read</button>
+                        <div class="notif-actions">
+                            <button class="notif-markall" id="markAllNotifBtn" type="button">Mark all read</button>
+                            <button class="notif-close" id="notifCloseBtn" type="button" aria-label="Close notifications">&times;</button>
+                        </div>
                     </div>
                     <div class="notif-list" id="notifList">
                         <div class="notif-empty">Loading notifications...</div>
@@ -1625,6 +1645,10 @@
     document.getElementById("markAllNotifBtn").addEventListener("click", async (e) => {
         e.stopPropagation();
         await markAllNotificationsRead();
+    });
+    document.getElementById("notifCloseBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.getElementById("notifPanel")?.classList.remove("open");
     });
     document.addEventListener("click", (e) => {
         const wrap = document.querySelector(".notification-wrap");

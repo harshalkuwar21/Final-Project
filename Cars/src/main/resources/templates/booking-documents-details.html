@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Documents & Payment Details</title>
@@ -14,11 +15,13 @@
             --border: #e5e7eb;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #dbeafe, #f8fafc);
             color: #111827;
             padding: 20px;

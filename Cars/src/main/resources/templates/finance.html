@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Finance Management</title>
     <link rel="stylesheet" href="/css/finance.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; font-family: var(--font-body); }
         .navbar { max-width: 1500px; margin: 20px auto; padding: 14px 28px; background: rgba(255,255,255,0.95); border-radius: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 18px 45px rgba(0,0,0,0.1); position: sticky; top: 20px; z-index: 999; }
         .logo { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 700; color: #333; }
         .logo img { width: 50px; height: 50px; border-radius: 10px; }
@@ -39,7 +39,7 @@
         .panel h3:before { content: ''; width: 4px; height: 20px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 2px; }
         
         .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; align-items: end; }
-        .form-row input, .form-row select { padding: 12px 16px; border: 2px solid #e0f2f1; border-radius: 10px; font-size: 14px; transition: 0.3s; font-family: 'Poppins', sans-serif; }
+        .form-row input, .form-row select { padding: 12px 16px; border: 2px solid #e0f2f1; border-radius: 10px; font-size: 14px; transition: 0.3s; font-family: var(--font-body); }
         .form-row input:focus, .form-row select:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
         
         .btn { padding: 12px 20px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
@@ -66,7 +66,7 @@
         
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
         .modal-content { background: white; margin: 5% auto; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-body input, .modal-body select { width: 100%; padding: 12px 16px; margin-bottom: 12px; border: 2px solid #e0f2f1; border-radius: 10px; font-family: 'Poppins', sans-serif; }
+        .modal-body input, .modal-body select { width: 100%; padding: 12px 16px; margin-bottom: 12px; border: 2px solid #e0f2f1; border-radius: 10px; font-family: var(--font-body); }
         .modal-body input:focus, .modal-body select:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
         .close { float: right; font-size: 24px; font-weight: bold; color: #999; cursor: pointer; border: none; background: none; }
         .close:hover { color: #333; }
@@ -102,15 +102,15 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <h4>Today's Collection</h4>
-                <div class="value">₹<span id="todayCollection">0</span></div>
+                <div class="value">Rs. <span id="todayCollection">0</span></div>
             </div>
             <div class="stat-card" style="border-left-color: #ff9f43;">
                 <h4>Pending Payments</h4>
-                <div class="value" style="color: #ff9f43;">₹<span id="pendingAmount">0</span></div>
+                <div class="value" style="color: #ff9f43;">Rs. <span id="pendingAmount">0</span></div>
             </div>
             <div class="stat-card" style="border-left-color: #2196F3;">
                 <h4>Total Completed</h4>
-                <div class="value" style="color: #2196F3;">₹<span id="totalCompleted">0</span></div>
+                <div class="value" style="color: #2196F3;">Rs. <span id="totalCompleted">0</span></div>
             </div>
             <div class="stat-card" style="border-left-color: #9c27b0;">
                 <h4>Total Transactions</h4>
@@ -146,7 +146,7 @@
 <!-- Edit modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="hideEdit()">✕</button>
+        <button class="close" onclick="hideEdit()">&times;</button>
         <div class="modal-body">
             <h3><i class="fas fa-edit"></i> Edit Payment</h3>
             <input id="eAmount" type="number" placeholder="Amount" min="0" step="0.01" required>

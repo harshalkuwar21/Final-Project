@@ -1,3 +1,5 @@
+@import url('/css/typography.css');
+
  :root{
 --primary:#6c4ef6;
 --accent:#9f7bff;
@@ -12,7 +14,7 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 /* BODY */

@@ -21,6 +21,16 @@ public class SchemaMigrationRunner implements ApplicationRunner {
             return;
         }
 
+        if (tableExists("showroom")) {
+            ensureColumn("showroom", "address", "varchar(255) null");
+            ensureColumn("showroom", "contact_number", "varchar(255) null");
+            ensureColumn("showroom", "showroom_type", "varchar(255) null");
+            ensureColumn("showroom", "map_url", "varchar(1000) null");
+            ensureColumn("showroom", "working_hours", "varchar(255) null");
+            ensureColumn("showroom", "manager_name", "varchar(255) null");
+            ensureColumn("showroom", "image_url", "varchar(1000) null");
+        }
+
         // Newly introduced car-detail columns used by dashboard and user car-details page.
         ensureColumn("car", "mileage", "varchar(255) null");
         ensureColumn("car", "engine_cc", "varchar(255) null");

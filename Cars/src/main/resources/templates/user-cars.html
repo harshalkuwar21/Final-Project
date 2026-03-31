@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="/css/typography.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>All Cars</title>
 
 <!-- Better Font -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
@@ -18,7 +18,7 @@ box-sizing:border-box;
 }
 
 body{
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 background:linear-gradient(120deg,#eef3ff,#f9fbff);
 color:#1a2b4b;
 }
@@ -72,7 +72,7 @@ input,select{
 padding:10px;
 border-radius:8px;
 border:1px solid #dce4f5;
-font-family:'Poppins';
+font-family: var(--font-body);
 }
 
 /* Button */
@@ -81,7 +81,7 @@ button{
 border:none;
 border-radius:8px;
 padding:10px;
-font-family:'Poppins';
+font-family: var(--font-body);
 font-weight:500;
 cursor:pointer;
 background:linear-gradient(135deg,#005bbb,#0077ff);
@@ -292,7 +292,7 @@ likedIds=alreadyLiked
 
 saveLikedCars(likedIds);
 btn.classList.toggle("active", !alreadyLiked);
-btn.innerHTML=`<span>${!alreadyLiked ? "♥" : "♡"}</span>`;
+btn.innerHTML=`<span>${!alreadyLiked ? "&#9829;" : "&#9825;"}</span>`;
 btn.title=!alreadyLiked ? "Remove from liked cars" : "Add to liked cars";
 }
 
@@ -331,7 +331,7 @@ grid.innerHTML=data.cars.map(car=>`
 <div class="card">
 
 <button class="heart-btn ${isLiked(car.id) ? "active" : ""}" type="button" onclick="toggleLike(${car.id},this)" title="${isLiked(car.id) ? "Remove from liked cars" : "Add to liked cars"}">
-${isLiked(car.id) ? "♥" : "♡"}
+${isLiked(car.id) ? "&#9829;" : "&#9825;"}
 </button>
 
 <img src="${(car.imageUrls && car.imageUrls.length)?car.imageUrls[0]:'/images/car.jpg'}">

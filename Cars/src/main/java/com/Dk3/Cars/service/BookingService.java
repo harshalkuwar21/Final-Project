@@ -49,6 +49,11 @@ public class BookingService {
         });
     }
 
+    public void sendInitialBookingEmailPack(Long bookingId) {
+        if (bookingId == null) return;
+        bookingRepository.findById(bookingId).ifPresent(this::sendInitialBookingEmailPack);
+    }
+
     public Booking generateInsuranceDocuments(Booking booking) {
         if (booking == null || blank(booking.getInsurancePolicyNumber())) return booking;
         try {
@@ -240,6 +245,46 @@ public class BookingService {
         }
     }
 
+    private void sendInitialBookingEmailPack(Booking booking) {
+        try {
+            Map<String, byte[]> docs = new LinkedHashMap<>();
+            byte[] acknowledgement = pdfService.generateBookingAcknowledgementPdf(booking);
+            byte[] application = pdfService.generateBookingApplicationSummaryPdf(booking);
+            byte[] receipt = pdfService.generateBookingAmountReceiptPdf(booking);
+            byte[] proforma = pdfService.generateBookingProformaInvoicePdf(booking);
+
+            docs.put("Booking-Acknowledgement-" + booking.getId() + ".pdf", acknowledgement);
+            docs.put("Booking-Application-Summary-" + booking.getId() + ".pdf", application);
+            docs.put("Booking-Amount-Receipt-" + booking.getId() + ".pdf", receipt);
+            docs.put("Proforma-Invoice-" + booking.getId() + ".pdf", proforma);
+
+            sendDocsEmail(booking, "DK3 Cars Booking Documents - #" + booking.getId(),
+                    """
+                    Your booking request has been received successfully.
+
+                    Booking ID: #%s
+                    Vehicle: %s
+                    Booking Amount: %s
+                    Expected Delivery: %s
+
+                    Attached documents:
+                    - Booking acknowledgement
+                    - Booking application summary
+                    - Booking amount receipt
+                    - Proforma invoice
+
+                    Please review the attached documents and keep them for your records.
+                    """.formatted(
+                            booking.getId(),
+                            carName(booking),
+                            money(booking.getBookingAmount()),
+                            booking.getExpectedDeliveryDate() != null ? booking.getExpectedDeliveryDate() : "To be assigned"
+                    ),
+                    docs);
+        } catch (IOException ignored) {
+        }
+    }
+
     private void sendDocsEmail(Booking booking, String subject, String body, Map<String, byte[]> docs) {
         String to = booking.getCustomer() != null ? booking.getCustomer().getEmail() : null;
         if (!blank(to) && docs != null && !docs.isEmpty()) {
@@ -261,4 +306,5 @@ public class BookingService {
         return booking.getCar() == null ? "Vehicle not assigned"
                 : booking.getCar().getBrand() + " " + booking.getCar().getModel();
     }
+    private String money(double value) { return "Rs. " + String.format("%,.2f", value); }
 }

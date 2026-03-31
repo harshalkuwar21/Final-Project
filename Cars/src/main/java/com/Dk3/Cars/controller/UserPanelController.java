@@ -239,8 +239,10 @@ public class UserPanelController {
             m.put("city", s.getCity());
             m.put("address", s.getAddress());
             m.put("contactNumber", s.getContactNumber());
+            m.put("type", s.getType());
             m.put("mapUrl", s.getMapUrl());
             m.put("workingHours", s.getWorkingHours());
+            m.put("image", s.getImageUrl());
             m.put("imageUrl", s.getImageUrl());
             m.put("availableCarsCount", counts.getOrDefault(s.getId(), 0L));
             out.add(m);
@@ -761,6 +763,7 @@ public class UserPanelController {
         }
 
         createPaymentStages(saved, downPaymentAmount != null && downPaymentAmount > 0, "Loan Required".equalsIgnoreCase(saved.getPaymentOption()));
+        bookingService.sendInitialBookingEmailPack(saved.getId());
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("ok", true);

@@ -2,12 +2,12 @@
 <html lang="en">
 
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
-    <title>DK3 Cars – Admin Dashboard</title>
+    <title>DK3 Cars - Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
@@ -27,7 +27,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -643,7 +643,7 @@
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-rupee-sign" style="color:#e91e63;"></i>
-                        <h2 id="monthlyRevenue">₹0</h2>
+                        <h2 id="monthlyRevenue">Rs. 0</h2>
                         <p>Monthly Revenue</p>
                     </div>
                     <div class="stat-card">
@@ -655,7 +655,7 @@
 
                 <!-- Charts Section -->
                 <div class="charts-section">
-                    <h2 style="margin: 30px 0 20px 0; color: var(--primary);">📊 Business Analytics</h2>
+                    <h2 style="margin: 30px 0 20px 0; color: var(--primary);">&#128202; Business Analytics</h2>
                     <div class="charts-grid">
                         <div class="chart-card">
                             <h3>Monthly Sales</h3>
@@ -736,7 +736,7 @@
     <!-- Profile Modal -->
     <div id="profileModal" class="modal" style="display:none">
         <div class="modal-content">
-            <button class="close" onclick="hideProfile()">✕</button>
+            <button class="close" onclick="hideProfile()">&times;</button>
             <div class="modal-body">
                 <h3>Profile</h3>
                 <input id="pFirst" placeholder="First name">

@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Showroom Vehicles - DK3 Cars</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/css/cars.css">
     <style>
-       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
 :root{
     --primary:#6c4ef6;
     --accent:#9f7bff;
@@ -21,7 +20,7 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 body{
@@ -387,7 +386,7 @@ margin-bottom:20px;
                         <p><strong>Fuel:</strong> <span th:text="${car.fuelType}"></span></p>
                         <p><strong>Transmission:</strong> <span th:text="${car.transmission ?: 'N/A'}"></span></p>
                         <p><strong>Color:</strong> <span th:text="${car.color ?: 'N/A'}"></span></p>
-                        <p><strong>Price:</strong> ₹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                        <p><strong>Price:</strong> â‚¹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
 
                         <div class="car-info-group">
                             <div class="info-item">
