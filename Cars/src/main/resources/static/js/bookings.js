@@ -233,7 +233,19 @@ function requestReverification(id) {
 
 function showDownPaymentVerifyButton(booking) {
     const downPayment = Number(booking.downPaymentAmount || 0);
-    if (downPayment <= 0) return false;
+    const paymentOption = String(booking.paymentOption || "").toLowerCase();
+    const reference = String(booking.downPaymentReference || "").trim();
+    const method = String(booking.downPaymentMethod || "").trim();
+    const receipt = String(booking.downPaymentReceiptUrl || "").trim();
+
+    const hasPendingDownPaymentSignal =
+        downPayment > 0 ||
+        paymentOption === "down payment" ||
+        reference.length > 0 ||
+        method.length > 0 ||
+        receipt.length > 0;
+
+    if (!hasPendingDownPaymentSignal) return false;
     return booking.downPaymentVerified !== true;
 }
 

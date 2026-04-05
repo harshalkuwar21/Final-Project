@@ -360,7 +360,7 @@ width:100%;
                 <div class="grid">
                     <div>
                         <label>Booking Amount (Rs 5,000 - 25,000)</label>
-                        <input name="bookingAmount" id="bookingAmount" type="number" value="10000" min="5000" max="25000" readonly required>
+                        <input name="bookingAmount" id="bookingAmount" type="number" value="10000" min="5000" max="25000" step="0.01" required>
                     </div>
                     <div><label>Payment Mode</label>
                         <select name="paymentMode" id="paymentMode" required>
@@ -375,7 +375,7 @@ width:100%;
                     </div>
                 </div>
                 <input type="hidden" name="paymentGateway" id="paymentGateway" value="Razorpay">
-                <input type="hidden" name="paymentOutcome" id="paymentOutcome" value="Success">
+                <input type="hidden" name="paymentOutcome" id="paymentOutcome" value="Pending">
                 <input type="hidden" name="transactionId" id="transactionId" value="">
                 <div id="formMessage" class="msg"></div>
 
@@ -763,6 +763,19 @@ width:100%;
         return "Razorpay";
     }
 
+    function resetBookingPaymentState(message = "") {
+        document.getElementById("paymentOutcome").value = "Pending";
+        document.getElementById("transactionId").value = "";
+        const formMessage = document.getElementById("formMessage");
+        formMessage.style.color = message ? "#b91c1c" : "";
+        formMessage.textContent = message;
+    }
+
+    function isBookingPaymentCompleted() {
+        return document.getElementById("paymentOutcome").value === "Success"
+            && !!String(document.getElementById("transactionId").value || "").trim();
+    }
+
     function createTransactionId() {
         return `TXN-${Date.now()}`;
     }
@@ -782,6 +795,14 @@ width:100%;
         showToast("Payment successful.", "success");
     });
 
+    document.getElementById("bookingAmount").addEventListener("input", () => {
+        resetBookingPaymentState("Booking amount changed. Please click Pay Now again.");
+    });
+
+    document.getElementById("paymentMode").addEventListener("change", () => {
+        resetBookingPaymentState("Payment mode changed. Please click Pay Now again.");
+    });
+
     document.getElementById("buyNowForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("msg");
@@ -789,6 +810,15 @@ width:100%;
             msg.textContent = "";
             return;
         }
+        if (!isBookingPaymentCompleted()) {
+            msg.style.color = "red";
+            msg.textContent = "Please complete booking payment by clicking Pay Now before submitting.";
+            showToast("Please click Pay Now first.", "error");
+            step = 2;
+            setStep();
+            return;
+        }
+
         const paymentOutcome = document.getElementById("paymentOutcome").value;
         if (paymentOutcome === "Failed") {
             location.href = "/user-panel/payment-failure";

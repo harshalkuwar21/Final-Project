@@ -571,9 +571,11 @@ public class UserPanelController {
             ));
         }
 
-        String paymentOption = String.valueOf(payload.getOrDefault("paymentOption", "Full Payment"));
-        if (!"Full Payment".equalsIgnoreCase(paymentOption) && !"Loan Required".equalsIgnoreCase(paymentOption)) {
-            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Payment option must be Full Payment or Loan Required"));
+        String paymentOption = String.valueOf(payload.getOrDefault("paymentOption", "Down Payment"));
+        if (!"Full Payment".equalsIgnoreCase(paymentOption)
+                && !"Loan Required".equalsIgnoreCase(paymentOption)
+                && !"Down Payment".equalsIgnoreCase(paymentOption)) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Payment option must be Down Payment, Full Payment or Loan Required"));
         }
         String loanAadhaarNumber = normalizeDigits(String.valueOf(payload.getOrDefault("loanAadhaarNumber", "")), 12);
         if (!loanAadhaarNumber.isBlank() && !loanAadhaarNumber.matches("\\d{12}")) {
@@ -599,26 +601,36 @@ public class UserPanelController {
 
         boolean downPaymentAlreadyVerified = Boolean.TRUE.equals(booking.getDownPaymentVerified());
         if (!downPaymentAlreadyVerified) {
+            if (!"Down Payment".equalsIgnoreCase(paymentOption)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "ok", false,
+                        "error", "Pay down payment first. Full payment or loan option is available after down payment verification."
+                ));
+            }
             if (downPayment <= 0) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "ok", false,
                         "error", "Please pay down payment first and submit payment reference."
                 ));
             }
+            booking.setPaymentOption("Down Payment");
             booking.setDownPaymentAmount(downPayment);
             booking.setDownPaymentMethod(String.valueOf(payload.getOrDefault("downPaymentMethod", "Bank Transfer")));
             booking.setDownPaymentReference(String.valueOf(payload.getOrDefault("downPaymentReference", "")));
             booking.setDownPaymentVerified(false);
         } else {
-            // Lock down payment details after staff verification.
-            downPayment = booking.getDownPaymentAmount() == null ? 0D : booking.getDownPaymentAmount();
+            if ("Down Payment".equalsIgnoreCase(paymentOption)) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "ok", false,
+                        "error", "Down payment already verified. Select Full Payment or Loan Required."
+                ));
+            }
             booking.setPaymentOption(paymentOption);
+            downPayment = booking.getDownPaymentAmount() == null ? 0D : booking.getDownPaymentAmount();
         }
 
-        double bookingPaid = downPaymentAlreadyVerified
-                ? booking.getBookingAmount() + downPayment
-                : booking.getBookingAmount();
-        booking.setPaidAmount(bookingPaid);
+        double bookingPaid = booking.getBookingAmount();
+        booking.setPaidAmount(bookingPaid + (downPaymentAlreadyVerified ? downPayment : 0D));
         double total = booking.getTotalAmount() == null ? 0D : booking.getTotalAmount();
         booking.setRemainingAmount(Math.max(0D, total - booking.getPaidAmount()));
         booking.setStatusUpdatedAt(LocalDateTime.now());
@@ -628,7 +640,7 @@ public class UserPanelController {
                 .filter(t -> t.getPaymentType() != null && "Down Payment".equalsIgnoreCase(t.getPaymentType()))
                 .findFirst()
                 .orElse(null);
-        if (downPayment > 0) {
+        if (!downPaymentAlreadyVerified && downPayment > 0) {
             PaymentTransaction downTxn = existingDownTxn == null ? new PaymentTransaction() : existingDownTxn;
             downTxn.setBooking(booking);
             downTxn.setPaymentType("Down Payment");
@@ -676,7 +688,7 @@ public class UserPanelController {
 
         String message = downPaymentAlreadyVerified
                 ? "Payment option updated successfully."
-                : "Down payment submitted. Staff will verify and then payment option selection will be enabled.";
+                : "Down payment submitted. Staff will verify and then full payment / loan option selection will be enabled.";
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "message", message));
     }
 
@@ -740,8 +752,10 @@ public class UserPanelController {
         if (bookingAmount == null || bookingAmount < 5000 || bookingAmount > 25000) {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking amount must be between Rs 5,000 and Rs 25,000"));
         }
-        if ("Failed".equalsIgnoreCase(paymentOutcome)) {
-            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Booking payment failed. Please retry payment."));
+        if (!"Success".equalsIgnoreCase(paymentOutcome)
+                || transactionId == null
+                || transactionId.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Complete booking payment using Pay Now before submitting the booking."));
         }
         String normalizedAadhaar = normalizeDigits(aadhaarNumber, 12);
         String normalizedPinCode = normalizeDigits(pinCode, 6);

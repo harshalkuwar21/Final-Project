@@ -543,8 +543,7 @@
                 <div><label>Interest Rate (%)</label><input id="planLoanRate" type="number" step="0.1" value="9"></div>
                 <div><label>Tenure (Months)</label><input id="planLoanTenure" type="number" value="60"></div>
             </div>
-            <div class="hint">Booking payment is already completed. Please choose one option: Down Payment, Full Payment, or Loan.
-            </div>
+            <div id="planHint" class="hint">Select an active booking to configure the next payment stage.</div>
             <div style="margin-top:10px;">
                 <button class="save-btn" onclick="savePaymentPlan()">Save Payment Plan</button>
             </div>
@@ -661,6 +660,76 @@
             return bookingsCache.find(item => Number(item.id) === Number(bookingId)) || null;
         }
 
+        function refreshPaymentPlanForm() {
+            const bookingId = document.getElementById("planBookingId").value;
+            const paymentOption = document.getElementById("planPaymentOption");
+            const loanFields = document.getElementById("loanPlanFields");
+            const downAmount = document.getElementById("planDownPaymentAmount");
+            const downMethod = document.getElementById("planDownPaymentMethod");
+            const downRef = document.getElementById("planDownPaymentReference");
+            const planHint = document.getElementById("planHint");
+            const saveBtn = document.querySelector(".save-btn");
+
+            const booking = getBookingById(bookingId);
+            if (!booking) {
+                paymentOption.innerHTML = `<option value="Down Payment">Down Payment</option>`;
+                paymentOption.disabled = true;
+                downAmount.value = 0;
+                downAmount.disabled = true;
+                downMethod.disabled = true;
+                downRef.disabled = true;
+                loanFields.classList.add("hidden");
+                planHint.textContent = "Select an active booking to configure the next payment stage.";
+                saveBtn.disabled = true;
+                return;
+            }
+
+            const status = String(booking.workflowStatus || booking.status || "").toLowerCase();
+            const confirmed = status.includes("approved") || String(booking.status).toLowerCase().includes("confirmed");
+            const downVerified = Boolean(booking.downPaymentVerified);
+
+            paymentOption.disabled = false;
+            saveBtn.disabled = false;
+            downAmount.disabled = false;
+            downMethod.disabled = false;
+            downRef.disabled = false;
+
+            if (!confirmed) {
+                paymentOption.innerHTML = `<option value="Down Payment">Down Payment</option>`;
+                paymentOption.value = "Down Payment";
+                downAmount.value = booking.downPaymentAmount || 0;
+                downMethod.value = booking.downPaymentMethod || "Bank Transfer";
+                downRef.value = booking.downPaymentReference || "";
+                loanFields.classList.add("hidden");
+                planHint.textContent = "Booking must be approved by staff before payment plan selection.";
+                saveBtn.disabled = true;
+                return;
+            }
+
+            if (!downVerified) {
+                paymentOption.innerHTML = `<option value="Down Payment">Down Payment</option>`;
+                paymentOption.value = "Down Payment";
+                downAmount.value = booking.downPaymentAmount || 0;
+                downMethod.value = booking.downPaymentMethod || "Bank Transfer";
+                downRef.value = booking.downPaymentReference || "";
+                loanFields.classList.add("hidden");
+                planHint.textContent = "Submit down payment first. After staff verifies it, full payment and loan options become available.";
+            } else {
+                paymentOption.innerHTML = `
+                    <option value="Full Payment">Full Payment</option>
+                    <option value="Loan Required">Loan Required</option>
+                `;
+                paymentOption.value = booking.paymentOption && (booking.paymentOption === "Loan Required" || booking.paymentOption === "Full Payment")
+                    ? booking.paymentOption : "Full Payment";
+                downAmount.value = booking.downPaymentAmount || 0;
+                downAmount.disabled = true;
+                downMethod.disabled = true;
+                downRef.disabled = true;
+                planHint.textContent = "Down payment verified. Choose a final payment option now.";
+                loanFields.classList.toggle("hidden", paymentOption.value !== "Loan Required");
+            }
+        }
+
         function getDocumentByCategory(bookingId, category) {
             const booking = getBookingById(bookingId);
             if (!booking) return null;
@@ -688,6 +757,7 @@
             if (!data.ok || !data.bookings.length) {
                 body.innerHTML = "<tr><td colspan='6'>No bookings found.</td></tr>";
                 document.getElementById("planBookingId").innerHTML = "<option value=''>No active bookings</option>";
+                refreshPaymentPlanForm();
                 return;
             }
             bookingsCache = data.bookings || [];
@@ -709,6 +779,7 @@
             select.innerHTML = openBookings.length
                 ? openBookings.map(b => `<option value="${b.id}">#${b.id} - ${(b.car ? (b.car.brand + " " + b.car.model) : "Booking")}</option>`).join("")
                 : "<option value=''>No active bookings</option>";
+            refreshPaymentPlanForm();
         }
 
         async function loadPayments() {
@@ -884,6 +955,7 @@
             e.target.value = e.target.value.replace(/\D/g, "").slice(0, 12);
         });
 
+        document.getElementById("planBookingId").addEventListener("change", refreshPaymentPlanForm);
         document.getElementById("planPaymentOption").addEventListener("change", () => {
             const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
             document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
@@ -904,8 +976,15 @@
         async function savePaymentPlan() {
             const bookingId = document.getElementById("planBookingId").value;
             if (!bookingId) return;
+            const booking = getBookingById(bookingId);
             const paymentOption = document.getElementById("planPaymentOption").value;
             const msg = document.getElementById("planMsg");
+
+            if (booking && !Boolean(booking.downPaymentVerified) && paymentOption !== "Down Payment") {
+                msg.textContent = "Please submit the down payment first before choosing full payment or loan.";
+                return;
+            }
+
             const payload = {
                 paymentOption,
                 downPaymentAmount: Number(document.getElementById("planDownPaymentAmount").value || 0),

@@ -16,7 +16,12 @@
             "name": "CarsApplication",
             "request": "launch",
             "mainClass": "com.Dk3.Cars.CarsApplication",
-            "projectName": "Cars"
+            "projectName": "Cars",
+            "cwd": "${workspaceFolder}/Cars",
+            "classPaths": [
+                "${workspaceFolder}/Cars/target/classes",
+                "$Runtime"
+            ]
         }
     ]
 }
