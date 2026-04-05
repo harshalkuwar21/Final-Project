@@ -47,26 +47,36 @@ body{
     z-index:999;
 }
 
-.logo{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    font-size:26px;
-    font-weight:700;
-    color:#333;
-}
+ .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-.logo img{
-    width:90px;
-    height:90px;
-    border-radius:16px;
-    transition:.4s;
-}
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
+        }
 
-.logo img:hover{
-    transform:rotate(8deg) scale(1.05);
-}
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
 
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 /* nav links */
 
 .nav-links a{
@@ -430,13 +440,9 @@ input:focus{
 </head>
 <body>
 <header class="navbar">
-    <div class="logo">
-        <img src="/images/logo.png" alt="logo">
-        DK3 Cars
-    </div>
-    <div class="nav-icons">
-            <i class="fa fa-bell"></i>
-            <i class="fa fa-user-circle"></i>
+     <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 </header>
 
@@ -463,9 +469,10 @@ input:focus{
 
     <main class="main">
         <section class="panel add-showroom-panel">
-            <h3>Add New Showroom</h3>
+            <h3 id="showroomFormTitle">Add New Showroom</h3>
 
             <div class="add-showroom-form">
+                <input type="hidden" id="srId">
                 <div class="form-group">
                     <label>Showroom Name</label>
                     <input type="text" id="srName" placeholder="Enter showroom name">

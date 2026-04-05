@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadShowroomsForStaff();
     loadStaff();
-    ['sContact', 'eContact'].forEach(id => {
+    ['sContact', 'eContact', 'spContact'].forEach(id => {
         const input = document.getElementById(id);
         if (input) {
             input.addEventListener('input', () => {
@@ -9,6 +9,41 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    const bellBtn = document.getElementById('staffBellBtn');
+    if (bellBtn) {
+        bellBtn.addEventListener('click', () => {
+            openStaffNotifications();
+        });
+    }
+
+    const profileBtn = document.getElementById('staffProfileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', openStaffProfile);
+    }
+
+    const profileSaveBtn = document.getElementById('spSaveBtn');
+    if (profileSaveBtn) {
+        profileSaveBtn.addEventListener('click', saveStaffProfile);
+    }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to logout?')) return;
+            try {
+                await fetch('/user/logout', { method: 'POST' });
+            } catch (_) {
+                // ignore network errors and proceed to login
+            }
+            try {
+                sessionStorage.setItem('logoutMessage', 'Logged out successfully.');
+            } catch (_) {
+                // ignore storage errors
+            }
+            window.location.href = '/login?logout=1';
+        });
+    }
 });
 
 let showroomOptions = [];
@@ -19,6 +54,109 @@ function normalizeContact(value){
 
 function isValidContact(value){
     return value === '' || /^\d{10}$/.test(value);
+}
+
+function setStaffProfileMessage(message, isError = false) {
+    const msg = document.getElementById('spMsg');
+    if (!msg) return;
+    msg.style.color = isError ? '#b91c1c' : '#666';
+    msg.innerText = message || '';
+}
+
+function hideStaffProfile() {
+    const modal = document.getElementById('staffProfileModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openStaffNotifications() {
+    const modal = document.getElementById('staffNotificationModal');
+    const text = document.getElementById('staffNotificationText');
+    if (!modal) return;
+    if (text) {
+        text.innerText = 'No new staff notifications right now.';
+    }
+    modal.style.display = 'flex';
+}
+
+function hideStaffNotifications() {
+    const modal = document.getElementById('staffNotificationModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openStaffProfile() {
+    const modal = document.getElementById('staffProfileModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    setStaffProfileMessage('Loading profile...');
+
+    fetch('/user/profile')
+        .then(async r => {
+            const data = await r.json();
+            if (!r.ok) {
+                throw new Error(data.error || 'Unable to load profile');
+            }
+            document.getElementById('spFirst').value = data.first || '';
+            document.getElementById('spLast').value = data.last || '';
+            document.getElementById('spEmail').value = data.email || '';
+            document.getElementById('spContact').value = normalizeContact(data.contact || '');
+            document.getElementById('spPassword').value = '';
+            setStaffProfileMessage('');
+        })
+        .catch(err => {
+            console.error(err);
+            setStaffProfileMessage(err.message || 'Unable to load profile', true);
+        });
+}
+
+function saveStaffProfile() {
+    const first = document.getElementById('spFirst').value.trim();
+    const last = document.getElementById('spLast').value.trim();
+    const email = document.getElementById('spEmail').value.trim();
+    const contact = normalizeContact(document.getElementById('spContact').value);
+    const password = document.getElementById('spPassword').value;
+    const saveBtn = document.getElementById('spSaveBtn');
+
+    if (!email) {
+        setStaffProfileMessage('Email is required', true);
+        return;
+    }
+    if (!isValidContact(contact)) {
+        setStaffProfileMessage('Contact must be exactly 10 digits', true);
+        return;
+    }
+
+    const payload = { first, last, email, contact };
+    if (password && password.trim()) {
+        payload.password = password;
+    }
+
+    saveBtn.disabled = true;
+    setStaffProfileMessage('Saving profile...');
+
+    fetch('/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+        .then(async r => {
+            const data = await r.json();
+            if (!r.ok || !data.ok) {
+                throw new Error(data.error || 'Unable to save profile');
+            }
+            document.getElementById('spPassword').value = '';
+            setStaffProfileMessage('Profile updated successfully.');
+        })
+        .catch(err => {
+            console.error(err);
+            setStaffProfileMessage(err.message || 'Unable to save profile', true);
+        })
+        .finally(() => {
+            saveBtn.disabled = false;
+        });
 }
 
 function loadShowroomsForStaff(){
@@ -158,3 +296,18 @@ function deleteStaff(id){
         .then(()=>{ loadStaff(); })
         .catch(err=>{ console.error(err); alert('Failed to delete'); });
 }
+
+window.addEventListener('click', (event) => {
+    const editModal = document.getElementById('editModal');
+    const notificationModal = document.getElementById('staffNotificationModal');
+    const profileModal = document.getElementById('staffProfileModal');
+    if (event.target === editModal) {
+        hideEdit();
+    }
+    if (event.target === notificationModal) {
+        hideStaffNotifications();
+    }
+    if (event.target === profileModal) {
+        hideStaffProfile();
+    }
+});

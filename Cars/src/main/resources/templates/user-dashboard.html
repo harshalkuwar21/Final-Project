@@ -26,14 +26,14 @@
             box-sizing: border-box;
             font-family: var(--font-body);
         }
-
-        body {
-            min-height: 100vh;
-            background:
-                linear-gradient(135deg, rgba(108, 78, 246, 0.3), rgba(159, 123, 255, 0.3)),
-                url("/IMAGES/staff5.jpg") center / cover fixed;
-            color: var(--text);
-        }
+body {
+    min-height: 100vh;
+    background:
+        linear-gradient(120deg, #eef3ff, #f9fbff), 
+        linear-gradient(135deg, rgba(220, 219, 228, 0.3), rgba(157, 153, 171, 0.3)), /* overlay */
+        url("/IMAGES/staff5.jpg") center / cover fixed;
+    color: var(--text);
+}
 
         .page {
             max-width: 1400px;
@@ -74,6 +74,18 @@
 
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
         }
 
         .nav-links {
@@ -848,6 +860,184 @@
             text-transform: uppercase;
         }
 
+        .review-share-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .review-form-card,
+        .review-list-card {
+            background: #fff;
+            border: 1px solid #e2deef;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 22px rgba(16, 24, 54, .07);
+        }
+
+        .review-note {
+            color: #5d6782;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .review-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .review-form-row {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .review-form input,
+        .review-form select,
+        .review-form textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #d8dff1;
+            background: #f9fbff;
+            padding: 13px 14px;
+            color: #1d2747;
+            font-size: 15px;
+        }
+
+        .review-form textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .review-submit {
+            width: fit-content;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 26px rgba(108, 78, 246, .22);
+        }
+
+        .review-submit[disabled] {
+            opacity: .7;
+            cursor: wait;
+        }
+
+        .review-status {
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .review-side-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .review-side-head h4 {
+            font-size: 24px;
+        }
+
+        .review-side-head a {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .review-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .review-item {
+            border-radius: 16px;
+            border: 1px solid #e3e8f6;
+            background: #f8faff;
+            padding: 16px;
+        }
+
+        .review-item-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .review-item h5 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .review-rating-badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #fff3d6;
+            color: #9a6200;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .review-rating-badge i {
+            margin-right: 2px;
+        }
+
+        .review-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .review-delete-btn {
+            border: 1px solid #fecaca;
+            background: #fff1f2;
+            color: #b91c1c;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .review-delete-btn:hover {
+            background: #ffe4e6;
+            transform: translateY(-1px);
+        }
+
+        .review-item p {
+            color: #59647e;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .review-item-meta {
+            margin-top: 10px;
+            color: #7a84a0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .review-empty {
+            border-radius: 16px;
+            border: 1px dashed #cfd8ec;
+            background: #fbfcff;
+            color: #6d7691;
+            padding: 22px;
+            text-align: center;
+        }
+
         /* ================= BRANDS ================= */
         .brands-section {
             margin-top: 22px;
@@ -1019,6 +1209,10 @@
                 grid-template-columns: 1fr 1fr;
             }
 
+            .review-share-grid {
+                grid-template-columns: 1fr;
+            }
+
             .promo-grid,
             .owner-grid,
             .quick-links,
@@ -1102,6 +1296,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .review-form-row {
+                grid-template-columns: 1fr;
+            }
+
             .promo-grid,
             .owner-grid,
             .quick-links,
@@ -1117,13 +1315,14 @@
     <header class="navbar">
         <div class="logo">
             <img src="/images/logo.png" alt="DK3 Cars">
-            <span>DK3 Cars</span>
+            <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>             
         </div>
         <nav class="nav-links">
             <a class="active" href="/user-dashboard">Home</a>
             <a href="/user-panel/cars">Inventory</a>
             <a href="/user-panel/bookings">Bookings</a>
-            <a href="/user-panel/showrooms">Showrooms</a>
+            <!-- <a href="/user-panel/showrooms">Showrooms</a> -->
+            <a href="#reviewShare">Reviews</a>
         </nav>
         <div class="nav-icons">
             <div class="hello-user">Hello User</div>
@@ -1169,12 +1368,6 @@
             <div class="hero-actions">
                 <button class="hero-btn primary" onclick="location.href='/user-panel/cars'">View Inventory</button>
                 <button class="hero-btn light" onclick="location.href='/user-panel/showrooms'">Contact Sales</button>
-            </div>
-            <div class="brand-row">
-                <span class="chip">BMW</span>
-                <span class="chip">HYUNDAI</span>
-                <span class="chip">TATA</span>
-                <span class="chip">MERCEDES</span>
             </div>
         </div>
     </section>
@@ -1296,6 +1489,44 @@
                 <span class="eyebrow">Easy Support</span>
                 <h4>Real Showroom Help</h4>
                 <p>Call the showroom directly, open the map, or go to contact details whenever you need fast assistance.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="section" id="reviewShare">
+        <h3>Share Your Review</h3>
+        <div class="review-share-grid">
+            <article class="review-form-card">
+                <p class="review-note">This review is stored in the database and also shown on the public home page review section.</p>
+                <form id="homeReviewForm" class="review-form">
+                    <div class="review-form-row">
+                        <input type="text" id="reviewCity" placeholder="Your city" maxlength="60" required>
+                        <input type="text" id="reviewShowroom" placeholder="Showroom visited (optional)" maxlength="80">
+                    </div>
+                    <div class="review-form-row">
+                        <input type="text" id="reviewTitle" placeholder="Review title" maxlength="120" required>
+                        <select id="reviewRating" required>
+                            <option value="5">5 Star</option>
+                            <option value="4">4 Star</option>
+                            <option value="3">3 Star</option>
+                            <option value="2">2 Star</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <textarea id="reviewMessage" placeholder="Write your experience with DK3 Cars..." maxlength="1200" required></textarea>
+                    <button type="submit" class="review-submit" id="reviewSubmitBtn">Submit Review</button>
+                </form>
+                <div class="review-status" id="reviewStatus"></div>
+            </article>
+
+            <article class="review-list-card">
+                <div class="review-side-head">
+                    <h4>My Recent Reviews</h4>
+                    <a href="/#reviews">Open Home Reviews</a>
+                </div>
+                <div id="myReviewList" class="review-list">
+                    <div class="review-empty">Loading your saved reviews...</div>
+                </div>
             </article>
         </div>
     </section>
@@ -1632,7 +1863,157 @@
             document.getElementById("brandGrid").innerHTML = '<div class="car-card"><div class="car-body">Unable to load brands.</div></div>';
         }
     }
+    function formatReviewDate(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+    }
+    function renderMyReviews(reviews) {
+        const box = document.getElementById("myReviewList");
+        if (!box) return;
+        if (!Array.isArray(reviews) || !reviews.length) {
+            box.innerHTML = '<div class="review-empty">You have not submitted any review yet. Submit one here and it will also appear on the home page.</div>';
+            return;
+        }
+        box.innerHTML = reviews.map(review => `
+            <article class="review-item">
+                <div class="review-item-top">
+                    <h5>${escapeHtml(review.title || "Customer Review")}</h5>
+                    <span class="review-rating-badge">${"★".repeat(Number(review.rating || 5))}</span>
+                </div>
+                <p>${escapeHtml(review.message || "")}</p>
+                <div class="review-item-meta">
+                    ${escapeHtml(review.city || "India")}
+                    ${review.showroomVisited ? ` • ${escapeHtml(review.showroomVisited)}` : ""}
+                    ${review.createdAt ? ` • ${escapeHtml(formatReviewDate(review.createdAt))}` : ""}
+                </div>
+            </article>
+        `).join("");
+        const reviewCards = box.querySelectorAll(".review-item");
+        reviewCards.forEach((card, index) => {
+            const review = reviews[index];
+            if (!review || !review.id) return;
+
+            const top = card.querySelector(".review-item-top");
+            if (!top) return;
+
+            let actions = top.querySelector(".review-item-actions");
+            if (!actions) {
+                actions = document.createElement("div");
+                actions.className = "review-item-actions";
+                const ratingBadge = top.querySelector(".review-rating-badge");
+                if (ratingBadge) {
+                    top.removeChild(ratingBadge);
+                    actions.appendChild(ratingBadge);
+                }
+                top.appendChild(actions);
+            }
+
+            if (!actions.querySelector(".review-delete-btn")) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "review-delete-btn";
+                button.innerHTML = '<i class="fa-solid fa-trash"></i> Delete';
+                button.addEventListener("click", () => deleteMyReview(review.id));
+                actions.appendChild(button);
+            }
+        });
+    }
+    async function deleteMyReview(reviewId) {
+        if (!reviewId) return;
+        const status = document.getElementById("reviewStatus");
+        if (!confirm("Delete this review from your dashboard and home page?")) return;
+
+        if (status) {
+            status.style.color = "#4c5a7d";
+            status.textContent = "Deleting your review...";
+        }
+
+        try {
+            const res = await fetch(`/user-panel/api/home-reviews/${reviewId}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || data.message || "Unable to delete review");
+            }
+
+            if (status) {
+                status.style.color = "#166534";
+                status.textContent = data.message || "Review deleted successfully.";
+            }
+            await loadMyReviews();
+        } catch (e) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = e.message || "Unable to delete review right now.";
+            }
+        }
+    }
+    async function loadMyReviews() {
+        try {
+            const res = await fetch("/user-panel/api/home-reviews");
+            const data = await res.json();
+            renderMyReviews(data && data.ok ? data.reviews || [] : []);
+        } catch (e) {
+            const box = document.getElementById("myReviewList");
+            if (box) {
+                box.innerHTML = '<div class="review-empty">Unable to load your reviews right now.</div>';
+            }
+        }
+    }
+    async function submitHomeReview(event) {
+        event.preventDefault();
+        const city = document.getElementById("reviewCity").value.trim();
+        const showroomVisited = document.getElementById("reviewShowroom").value.trim();
+        const title = document.getElementById("reviewTitle").value.trim();
+        const rating = Number(document.getElementById("reviewRating").value);
+        const message = document.getElementById("reviewMessage").value.trim();
+        const status = document.getElementById("reviewStatus");
+        const btn = document.getElementById("reviewSubmitBtn");
+
+        if (!city || !title || !message) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = "City, title, and review message are required.";
+            }
+            return;
+        }
+
+        btn.disabled = true;
+        if (status) {
+            status.style.color = "#4c5a7d";
+            status.textContent = "Saving your review...";
+        }
+
+        try {
+            const res = await fetch("/user-panel/api/home-reviews", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ city, showroomVisited, title, rating, message })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || data.message || "Unable to save review");
+            }
+
+            document.getElementById("homeReviewForm").reset();
+            if (status) {
+                status.style.color = "#166534";
+                status.textContent = data.message || "Review saved successfully.";
+            }
+            await loadMyReviews();
+        } catch (e) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = e.message || "Unable to save review right now.";
+            }
+        } finally {
+            btn.disabled = false;
+        }
+    }
     document.getElementById("searchBtn").addEventListener("click", applyFilterAndRender);
+    document.getElementById("homeReviewForm").addEventListener("submit", submitHomeReview);
     document.getElementById("likedNavBtn").addEventListener("click", () => { location.href = "/user-panel/liked-cars"; });
     document.getElementById("profileNavBtn").addEventListener("click", () => { location.href = "/user-panel/profile"; });
     document.getElementById("mapNavBtn").addEventListener("click", () => { location.href = "/user-panel/map"; });
@@ -1660,7 +2041,12 @@
         try {
             await fetch("/user/logout", { method: "POST" });
         } finally {
-            location.href = "/login";
+            try {
+                sessionStorage.setItem("logoutMessage", "Logged out successfully.");
+            } catch (_) {
+                // ignore storage errors
+            }
+            location.href = "/login?logout=1";
         }
     });
     likedCarIds = getStoredLikedCars();
@@ -1672,6 +2058,7 @@
     loadDashboard();
     loadNotificationCount();
     loadUserNotifications();
+    loadMyReviews();
 </script>
 </body>
 </html>

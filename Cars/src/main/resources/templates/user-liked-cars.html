@@ -79,6 +79,163 @@ grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
 gap:18px;
 }
 
+.compare{
+margin-top:20px;
+background:#fff;
+padding:18px;
+border-radius:18px;
+box-shadow:0 12px 30px rgba(0,0,0,0.08);
+border:1px solid #e8ebf5;
+}
+
+.compare-head{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:16px;
+flex-wrap:wrap;
+}
+
+.compare-title{
+font-size:21px;
+font-weight:700;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.compare-title i{
+color:#6c4ef6;
+}
+
+.compare-note{
+margin-top:6px;
+font-size:13px;
+color:#66758d;
+line-height:1.6;
+}
+
+.compare-result{
+margin-top:16px;
+}
+
+.compare-empty{
+padding:16px;
+border-radius:14px;
+border:1px dashed #d8ddf0;
+background:#f8f9ff;
+color:#647188;
+font-size:13px;
+}
+
+.winner-box{
+padding:18px;
+border-radius:16px;
+background:linear-gradient(135deg,#f1edff,#faf7ff);
+border:1px solid #ddd4ff;
+margin-bottom:14px;
+}
+
+.winner-chip{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:7px 12px;
+border-radius:999px;
+background:#6c4ef6;
+color:#fff;
+font-size:12px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.winner-box h4{
+font-size:18px;
+margin-bottom:8px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.reason-list{
+display:flex;
+gap:8px;
+flex-wrap:wrap;
+margin-top:12px;
+}
+
+.reason-list span{
+padding:8px 12px;
+border-radius:999px;
+background:#fff;
+border:1px solid #e1ddfb;
+font-size:12px;
+font-weight:600;
+color:#4d45a5;
+}
+
+.compare-cta{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:14px;
+}
+
+.compare-cta a{
+text-decoration:none;
+padding:10px 14px;
+border-radius:10px;
+font-size:13px;
+font-weight:600;
+}
+
+.compare-cta .primary-link{
+background:linear-gradient(135deg,#6c4ef6,#8d77ff);
+color:#fff;
+}
+
+.compare-cta .secondary-link{
+background:#eef2ff;
+color:#4259b6;
+}
+
+.compare-grid{
+display:grid;
+grid-template-columns:200px 1fr 1fr;
+gap:10px;
+}
+
+.compare-cell{
+padding:14px;
+border-radius:14px;
+background:#fbfbff;
+border:1px solid #e6e8f6;
+}
+
+.compare-cell.label{
+background:#f0f2ff;
+font-weight:700;
+color:#3d4fb2;
+}
+
+.compare-cell.better{
+background:linear-gradient(135deg,#eefff8,#fbfffd);
+border-color:#99dfbf;
+}
+
+.compare-tag{
+margin-top:12px;
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 12px;
+background:#eef2ff;
+color:#4259b6;
+border-radius:999px;
+font-size:13px;
+font-weight:600;
+}
+
 .card{
 background:#fff;
 border-radius:18px;
@@ -143,6 +300,26 @@ grid-template-columns:1fr 1fr;
 gap:10px;
 }
 
+.card-select{
+margin-top:12px;
+}
+
+.card-select label{
+display:inline-flex;
+align-items:center;
+gap:8px;
+padding:8px 12px;
+border-radius:999px;
+background:#f0f2ff;
+color:#3a51a7;
+font-size:13px;
+font-weight:600;
+}
+
+.card-select input{
+margin:0;
+}
+
 .actions a{
 text-align:center;
 text-decoration:none;
@@ -181,6 +358,10 @@ padding:16px;
 .actions{
 grid-template-columns:1fr;
 }
+
+.compare-grid{
+grid-template-columns:1fr;
+}
 }
 </style>
 </head>
@@ -195,6 +376,17 @@ grid-template-columns:1fr;
             <a class="light-link" href="/user-dashboard">Back to Dashboard</a>
             <a class="primary-link" href="/user-panel/cars">Browse More Cars</a>
         </div>
+    </div>
+
+    <div class="compare">
+        <div class="compare-head">
+            <div>
+                <div class="compare-title"><i class="fa-solid fa-scale-balanced"></i> Compare From Liked Cars</div>
+                <div class="compare-note">Pick any 2 liked cars and we will show which one looks stronger based on price, mileage, reviews and key specs.</div>
+            </div>
+            <button type="button" class="btn-primary" onclick="compareSelected()">Compare Selected</button>
+        </div>
+        <div id="compareResult" class="compare-result"></div>
     </div>
 
     <div id="likedCarsGrid" class="grid"></div>
@@ -234,6 +426,84 @@ car.showroom && car.showroom.name
 ].filter(Boolean).join(" | ");
 }
 
+function carName(car){
+return `${car.brand || ""} ${car.model || ""}`.trim();
+}
+
+function comparePlaceholder(message){
+return `<div class="compare-empty"><i class="fa-regular fa-hand-pointer"></i> ${message}</div>`;
+}
+
+function handleCompareSelection(input){
+const selected=[...document.querySelectorAll(".cmp:checked")];
+if(selected.length>2){
+input.checked=false;
+alert("Please select only 2 cars for comparison.");
+return;
+}
+if(selected.length<2){
+document.getElementById("compareResult").innerHTML=comparePlaceholder("Select one more liked car to compare both side by side.");
+}
+}
+
+function renderCompareResult(data){
+const first=data.cars[0];
+const second=data.cars[1];
+const summary=data.summary || {};
+const rows=Array.isArray(data.comparison) ? data.comparison : [];
+const reasons=(summary.reasons || []).map(reason=>`<span>${reason}</span>`).join("");
+const ctaHtml=summary.draw ? `
+<div class="compare-cta">
+    <a class="secondary-link" href="/user-panel/car-details?carId=${first.id}">View ${carName(first)}</a>
+    <a class="secondary-link" href="/user-panel/car-details?carId=${second.id}">View ${carName(second)}</a>
+</div>
+` : `
+<div class="compare-cta">
+    <a class="primary-link" href="/user-panel/car-details?carId=${summary.winnerId}">View Better Car Details</a>
+</div>
+`;
+
+document.getElementById("compareResult").innerHTML=`
+<div class="winner-box">
+    <div class="winner-chip"><i class="fa-solid fa-trophy"></i> ${summary.draw ? "Balanced Match" : "Best Overall Pick"}</div>
+    <h4>${summary.draw ? '<i class="fa-solid fa-equals"></i>' : '<i class="fa-solid fa-medal"></i>'}${summary.winnerName || "Comparison Result"}</h4>
+    <div>${summary.headline || "Comparison is ready."}</div>
+    <div class="reason-list">${reasons || "<span>Both cars are closely matched.</span>"}</div>
+    ${ctaHtml}
+</div>
+<div class="compare-grid">
+    <div class="compare-cell label">Details</div>
+    <div class="compare-cell"><strong>${carName(first)}</strong><div class="compare-tag"><i class="fa-solid fa-car-side"></i>${money(first.price)}</div></div>
+    <div class="compare-cell"><strong>${carName(second)}</strong><div class="compare-tag"><i class="fa-solid fa-car-side"></i>${money(second.price)}</div></div>
+    ${rows.map(row=>`
+        <div class="compare-cell label">${row.label}</div>
+        <div class="compare-cell ${row.winner===first.id ? "better" : ""}">${row.firstValue || "N/A"}</div>
+        <div class="compare-cell ${row.winner===second.id ? "better" : ""}">${row.secondValue || "N/A"}</div>
+    `).join("")}
+</div>
+`;
+}
+
+async function compareSelected(){
+const ids=[...document.querySelectorAll(".cmp:checked")].map(input=>input.value);
+if(ids.length!==2){
+alert("Select exactly 2 liked cars for comparison.");
+return;
+}
+
+const body=new URLSearchParams();
+ids.forEach(id=>body.append("carIds", id));
+const res=await fetch("/user-panel/api/compare",{method:"POST",body});
+const data=await res.json();
+
+if(!data.ok){
+document.getElementById("compareResult").innerHTML=comparePlaceholder(data.error || "Unable to compare the selected liked cars.");
+return;
+}
+
+renderCompareResult(data);
+}
+
 function removeLikedCar(carId){
 likedCarIds = likedCarIds.filter(id => id !== Number(carId));
 saveLikedCars();
@@ -264,6 +534,9 @@ grid.innerHTML = likedCars.map(car => `
         <h3>${car.brand || ''} ${car.model || ''}</h3>
         <div class="price">${money(car.price)}</div>
         <div class="meta">${carMeta(car) || "Premium features available"}</div>
+        <div class="card-select">
+            <label><input type="checkbox" class="cmp" value="${car.id}" onchange="handleCompareSelection(this)"> Compare this car</label>
+        </div>
         <div class="actions">
             <a class="btn-secondary" href="/user-panel/car-details?carId=${car.id}">View Details</a>
             <a class="btn-primary" href="/user-panel/buy-now?carId=${car.id}">Book Car</a>
@@ -287,6 +560,7 @@ renderLikedCars();
 }
 
 window.removeLikedCar = removeLikedCar;
+document.getElementById("compareResult").innerHTML=comparePlaceholder("Choose any 2 liked cars to see which one is better for you.");
 loadLikedCars();
 </script>
 </body>

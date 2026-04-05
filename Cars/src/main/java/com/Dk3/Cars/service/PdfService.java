@@ -99,15 +99,76 @@ public class PdfService {
 
     public byte[] generateBookingProformaInvoicePdf(Booking b) throws IOException {
         return render("Proforma Invoice", "Estimated Vehicle Booking Invoice",
-                "This proforma invoice contains the current estimated cost breakup based on the booking details submitted.",
+                "This proforma invoice is issued against the confirmed booking request and reflects the current estimated on-road value of the selected vehicle.",
                 rows("Proforma No.", ref("PI", b.getId()),
-                        "Issue Date", fmt(b.getBookingDate()),
-                        "Booking Status", b.getWorkflowStatus(),
+                        "Issue Date", fmt(pick(b.getBookingDate(), LocalDate.now())),
+                        "Valid Until", fmt(pick(b.getBookingDate(), LocalDate.now()).plusDays(15)),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Customer Reference", customerName(b),
+                        "Delivery Showroom", showroom(b),
+                        "Dealer GSTIN", dealerGstin(),
+                        "Dealer Contact", showroomContact(b)),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Ex-Showroom Price", money(b.getCar() != null ? b.getCar().getPrice() : null),
+                        "GST", money(b.getGstAmount()),
+                        "RTO Charges", money(b.getRtoCharges()),
+                        "Road Tax", money(b.getRoadTaxAmount()),
+                        "Insurance", money(b.getInsuranceAmount()),
+                        "FASTag", money(b.getFastagCharges()),
+                        "Handling Charges", money(b.getHandlingCharges()),
+                        "Accessories", money(b.getAccessoriesAmount()),
+                        "Extended Warranty", money(b.getExtendedWarrantyAmount()),
+                        "TCS", money(b.getTcsAmount()),
+                        "Booking Amount Received", money(b.getBookingAmount()),
+                        "Estimated Balance", money(b.getRemainingAmount()),
+                        "Estimated On-Road Total", money(b.getTotalAmount())),
+                "This proforma invoice is provisional and subject to stock allotment, insurance, registration, tax and finance confirmation.");
+    }
+
+    public byte[] generateAllotmentLetterPdf(Booking b) throws IOException {
+        return render("Vehicle Allotment Letter", "Vehicle Allocation Confirmation",
+                "This letter confirms that the booked vehicle has been allotted in the customer name and is being prepared for invoicing and delivery formalities.",
+                rows("Allotment Letter No.", ref("ALT", b.getId()),
+                        "Issue Date", fmt(LocalDate.now()),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Allotted To", customerName(b),
+                        "Showroom", showroom(b),
+                        "Showroom Address", showroomAddress(b),
+                        "Dealer Contact", showroomContact(b),
                         "Expected Delivery", fmt(b.getExpectedDeliveryDate())),
                 customerRows(b),
                 vehicleRows(b),
-                finalAmountRows(b),
-                "This proforma invoice is provisional and subject to finance, insurance, RTO and delivery stage confirmation.");
+                rows("Allocated Vehicle Status", "Reserved for customer delivery",
+                        "VIN / Chassis", b.getCar() != null ? b.getCar().getVin() : null,
+                        "Engine Number", b.getCar() != null ? b.getCar().getEngineNo() : null,
+                        "Color", b.getCar() != null ? b.getCar().getColor() : null,
+                        "Payment Option", b.getPaymentOption(),
+                        "Booking Amount", money(b.getBookingAmount()),
+                        "Booking Stage", b.getWorkflowStatus()),
+                "Kindly carry your identity proof, booking acknowledgement and payment references at the time of invoice and delivery processing.");
+    }
+
+    public byte[] generateDeliveryConfirmationPdf(Booking b) throws IOException {
+        return render("Delivery Confirmation Letter", "Customer Delivery Schedule Confirmation",
+                "This delivery confirmation records the agreed vehicle handover plan based on the booking schedule and showroom readiness status.",
+                rows("Delivery Confirmation No.", ref("DCF", b.getId()),
+                        "Issue Date", fmt(LocalDate.now()),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Customer", customerName(b),
+                        "Delivery Date", fmt(b.getExpectedDeliveryDate()),
+                        "Delivery Slot", b.getDeliveryTimeSlot(),
+                        "Delivery Type", b.getDeliveryType(),
+                        "Showroom Contact", showroomContact(b)),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Handover Location", "Home Delivery".equalsIgnoreCase(b.getDeliveryType()) ? customerAddress(b) : showroomAddress(b),
+                        "Original Documents Required", "Identity proof, PAN, payment receipts",
+                        "Vehicle Inspection", "To be completed before handover",
+                        "Outstanding Amount", money(b.getRemainingAmount()),
+                        "Insurance Status", blankSafe(b.getInsurancePolicyNumber()) ? "Pending" : "Ready",
+                        "Registration Status", blankSafe(b.getTemporaryRegistrationNumber()) ? "Pending" : "Temporary registration prepared"),
+                "Delivery timing may be adjusted in case of finance disbursal, registration dependency or customer document mismatch.");
     }
 
     public byte[] generateInsurancePolicyPdf(Booking b) throws IOException {
@@ -120,10 +181,28 @@ public class PdfService {
 
     public byte[] generateTemporaryRegistrationPdf(Booking b) throws IOException {
         LocalDate issue = LocalDate.now();
-        return render("Temporary Registration Certificate", "Delivery Movement Approval", "Temporary registration generated for dealer delivery and customer handover.",
-                rows("Temporary Registration No.", regNo(b), "Issuing Authority", b.getRtoAuthority(), "Issue Date", fmt(issue), "Valid Until", fmt(issue.plusDays(30))),
-                customerRows(b), vehicleRows(b), rows("Road Tax Status", amtPositive(b.getRoadTaxAmount()) ? "Paid" : "Included", "RTO Application", "Submitted", "Form 20/21/22", "Submitted"),
-                "This temporary registration copy is intended for showroom and customer reference.");
+        return render("Temporary Registration Certificate", "Dealer Generated Temporary Registration Copy",
+                "Temporary registration certificate prepared for road movement, handover processing and interim customer use until permanent registration completion.",
+                rows("Temporary Registration No.", regNo(b),
+                        "Issuing Authority", b.getRtoAuthority(),
+                        "Issue Date", fmt(issue),
+                        "Valid Until", fmt(issue.plusDays(30)),
+                        "Application Status", b.getRtoApplicationStatus(),
+                        "Dealer GSTIN", dealerGstin(),
+                        "Showroom", showroom(b),
+                        "Showroom Address", showroomAddress(b)),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Vehicle Class", "Motor Car",
+                        "Body Type", "Passenger Vehicle",
+                        "Fuel Type", b.getCar() != null ? b.getCar().getFuelType() : null,
+                        "Color", b.getCar() != null ? b.getCar().getColor() : null,
+                        "Seating Capacity", b.getCar() != null ? b.getCar().getSeatingCapacity() : null,
+                        "Road Tax Status", amtPositive(b.getRoadTaxAmount()) ? "Paid" : "Included",
+                        "Form 20", yn(b.getForm20Submitted()),
+                        "Form 21", yn(b.getForm21Submitted()),
+                        "Form 22", yn(b.getForm22Submitted())),
+                "This is a showroom-generated temporary registration copy and remains subject to final RTO endorsement.");
     }
 
     public byte[] generateRegistrationCertificatePdf(Booking b) throws IOException {
@@ -173,10 +252,32 @@ public class PdfService {
     }
 
     public byte[] generateFinalInvoicePdf(Booking b) throws IOException {
-        return render("Final Tax Invoice / Sale Bill", "Customer Delivery Billing", "Final vehicle invoice issued after payment completion and delivery clearance.",
-                rows("Invoice Number", ref("INV", b.getId()), "Sale Bill Number", ref("SB", b.getId()), "Invoice Date", fmt(LocalDate.now()), "Payment Mode", b.getPaymentMode()),
-                customerRows(b), vehicleRows(b), finalAmountRows(b),
-                "This invoice should be retained with the customer handover set.");
+        return render("Final Tax Invoice / Sale Bill", "Customer Delivery Billing",
+                "Final sale invoice issued against the delivered vehicle after payment verification, tax allocation and delivery readiness clearance.",
+                rows("Invoice Number", ref("INV", b.getId()),
+                        "Sale Bill Number", ref("SB", b.getId()),
+                        "Invoice Date", fmt(LocalDate.now()),
+                        "Booking ID", ref("BK", b.getId()),
+                        "Payment Mode", b.getPaymentMode(),
+                        "Dealer GSTIN", dealerGstin(),
+                        "Dealer PAN", dealerPan(),
+                        "Showroom", showroom(b)),
+                customerRows(b),
+                vehicleRows(b),
+                rows("Ex-Showroom Price", money(b.getCar() != null ? b.getCar().getPrice() : null),
+                        "GST", money(b.getGstAmount()),
+                        "RTO Charges", money(b.getRtoCharges()),
+                        "Road Tax", money(b.getRoadTaxAmount()),
+                        "Insurance", money(b.getInsuranceAmount()),
+                        "FASTag", money(b.getFastagCharges()),
+                        "Handling Charges", money(b.getHandlingCharges()),
+                        "Accessories", money(b.getAccessoriesAmount()),
+                        "Extended Warranty", money(b.getExtendedWarrantyAmount()),
+                        "TCS", money(b.getTcsAmount()),
+                        "Gross Invoice Value", money(b.getTotalAmount()),
+                        "Amount Received", money(b.getPaidAmount()),
+                        "Balance Payable", money(b.getRemainingAmount())),
+                "This sale bill forms part of the customer delivery set and should be preserved with registration, insurance and warranty documents.");
     }
 
     public byte[] generateFinanceSanctionLetterPdf(Booking b, LoanDetail loan) throws IOException {
@@ -261,6 +362,11 @@ public class PdfService {
     private String carName(Booking b) { return b.getCar() == null ? "Vehicle not linked" : b.getCar().getBrand() + " " + b.getCar().getModel() + (b.getCar().getVariant() != null && !b.getCar().getVariant().isBlank() ? " " + b.getCar().getVariant() : ""); }
     private String fuelTransmission(Booking b) { return b.getCar() == null ? "Not Available" : safe(b.getCar().getFuelType()) + " / " + safe(b.getCar().getTransmission()); }
     private String showroom(Booking b) { return b.getCar() != null && b.getCar().getShowroom() != null ? b.getCar().getShowroom().getName() : "DK3 Cars Showroom"; }
+    private String showroomAddress(Booking b) { return b.getCar() != null && b.getCar().getShowroom() != null ? safe(b.getCar().getShowroom().getAddress()) + (b.getCar().getShowroom().getCity() != null ? ", " + safe(b.getCar().getShowroom().getCity()) : "") : "Showroom address not available"; }
+    private String showroomContact(Booking b) { return b.getCar() != null && b.getCar().getShowroom() != null ? b.getCar().getShowroom().getContactNumber() : "Showroom contact not available"; }
+    private String dealerGstin() { return "27AAHCD8432N1ZX"; }
+    private String dealerPan() { return "AAHCD8432N"; }
+    private boolean blankSafe(String value) { return value == null || value.isBlank(); }
     private String regNo(Booking b) { return b.getTemporaryRegistrationNumber() != null && !b.getTemporaryRegistrationNumber().isBlank() ? b.getTemporaryRegistrationNumber() : "MH-TEMP-" + safeId(b.getId()); }
     private String aadhaar(String value) { String d = value == null ? "" : value.replaceAll("\\D", ""); return d.length() >= 4 ? "XXXX-XXXX-" + d.substring(d.length() - 4) : safe(value); }
     private String money(Double value) { return "Rs. " + MONEY.format(value == null ? 0D : value); }

@@ -19,9 +19,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class BookingService {
+
+    private static final Set<String> CUSTOMER_EDITABLE_DOCUMENT_CATEGORIES = Set.of(
+            "AadhaarPhoto",
+            "PanPhoto",
+            "SignaturePhoto",
+            "PassportPhoto",
+            "PaymentScreenshot",
+            "DownPaymentReceipt"
+    );
 
     @Autowired private BookingRepository bookingRepository;
     @Autowired private PdfService pdfService;
@@ -54,11 +64,55 @@ public class BookingService {
         bookingRepository.findById(bookingId).ifPresent(this::sendInitialBookingEmailPack);
     }
 
+    public boolean isCustomerEditableDocument(String category) {
+        return category != null && CUSTOMER_EDITABLE_DOCUMENT_CATEGORIES.contains(category);
+    }
+
+    public Optional<String> getBookingDocumentUrl(Booking booking, String category) {
+        if (booking == null || category == null || category.isBlank()) return Optional.empty();
+        return Optional.ofNullable(switch (category) {
+            case "AadhaarPhoto" -> booking.getAadhaarPhotoUrl();
+            case "PanPhoto" -> booking.getPanPhotoUrl();
+            case "SignaturePhoto" -> booking.getSignaturePhotoUrl();
+            case "PassportPhoto" -> booking.getPassportPhotoUrl();
+            case "PaymentScreenshot" -> booking.getPaymentScreenshotUrl();
+            case "DownPaymentReceipt" -> booking.getDownPaymentReceiptUrl();
+            case "BookingReceipt" -> booking.getBookingReceiptUrl();
+            case "ProformaInvoice" -> booking.getProformaInvoiceUrl();
+            case "AllotmentLetter" -> booking.getAllotmentLetterUrl();
+            case "DeliveryConfirmation" -> booking.getDeliveryConfirmationLetterUrl();
+            case "InsurancePolicy" -> booking.getInsuranceDocumentUrl();
+            case "TemporaryRegistration" -> booking.getTemporaryRegistrationUrl();
+            case "FinalInvoice" -> booking.getFinalInvoiceUrl();
+            case "RegistrationCertificate" -> booking.getRegistrationCertificateUrl();
+            case "PucCertificate" -> booking.getPucCertificateUrl();
+            case "WarrantyDocument" -> booking.getWarrantyDocumentUrl();
+            case "ServiceBook" -> booking.getServiceBookUrl();
+            case "DeliveryNote" -> booking.getDeliveryNoteUrl();
+            case "RoadTaxReceipt" -> booking.getRoadTaxReceiptUrl();
+            case "FinanceSanctionLetter" -> booking.getFinanceSanctionLetterUrl();
+            case "FinanceAgreement" -> booking.getFinanceAgreementUrl();
+            case "LoanDocument" -> booking.getLoanDocumentUrl();
+            default -> null;
+        });
+    }
+
+    public boolean deleteBookingDocument(Booking booking, String category) {
+        String currentUrl = getBookingDocumentUrl(booking, category).orElse(null);
+        if (booking == null || blank(currentUrl)) return false;
+
+        clearBookingDocumentField(booking, category);
+        booking.setStatusUpdatedAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+        deleteStoredFile(currentUrl);
+        return true;
+    }
+
     public Booking generateInsuranceDocuments(Booking booking) {
         if (booking == null || blank(booking.getInsurancePolicyNumber())) return booking;
         try {
             byte[] insurance = pdfService.generateInsurancePolicyPdf(booking);
-            booking.setInsuranceDocumentUrl(storeIfMissing(booking.getInsuranceDocumentUrl(), booking.getId(), "insurance-policy", insurance));
+            booking.setInsuranceDocumentUrl(storeGeneratedDocument(booking.getInsuranceDocumentUrl(), booking.getId(), "insurance-policy", insurance));
             return bookingRepository.save(booking);
         } catch (IOException ignored) {
             return booking;
@@ -71,9 +125,9 @@ public class BookingService {
             byte[] tempReg = pdfService.generateTemporaryRegistrationPdf(booking);
             byte[] rc = pdfService.generateRegistrationCertificatePdf(booking);
             byte[] tax = pdfService.generateRoadTaxReceiptPdf(booking);
-            booking.setTemporaryRegistrationUrl(storeIfMissing(booking.getTemporaryRegistrationUrl(), booking.getId(), "temporary-registration", tempReg));
-            booking.setRegistrationCertificateUrl(storeIfMissing(booking.getRegistrationCertificateUrl(), booking.getId(), "registration-certificate", rc));
-            booking.setRoadTaxReceiptUrl(storeIfMissing(booking.getRoadTaxReceiptUrl(), booking.getId(), "road-tax-receipt", tax));
+            booking.setTemporaryRegistrationUrl(storeGeneratedDocument(booking.getTemporaryRegistrationUrl(), booking.getId(), "temporary-registration", tempReg));
+            booking.setRegistrationCertificateUrl(storeGeneratedDocument(booking.getRegistrationCertificateUrl(), booking.getId(), "registration-certificate", rc));
+            booking.setRoadTaxReceiptUrl(storeGeneratedDocument(booking.getRoadTaxReceiptUrl(), booking.getId(), "road-tax-receipt", tax));
             return bookingRepository.save(booking);
         } catch (IOException ignored) {
             return booking;
@@ -94,13 +148,13 @@ public class BookingService {
             byte[] rc = pdfService.generateRegistrationCertificatePdf(booking);
             byte[] tax = pdfService.generateRoadTaxReceiptPdf(booking);
 
-            booking.setFinalInvoiceUrl(storeIfMissing(booking.getFinalInvoiceUrl(), booking.getId(), "final-invoice", finalInvoice));
-            booking.setWarrantyDocumentUrl(storeIfMissing(booking.getWarrantyDocumentUrl(), booking.getId(), "warranty-booklet", warranty));
-            booking.setServiceBookUrl(storeIfMissing(booking.getServiceBookUrl(), booking.getId(), "service-book", serviceBook));
-            booking.setDeliveryNoteUrl(storeIfMissing(booking.getDeliveryNoteUrl(), booking.getId(), "delivery-note", deliveryNote));
-            booking.setPucCertificateUrl(storeIfMissing(booking.getPucCertificateUrl(), booking.getId(), "puc-certificate", puc));
-            booking.setRegistrationCertificateUrl(storeIfMissing(booking.getRegistrationCertificateUrl(), booking.getId(), "registration-certificate", rc));
-            booking.setRoadTaxReceiptUrl(storeIfMissing(booking.getRoadTaxReceiptUrl(), booking.getId(), "road-tax-receipt", tax));
+            booking.setFinalInvoiceUrl(storeGeneratedDocument(booking.getFinalInvoiceUrl(), booking.getId(), "final-invoice", finalInvoice));
+            booking.setWarrantyDocumentUrl(storeGeneratedDocument(booking.getWarrantyDocumentUrl(), booking.getId(), "warranty-booklet", warranty));
+            booking.setServiceBookUrl(storeGeneratedDocument(booking.getServiceBookUrl(), booking.getId(), "service-book", serviceBook));
+            booking.setDeliveryNoteUrl(storeGeneratedDocument(booking.getDeliveryNoteUrl(), booking.getId(), "delivery-note", deliveryNote));
+            booking.setPucCertificateUrl(storeGeneratedDocument(booking.getPucCertificateUrl(), booking.getId(), "puc-certificate", puc));
+            booking.setRegistrationCertificateUrl(storeGeneratedDocument(booking.getRegistrationCertificateUrl(), booking.getId(), "registration-certificate", rc));
+            booking.setRoadTaxReceiptUrl(storeGeneratedDocument(booking.getRoadTaxReceiptUrl(), booking.getId(), "road-tax-receipt", tax));
 
             docs.put("Final-Invoice-" + booking.getId() + ".pdf", finalInvoice);
             docs.put("Registration-Certificate-" + booking.getId() + ".pdf", rc);
@@ -112,19 +166,19 @@ public class BookingService {
 
             if (!blank(booking.getInsurancePolicyNumber())) {
                 byte[] insurance = pdfService.generateInsurancePolicyPdf(booking);
-                booking.setInsuranceDocumentUrl(storeIfMissing(booking.getInsuranceDocumentUrl(), booking.getId(), "insurance-policy", insurance));
+                booking.setInsuranceDocumentUrl(storeGeneratedDocument(booking.getInsuranceDocumentUrl(), booking.getId(), "insurance-policy", insurance));
                 docs.put("Insurance-Policy-" + booking.getId() + ".pdf", insurance);
             }
             if (!blank(booking.getTemporaryRegistrationNumber())) {
                 byte[] tempReg = pdfService.generateTemporaryRegistrationPdf(booking);
-                booking.setTemporaryRegistrationUrl(storeIfMissing(booking.getTemporaryRegistrationUrl(), booking.getId(), "temporary-registration", tempReg));
+                booking.setTemporaryRegistrationUrl(storeGeneratedDocument(booking.getTemporaryRegistrationUrl(), booking.getId(), "temporary-registration", tempReg));
                 docs.put("Temporary-Registration-" + booking.getId() + ".pdf", tempReg);
             }
             if (loan != null && "Approved".equalsIgnoreCase(loan.getStatus())) {
                 byte[] sanction = pdfService.generateFinanceSanctionLetterPdf(booking, loan);
                 byte[] agreement = pdfService.generateFinanceAgreementPdf(booking, loan);
-                booking.setFinanceSanctionLetterUrl(storeIfMissing(booking.getFinanceSanctionLetterUrl(), booking.getId(), "finance-sanction-letter", sanction));
-                booking.setFinanceAgreementUrl(storeIfMissing(booking.getFinanceAgreementUrl(), booking.getId(), "finance-agreement", agreement));
+                booking.setFinanceSanctionLetterUrl(storeGeneratedDocument(booking.getFinanceSanctionLetterUrl(), booking.getId(), "finance-sanction-letter", sanction));
+                booking.setFinanceAgreementUrl(storeGeneratedDocument(booking.getFinanceAgreementUrl(), booking.getId(), "finance-agreement", agreement));
                 if (blank(booking.getLoanDocumentUrl())) booking.setLoanDocumentUrl(booking.getFinanceAgreementUrl());
                 docs.put("Finance-Sanction-Letter-" + booking.getId() + ".pdf", sanction);
                 docs.put("Finance-Agreement-" + booking.getId() + ".pdf", agreement);
@@ -205,14 +259,14 @@ public class BookingService {
         try {
             Map<String, byte[]> docs = new LinkedHashMap<>();
             byte[] receipt = pdfService.generateBookingDocumentPdf(booking, "Booking Confirmation Receipt", "Your booking has been approved by DK3 Cars.");
-            byte[] proforma = pdfService.generateBookingDocumentPdf(booking, "Proforma Invoice", "This is your provisional invoice for the selected vehicle.");
-            byte[] allotment = pdfService.generateBookingDocumentPdf(booking, "Car Allotment Letter", "Your selected vehicle has been allotted and is being prepared.");
-            byte[] delivery = pdfService.generateBookingDocumentPdf(booking, "Delivery Confirmation Letter", "Delivery details are confirmed as per your selected schedule.");
+            byte[] proforma = pdfService.generateBookingProformaInvoicePdf(booking);
+            byte[] allotment = pdfService.generateAllotmentLetterPdf(booking);
+            byte[] delivery = pdfService.generateDeliveryConfirmationPdf(booking);
 
-            booking.setBookingReceiptUrl(storeIfMissing(booking.getBookingReceiptUrl(), booking.getId(), "booking-receipt", receipt));
-            booking.setProformaInvoiceUrl(storeIfMissing(booking.getProformaInvoiceUrl(), booking.getId(), "proforma-invoice", proforma));
-            booking.setAllotmentLetterUrl(storeIfMissing(booking.getAllotmentLetterUrl(), booking.getId(), "allotment-letter", allotment));
-            booking.setDeliveryConfirmationLetterUrl(storeIfMissing(booking.getDeliveryConfirmationLetterUrl(), booking.getId(), "delivery-confirmation", delivery));
+            booking.setBookingReceiptUrl(storeGeneratedDocument(booking.getBookingReceiptUrl(), booking.getId(), "booking-receipt", receipt));
+            booking.setProformaInvoiceUrl(storeGeneratedDocument(booking.getProformaInvoiceUrl(), booking.getId(), "proforma-invoice", proforma));
+            booking.setAllotmentLetterUrl(storeGeneratedDocument(booking.getAllotmentLetterUrl(), booking.getId(), "allotment-letter", allotment));
+            booking.setDeliveryConfirmationLetterUrl(storeGeneratedDocument(booking.getDeliveryConfirmationLetterUrl(), booking.getId(), "delivery-confirmation", delivery));
 
             docs.put("Booking-Confirmation-Receipt-" + booking.getId() + ".pdf", receipt);
             docs.put("Proforma-Invoice-" + booking.getId() + ".pdf", proforma);
@@ -223,12 +277,14 @@ public class BookingService {
             if (loan != null && "Approved".equalsIgnoreCase(loan.getStatus())) {
                 byte[] sanction = pdfService.generateFinanceSanctionLetterPdf(booking, loan);
                 byte[] agreement = pdfService.generateFinanceAgreementPdf(booking, loan);
-                booking.setFinanceSanctionLetterUrl(storeIfMissing(booking.getFinanceSanctionLetterUrl(), booking.getId(), "finance-sanction-letter", sanction));
-                booking.setFinanceAgreementUrl(storeIfMissing(booking.getFinanceAgreementUrl(), booking.getId(), "finance-agreement", agreement));
+                booking.setFinanceSanctionLetterUrl(storeGeneratedDocument(booking.getFinanceSanctionLetterUrl(), booking.getId(), "finance-sanction-letter", sanction));
+                booking.setFinanceAgreementUrl(storeGeneratedDocument(booking.getFinanceAgreementUrl(), booking.getId(), "finance-agreement", agreement));
                 if (blank(booking.getLoanDocumentUrl())) booking.setLoanDocumentUrl(booking.getFinanceAgreementUrl());
                 docs.put("Finance-Sanction-Letter-" + booking.getId() + ".pdf", sanction);
                 docs.put("Finance-Agreement-" + booking.getId() + ".pdf", agreement);
             }
+
+            bookingRepository.save(booking);
 
             sendDocsEmail(booking, "DK3 Cars Booking Confirmed - #" + booking.getId(),
                     """
@@ -252,6 +308,10 @@ public class BookingService {
             byte[] application = pdfService.generateBookingApplicationSummaryPdf(booking);
             byte[] receipt = pdfService.generateBookingAmountReceiptPdf(booking);
             byte[] proforma = pdfService.generateBookingProformaInvoicePdf(booking);
+
+            booking.setBookingReceiptUrl(storeGeneratedDocument(booking.getBookingReceiptUrl(), booking.getId(), "booking-receipt", receipt));
+            booking.setProformaInvoiceUrl(storeGeneratedDocument(booking.getProformaInvoiceUrl(), booking.getId(), "proforma-invoice", proforma));
+            bookingRepository.save(booking);
 
             docs.put("Booking-Acknowledgement-" + booking.getId() + ".pdf", acknowledgement);
             docs.put("Booking-Application-Summary-" + booking.getId() + ".pdf", application);
@@ -292,13 +352,66 @@ public class BookingService {
         }
     }
 
-    private String storeIfMissing(String currentUrl, Long bookingId, String key, byte[] bytes) throws IOException {
-        if (!blank(currentUrl)) return currentUrl;
+    private String storeGeneratedDocument(String currentUrl, Long bookingId, String key, byte[] bytes) throws IOException {
         Path dir = Path.of("uploads", "documents", "generated");
         Files.createDirectories(dir);
         String fileName = "booking-" + bookingId + "-" + key + ".pdf";
+        String generatedUrl = "/uploads/documents/generated/" + fileName;
+        if (!blank(currentUrl) && !generatedUrl.equals(currentUrl) && !currentUrl.startsWith("/uploads/documents/generated/booking-" + bookingId + "-")) {
+            return currentUrl;
+        }
         Files.write(dir.resolve(fileName), bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        return "/uploads/documents/generated/" + fileName;
+        return generatedUrl;
+    }
+
+    private void clearBookingDocumentField(Booking booking, String category) {
+        if (booking == null || category == null) return;
+        switch (category) {
+            case "AadhaarPhoto" -> booking.setAadhaarPhotoUrl(null);
+            case "PanPhoto" -> booking.setPanPhotoUrl(null);
+            case "SignaturePhoto" -> booking.setSignaturePhotoUrl(null);
+            case "PassportPhoto" -> booking.setPassportPhotoUrl(null);
+            case "PaymentScreenshot" -> booking.setPaymentScreenshotUrl(null);
+            case "DownPaymentReceipt" -> booking.setDownPaymentReceiptUrl(null);
+            case "BookingReceipt" -> booking.setBookingReceiptUrl(null);
+            case "ProformaInvoice" -> booking.setProformaInvoiceUrl(null);
+            case "AllotmentLetter" -> booking.setAllotmentLetterUrl(null);
+            case "DeliveryConfirmation" -> booking.setDeliveryConfirmationLetterUrl(null);
+            case "InsurancePolicy" -> booking.setInsuranceDocumentUrl(null);
+            case "TemporaryRegistration" -> booking.setTemporaryRegistrationUrl(null);
+            case "FinalInvoice" -> booking.setFinalInvoiceUrl(null);
+            case "RegistrationCertificate" -> booking.setRegistrationCertificateUrl(null);
+            case "PucCertificate" -> booking.setPucCertificateUrl(null);
+            case "WarrantyDocument" -> booking.setWarrantyDocumentUrl(null);
+            case "ServiceBook" -> booking.setServiceBookUrl(null);
+            case "DeliveryNote" -> booking.setDeliveryNoteUrl(null);
+            case "RoadTaxReceipt" -> booking.setRoadTaxReceiptUrl(null);
+            case "FinanceSanctionLetter" -> booking.setFinanceSanctionLetterUrl(null);
+            case "FinanceAgreement" -> booking.setFinanceAgreementUrl(null);
+            case "LoanDocument" -> booking.setLoanDocumentUrl(null);
+            default -> { }
+        }
+    }
+
+    private void deleteStoredFile(String fileUrl) {
+        if (blank(fileUrl)) return;
+        try {
+            String normalized = fileUrl.trim().replace('\\', '/');
+            if (normalized.startsWith("/")) {
+                normalized = normalized.substring(1);
+            }
+            if (!normalized.startsWith("uploads/")) {
+                return;
+            }
+
+            Path uploadsRoot = Path.of("uploads").normalize();
+            Path filePath = Path.of(normalized).normalize();
+            if (!filePath.startsWith(uploadsRoot)) {
+                return;
+            }
+            Files.deleteIfExists(filePath);
+        } catch (IOException ignored) {
+        }
     }
 
     private boolean blank(String value) { return value == null || value.isBlank(); }

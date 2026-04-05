@@ -13,6 +13,7 @@
             --glass: rgba(255, 255, 255, 0.95);
             --border: #7b7777;
         }
+        html { scroll-behavior: smooth; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); }
         body { background: radial-gradient(circle at top, #e6f7f4, #eef3f6); }
         .header { max-width: 1200px; margin: 20px auto; padding: 16px 26px; background: rgba(255,255,255,.96); border-radius: 22px; position: sticky; top: 16px; z-index: 1200; box-shadow: 0 25px 55px rgba(0,0,0,.25); }
@@ -30,8 +31,9 @@
         .nav-actions i { font-size: 18px; cursor: pointer; color: #333; padding: 8px; border-radius: 50%; transition: .3s; }
         .nav-actions i:hover { background: #f3f4ff; color: #7b2ff7; transform: scale(1.15); }
         .contact-btn { padding: 10px 22px; border-radius: 20px; border: none; background: linear-gradient(135deg, #7b2ff7, #a855f7); color: #fff; font-weight: 600; cursor: pointer; }
-        .section { max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--glass); border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,.12); }
+        .section { max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--glass); border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,.12); scroll-margin-top: 130px; }
         .title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+        .title i { margin-right: 10px; color: var(--primary); }
         .overview-grid { display: grid; grid-template-columns: 1.4fr .9fr; gap: 36px; }
         .carousel { position: relative; height: 300px; border-radius: 22px; overflow: hidden; background: #f7f9fb; cursor: pointer; }
         .carousel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: .6s; }
@@ -78,6 +80,12 @@
         .btn { width: 100%; padding: 14px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; font-weight: 600; cursor: pointer; }
         .spec-grid,.mileage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 18px; }
         .spec,.mileage { padding: 18px; border-radius: 18px; text-align: center; border: 2px solid var(--border); }
+        .spec i,.mileage i {
+            display: block;
+            font-size: 22px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
         .details-table { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
         .details-tr { display: grid; grid-template-columns: 1fr 1.5fr; border-bottom: 1px solid var(--border); }
         .details-tr:last-child { border-bottom: none; }
@@ -238,13 +246,17 @@
         </div>
         <nav class="nav">
             <a href="#overview" class="active">Overview</a>
+            <a href="#specs">Key Specifications</a>
             <a href="#mileage">Mileage</a>
+            <a href="#colors">Colours</a>
+            <a href="#reviews">Reviews</a>
             <a href="#variants">Variants</a>
+            <a href="#faq">FAQs</a>
             <a href="#images">Images</a>
         </nav>
-        <div class="nav-actions">
+        <!-- <div class="nav-actions">
             <button class="contact-btn" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
-        </div>
+        </div> -->
     </div>
 </header>
 
@@ -279,12 +291,12 @@
 </section>
 
 <section class="section" id="specs">
-    <div class="title">Key Specifications</div>
+    <div class="title"><i class="fa-solid fa-gauge-high"></i>Key Specifications</div>
     <div class="spec-grid" id="specGrid"></div>
 </section>
 
 <section class="section" id="mileage">
-    <div class="title">Mileage</div>
+    <div class="title"><i class="fa-solid fa-gas-pump"></i>Mileage</div>
     <div class="mileage-grid" id="mileageGrid"></div>
 </section>
 
@@ -311,7 +323,7 @@
     <div class="review-wrapper">
         <div class="review-summary">
             <div class="review-score-big" id="reviewScoreBig">4.5/5</div>
-            <div class="stars">â˜…â˜…â˜…â˜…</div>
+            <div class="stars">★★★★</div>
         </div>
         <div class="review-breakdown" id="reviewBreakdown"></div>
     </div>
@@ -588,6 +600,27 @@
         return parts.length >= 2 ? parts.slice(1).join(":").trim() : "N/A";
     }
 
+    function specIcon(label) {
+        const key = String(label || "").toLowerCase();
+        if (key.includes("price")) return "fa-indian-rupee-sign";
+        if (key.includes("engine")) return "fa-gears";
+        if (key.includes("fuel")) return "fa-gas-pump";
+        if (key.includes("transmission")) return "fa-gear";
+        if (key.includes("seating")) return "fa-users";
+        if (key.includes("safety")) return "fa-shield-heart";
+        return "fa-circle-info";
+    }
+
+    function mileageIcon(label) {
+        const key = String(label || "").toLowerCase();
+        if (key.includes("petrol")) return "fa-gas-pump";
+        if (key.includes("diesel")) return "fa-oil-can";
+        if (key.includes("ev") || key.includes("electric")) return "fa-bolt";
+        if (key.includes("cng")) return "fa-leaf";
+        if (key.includes("automatic")) return "fa-car-side";
+        return "fa-road";
+    }
+
     function show(n) {
         if (!imgs.length) return;
         imgs.forEach(i => i.classList.remove("active"));
@@ -644,7 +677,7 @@
             { k: "Seating Capacity", v: car.seatingCapacity || "N/A" },
             { k: "Safety Rating", v: car.safetyRating || "N/A" }
         ];
-        specGrid.innerHTML = specs.map(s => `<div class="spec"><b>${s.k}</b><br><br>${s.v}</div>`).join("");
+        specGrid.innerHTML = specs.map(s => `<div class="spec"><i class="fa-solid ${specIcon(s.k)}"></i><b>${s.k}</b><br><br>${s.v}</div>`).join("");
     }
 
     function populateMileage(car) {
@@ -659,7 +692,7 @@
         if (!rows.length) {
             rows.push({label: `${car.fuelType || "Fuel"} - ${car.transmission || "Transmission"}`, value: car.mileage || "N/A"});
         }
-        mileageGrid.innerHTML = rows.map(r => `<div class="mileage"><b>${r.label}</b><p>${r.value}</p></div>`).join("");
+        mileageGrid.innerHTML = rows.map(r => `<div class="mileage"><i class="fa-solid ${mileageIcon(r.label)}"></i><b>${r.label}</b><p>${r.value}</p></div>`).join("");
     }
 
     function populateImages(imageUrls, title) {

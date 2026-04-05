@@ -99,6 +99,121 @@ public class CarController {
         return rows.isEmpty() ? null : String.join("|", rows);
     }
 
+    private List<String> splitColorOptionColumn(String raw) {
+        List<String> rows = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return rows;
+        }
+        for (String line : raw.split("\\r?\\n")) {
+            String cleaned = line == null ? "" : line.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows;
+    }
+
+    private String mergeColorOptionColumns(String colorOptionNames,
+                                           String colorOptionCodes,
+                                           String colorOptionImages,
+                                           String fallbackColorOptions) {
+        List<String> names = splitColorOptionColumn(colorOptionNames);
+        List<String> codes = splitColorOptionColumn(colorOptionCodes);
+        List<String> images = splitColorOptionColumn(colorOptionImages);
+        int max = Math.max(names.size(), Math.max(codes.size(), images.size()));
+        if (max == 0) {
+            return normalizeColorOptions(fallbackColorOptions);
+        }
+
+        List<String> rows = new ArrayList<>();
+        for (int i = 0; i < max; i++) {
+            String name = i < names.size() ? names.get(i) : "";
+            String code = i < codes.size() ? codes.get(i) : "";
+            String image = i < images.size() ? images.get(i) : "";
+            if (name.isBlank() && code.isBlank() && image.isBlank()) {
+                continue;
+            }
+            if (name.isBlank()) {
+                name = "Color " + (i + 1);
+            }
+            if (code.isBlank()) {
+                code = "#444444";
+            }
+            rows.add(name + "~" + code + "~" + image);
+        }
+
+        return rows.isEmpty() ? normalizeColorOptions(fallbackColorOptions) : String.join("|", rows);
+    }
+
+    private String getColorOptionColumn(String colorOptions, int index) {
+        if (colorOptions == null || colorOptions.isBlank()) {
+            return "";
+        }
+        List<String> values = new ArrayList<>();
+        for (String entry : colorOptions.split("\\|")) {
+            String cleaned = entry == null ? "" : entry.trim();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+            String[] parts = cleaned.split("~", -1);
+            values.add(index < parts.length ? parts[index].trim() : "");
+        }
+        return String.join("\n", values);
+    }
+
+    private List<String> splitFaqColumn(String raw) {
+        List<String> rows = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return rows;
+        }
+        for (String line : raw.split("\\r?\\n")) {
+            String cleaned = line == null ? "" : line.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows;
+    }
+
+    private String mergeFaqColumns(String faqQuestions, String faqAnswers, String fallbackFaqDetails) {
+        List<String> questions = splitFaqColumn(faqQuestions);
+        List<String> answers = splitFaqColumn(faqAnswers);
+        int max = Math.max(questions.size(), answers.size());
+        if (max == 0) {
+            return fallbackFaqDetails;
+        }
+
+        List<String> rows = new ArrayList<>();
+        for (int i = 0; i < max; i++) {
+            String question = i < questions.size() ? questions.get(i) : "";
+            String answer = i < answers.size() ? answers.get(i) : "";
+            if (question.isBlank() && answer.isBlank()) {
+                continue;
+            }
+            if (question.isBlank()) {
+                question = "FAQ " + (i + 1);
+            }
+            rows.add(question + "~" + answer);
+        }
+        return rows.isEmpty() ? fallbackFaqDetails : String.join("|", rows);
+    }
+
+    private String getFaqColumn(String faqDetails, int index) {
+        if (faqDetails == null || faqDetails.isBlank()) {
+            return "";
+        }
+        List<String> values = new ArrayList<>();
+        for (String entry : faqDetails.split("\\|")) {
+            String cleaned = entry == null ? "" : entry.trim();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+            String[] parts = cleaned.split("~", -1);
+            values.add(index < parts.length ? parts[index].trim() : "");
+        }
+        return String.join("\n", values);
+    }
+
     @GetMapping("/all")
     public String listCars(Model model, HttpSession session) {
         String role = (String) session.getAttribute("USER_ROLE");
@@ -181,6 +296,11 @@ public class CarController {
                 car.getImageUrls() == null ? "" : String.join("\n", car.getImageUrls()));
         model.addAttribute("existingColorOptionsText",
                 car.getColorOptions() == null ? "" : car.getColorOptions().replace("|", "\n"));
+        model.addAttribute("existingColorOptionNamesText", getColorOptionColumn(car.getColorOptions(), 0));
+        model.addAttribute("existingColorOptionCodesText", getColorOptionColumn(car.getColorOptions(), 1));
+        model.addAttribute("existingColorOptionImagesText", getColorOptionColumn(car.getColorOptions(), 2));
+        model.addAttribute("existingFaqQuestionsText", getFaqColumn(car.getFaqDetails(), 0));
+        model.addAttribute("existingFaqAnswersText", getFaqColumn(car.getFaqDetails(), 1));
         populateShowroomFormOptions(model, session, car);
         return "car-edit";
     }
@@ -203,12 +323,17 @@ public class CarController {
                             @RequestParam(required = false) String mileageDetails,
                             @RequestParam(required = false) String variantDetails,
                             @RequestParam(required = false) String colorOptions,
+                            @RequestParam(required = false) String colorOptionNames,
+                            @RequestParam(required = false) String colorOptionCodes,
+                            @RequestParam(required = false) String colorOptionImages,
                             @RequestParam(required = false) Double reviewScore,
                             @RequestParam(required = false) Double reviewExterior,
                             @RequestParam(required = false) Double reviewPerformance,
                             @RequestParam(required = false) Double reviewValue,
                             @RequestParam(required = false) Double reviewFuelEconomy,
                             @RequestParam(required = false) Double reviewComfort,
+                            @RequestParam(required = false) String faqQuestions,
+                            @RequestParam(required = false) String faqAnswers,
                             @RequestParam(required = false) String faqDetails,
                             @RequestParam(required = false) String vin,
                             @RequestParam(required = false) String engineNo,
@@ -259,14 +384,14 @@ public class CarController {
         car.setTransmissionOptions(transmissionOptions);
         car.setMileageDetails(mileageDetails);
         car.setVariantDetails(variantDetails);
-        car.setColorOptions(normalizeColorOptions(colorOptions));
+        car.setColorOptions(mergeColorOptionColumns(colorOptionNames, colorOptionCodes, colorOptionImages, colorOptions));
         car.setReviewScore(reviewScore);
         car.setReviewExterior(reviewExterior);
         car.setReviewPerformance(reviewPerformance);
         car.setReviewValue(reviewValue);
         car.setReviewFuelEconomy(reviewFuelEconomy);
         car.setReviewComfort(reviewComfort);
-        car.setFaqDetails(faqDetails);
+        car.setFaqDetails(mergeFaqColumns(faqQuestions, faqAnswers, faqDetails));
         car.setVin(vin);
         car.setEngineNo(engineNo);
         car.setSupplierInfo(supplierInfo);
@@ -313,9 +438,7 @@ public class CarController {
             }
         }
 
-        if (!finalImageUrls.isEmpty()) {
-            car.setImageUrls(finalImageUrls);
-        }
+        car.setImageUrls(finalImageUrls);
 
         carService.saveCar(car);
         redirectAttributes.addFlashAttribute("success", "Vehicle updated successfully!");

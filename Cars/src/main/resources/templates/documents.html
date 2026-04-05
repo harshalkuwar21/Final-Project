@@ -66,6 +66,18 @@
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
         }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 
         .nav-icons {
             display: flex;
@@ -467,14 +479,10 @@
 
     <!-- NAVBAR -->
     <header class="navbar">
-        <div class="logo">
-            <img src="/images/logo.png">
-            DK3 Cars
-        </div>
-        <div class="nav-icons">
-            <i onclick="location.href='/notifications'" class="fa fa-bell" id="notifIcon"></i>
-            <i class="fa fa-user-circle" id="userIcon"></i>
-        </div>
+       <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
     </header>
 
     <div class="container">
@@ -613,6 +621,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Sr No.</th>
                             <th>Customer</th>
                             <th>Car</th>
                             <th>Source</th>
@@ -624,7 +633,7 @@
                     </thead>
                     <tbody id="documentsTable">
                         <tr>
-                            <td colspan="7" style="text-align: center; color: #999;">Loading documents...</td>
+                            <td colspan="8" style="text-align: center; color: #999;">Loading documents...</td>
                         </tr>
                     </tbody>
                 </table>

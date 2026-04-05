@@ -272,11 +272,148 @@
             font-size: 12px;
             font-weight: 600;
             text-decoration: none;
+            border: none;
+            cursor: pointer;
         }
 
         .doc-chip:hover {
             background: #dfeeff;
             text-decoration: none;
+        }
+
+        .doc-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .doc-modal.open {
+            display: flex;
+        }
+
+        .doc-modal-card {
+            width: min(980px, 100%);
+            max-height: 92vh;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .doc-modal-header,
+        .doc-modal-footer {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .doc-modal-footer {
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 0;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .doc-modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #004aad;
+        }
+
+        .doc-modal-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .doc-close {
+            border: none;
+            background: #eff6ff;
+            color: #0f4ea8;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .doc-modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .doc-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .doc-meta-box {
+            background: #f8fbff;
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .doc-meta-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .doc-meta-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #13223b;
+            word-break: break-word;
+        }
+
+        .doc-preview-frame,
+        .doc-preview-image {
+            width: 100%;
+            min-height: 460px;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: #f8fafc;
+        }
+
+        .doc-preview-frame {
+            height: 68vh;
+        }
+
+        .doc-preview-object {
+            width: 100%;
+            height: 68vh;
+            border: 1px solid #dbeafe;
+            border-radius: 14px;
+            background: #f8fafc;
+        }
+
+        .doc-preview-image {
+            object-fit: contain;
+            max-height: 68vh;
+        }
+
+        .doc-fallback {
+            padding: 30px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            background: #f8fafc;
+            text-align: center;
+            color: #475569;
         }
 
         /* ===== MESSAGE TEXT ===== */
@@ -413,9 +550,9 @@
             </div>
             <div id="planMsg" class="hint"></div>
         </div>
-        <div class="panel">
-            <h3>Payment History</h3>
-            <table>
+    <div class="panel">
+        <h3>Payment History</h3>
+        <table>
                 <thead>
                     <tr>
                         <th>Payment ID</th>
@@ -435,8 +572,28 @@
         </div>
     </div>
 
+    <div class="doc-modal" id="documentModal">
+        <div class="doc-modal-card" role="dialog" aria-modal="true" aria-labelledby="documentModalTitle">
+            <div class="doc-modal-header">
+                <div>
+                    <div class="doc-modal-title" id="documentModalTitle">Document Viewer</div>
+                    <div class="doc-modal-subtitle" id="documentModalSubtitle">Booking document preview</div>
+                </div>
+                <button type="button" class="doc-close" onclick="closeDocumentModal()" aria-label="Close document viewer">&times;</button>
+            </div>
+            <div class="doc-modal-body" id="documentModalBody"></div>
+            <div class="doc-modal-footer">
+                <button type="button" class="dashboard-btn" onclick="closeDocumentModal()">Close</button>
+                <button type="button" class="dashboard-btn" id="documentOpenBtn">Open</button>
+                <button type="button" class="dashboard-btn" id="documentDownloadBtn">Download</button>
+                <button type="button" class="dashboard-btn" id="documentDeleteBtn" style="display:none;background:#fee2e2;color:#991b1b;">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let bookingsCache = [];
+        let activeDocument = null;
 
         function badgeClass(status) {
             const s = (status || "").toLowerCase();
@@ -473,28 +630,54 @@
         `;
         }
 
-        function renderDocs(b) {
-            const docs = [
-                ["Receipt", b.bookingReceiptUrl],
-                ["Proforma", b.proformaInvoiceUrl],
-                ["Allotment", b.allotmentLetterUrl],
-                ["Delivery", b.deliveryConfirmationLetterUrl],
-                ["Sale Bill", b.finalInvoiceUrl],
-                ["Insurance", b.insuranceDocumentUrl],
-                ["Temp Reg", b.temporaryRegistrationUrl],
-                ["RC", b.registrationCertificateUrl],
-                ["PUC", b.pucCertificateUrl],
-                ["Warranty", b.warrantyDocumentUrl],
-                ["Service Book", b.serviceBookUrl],
-                ["Delivery Note", b.deliveryNoteUrl],
-                ["Road Tax", b.roadTaxReceiptUrl],
-                ["Finance Letter", b.financeSanctionLetterUrl],
-                ["Finance Agreement", b.financeAgreementUrl],
-                ["Loan Doc", b.loanDocumentUrl]
-            ].filter(([, url]) => !!url);
+        function getBookingDocuments(booking) {
+            return [
+                { label: "Aadhaar", category: "AadhaarPhoto", url: booking.aadhaarPhotoUrl, deletable: true },
+                { label: "PAN", category: "PanPhoto", url: booking.panPhotoUrl, deletable: true },
+                { label: "Signature", category: "SignaturePhoto", url: booking.signaturePhotoUrl, deletable: true },
+                { label: "Passport", category: "PassportPhoto", url: booking.passportPhotoUrl, deletable: true },
+                { label: "Payment Screenshot", category: "PaymentScreenshot", url: booking.paymentScreenshotUrl, deletable: true },
+                { label: "Down Payment Receipt", category: "DownPaymentReceipt", url: booking.downPaymentReceiptUrl, deletable: true },
+                { label: "Booking Receipt", category: "BookingReceipt", url: booking.bookingReceiptUrl, deletable: false },
+                { label: "Proforma", category: "ProformaInvoice", url: booking.proformaInvoiceUrl, deletable: false },
+                { label: "Allotment", category: "AllotmentLetter", url: booking.allotmentLetterUrl, deletable: false },
+                { label: "Delivery", category: "DeliveryConfirmation", url: booking.deliveryConfirmationLetterUrl, deletable: false },
+                { label: "Sale Bill", category: "FinalInvoice", url: booking.finalInvoiceUrl, deletable: false },
+                { label: "Insurance", category: "InsurancePolicy", url: booking.insuranceDocumentUrl, deletable: false },
+                { label: "Temp Reg", category: "TemporaryRegistration", url: booking.temporaryRegistrationUrl, deletable: false },
+                { label: "RC", category: "RegistrationCertificate", url: booking.registrationCertificateUrl, deletable: false },
+                { label: "PUC", category: "PucCertificate", url: booking.pucCertificateUrl, deletable: false },
+                { label: "Warranty", category: "WarrantyDocument", url: booking.warrantyDocumentUrl, deletable: false },
+                { label: "Service Book", category: "ServiceBook", url: booking.serviceBookUrl, deletable: false },
+                { label: "Delivery Note", category: "DeliveryNote", url: booking.deliveryNoteUrl, deletable: false },
+                { label: "Road Tax", category: "RoadTaxReceipt", url: booking.roadTaxReceiptUrl, deletable: false },
+                { label: "Finance Letter", category: "FinanceSanctionLetter", url: booking.financeSanctionLetterUrl, deletable: false },
+                { label: "Finance Agreement", category: "FinanceAgreement", url: booking.financeAgreementUrl, deletable: false },
+                { label: "Loan Doc", category: "LoanDocument", url: booking.loanDocumentUrl, deletable: false }
+            ].filter(doc => !!doc.url);
+        }
 
+        function getBookingById(bookingId) {
+            return bookingsCache.find(item => Number(item.id) === Number(bookingId)) || null;
+        }
+
+        function getDocumentByCategory(bookingId, category) {
+            const booking = getBookingById(bookingId);
+            if (!booking) return null;
+            return getBookingDocuments(booking).find(doc => doc.category === category) || null;
+        }
+
+        function renderDocs(booking) {
+            const docs = getBookingDocuments(booking);
             if (!docs.length) return "-";
-            return `<div class="doc-links">${docs.map(([label, url]) => `<a class="doc-chip" href="${url}" target="_blank">${label}</a>`).join("")}</div>`;
+
+            return `<div class="doc-links">${docs.map(doc => `
+                <button type="button"
+                        class="doc-chip"
+                        onclick="openDocumentModal(${booking.id}, '${doc.category}')">
+                    ${doc.label}
+                </button>
+            `).join("")}</div>`;
         }
 
         async function loadBookings() {
@@ -548,6 +731,152 @@
         `).join("");
         }
 
+        function formatDocumentDate(value) {
+            if (!value) return "-";
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return value;
+            return parsed.toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+        }
+
+        function getFileExtension(url) {
+            const safeUrl = String(url || "").split("?")[0];
+            const dotIndex = safeUrl.lastIndexOf(".");
+            return dotIndex >= 0 ? safeUrl.substring(dotIndex + 1).toLowerCase() : "";
+        }
+
+        function escapeAttribute(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function renderDocumentUnavailable(label, reason = "Document preview is not available right now.") {
+            return `
+                <div class="doc-fallback">
+                    <div style="font-size:18px;font-weight:700;margin-bottom:8px;">${label} unavailable</div>
+                    <div style="font-size:14px;">${reason}</div>
+                </div>
+            `;
+        }
+
+        function renderDocumentPreview(url, label) {
+            if (!url) {
+                return renderDocumentUnavailable(label, "The file link is missing for this document.");
+            }
+
+            const extension = getFileExtension(url);
+            if (["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(extension)) {
+                return `<img src="${escapeAttribute(url)}" alt="${escapeAttribute(label)}" class="doc-preview-image" onerror="this.onerror=null; this.outerHTML='${escapeAttribute(renderDocumentUnavailable(label, "Image preview failed. Please use Open or Download."))}'">`;
+            }
+            if (extension === "pdf") {
+                return `
+                    <object data="${escapeAttribute(url)}" type="application/pdf" class="doc-preview-object">
+                        ${renderDocumentUnavailable(label, "PDF preview failed in this browser. Please use Open or Download.")}
+                    </object>
+                `;
+            }
+            return `
+                <div class="doc-fallback">
+                    <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Preview not available</div>
+                    <div style="font-size:14px;">Use Open or Download to view this document.</div>
+                </div>
+            `;
+        }
+
+        function openDocumentModal(bookingId, category) {
+            const booking = getBookingById(bookingId);
+            const doc = getDocumentByCategory(bookingId, category);
+            if (!booking || !doc) return;
+            const hasUrl = !!doc.url;
+
+            activeDocument = { bookingId, category };
+            document.getElementById("documentModalTitle").textContent = doc.label;
+            document.getElementById("documentModalSubtitle").textContent = `Booking #${bookingId} | ${booking.car ? `${booking.car.brand} ${booking.car.model}` : "Vehicle document"}`;
+
+            document.getElementById("documentModalBody").innerHTML = `
+                <div class="doc-meta">
+                    <div class="doc-meta-box">
+                        <div class="doc-meta-label">Customer</div>
+                        <div class="doc-meta-value">${booking.customer ? booking.customer.name : "-"}</div>
+                    </div>
+                    <div class="doc-meta-box">
+                        <div class="doc-meta-label">Car</div>
+                        <div class="doc-meta-value">${booking.car ? `${booking.car.brand} ${booking.car.model}` : "-"}</div>
+                    </div>
+                    <div class="doc-meta-box">
+                        <div class="doc-meta-label">Status</div>
+                        <div class="doc-meta-value">${booking.workflowStatus || booking.status || "-"}</div>
+                    </div>
+                    <div class="doc-meta-box">
+                        <div class="doc-meta-label">Expected Delivery</div>
+                        <div class="doc-meta-value">${formatDocumentDate(booking.expectedDeliveryDate)}</div>
+                    </div>
+                    <div class="doc-meta-box">
+                        <div class="doc-meta-label">File Status</div>
+                        <div class="doc-meta-value">${hasUrl ? "Available" : "Missing file link"}</div>
+                    </div>
+                </div>
+                ${renderDocumentPreview(doc.url, doc.label)}
+            `;
+
+            document.getElementById("documentOpenBtn").onclick = () => {
+                if (!hasUrl) {
+                    alert("This document file is not available right now.");
+                    return;
+                }
+                window.open(doc.url, "_blank", "noopener,noreferrer");
+            };
+            document.getElementById("documentDownloadBtn").onclick = () => {
+                if (!hasUrl) {
+                    alert("This document file is not available right now.");
+                    return;
+                }
+                const link = document.createElement("a");
+                link.href = doc.url;
+                link.download = `${doc.label}-${bookingId}`;
+                link.click();
+            };
+
+            const deleteBtn = document.getElementById("documentDeleteBtn");
+            deleteBtn.style.display = doc.deletable ? "inline-flex" : "none";
+            deleteBtn.onclick = () => deleteBookingDocument(bookingId, category, doc.label);
+
+            document.getElementById("documentModal").classList.add("open");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeDocumentModal() {
+            activeDocument = null;
+            document.getElementById("documentModal").classList.remove("open");
+            document.getElementById("documentModalBody").innerHTML = "";
+            document.body.style.overflow = "";
+        }
+
+        async function deleteBookingDocument(bookingId, category, label) {
+            if (!confirm(`Delete ${label}? This action cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/user-panel/api/bookings/${bookingId}/documents/${encodeURIComponent(category)}`, {
+                    method: "DELETE"
+                });
+                const data = await res.json();
+                if (!data.ok) {
+                    alert(data.error || "Failed to delete document.");
+                    return;
+                }
+                closeDocumentModal();
+                await loadBookings();
+            } catch (e) {
+                alert("Network error while deleting document.");
+            }
+        }
+
         loadBookings();
         loadPayments();
 
@@ -558,6 +887,18 @@
         document.getElementById("planPaymentOption").addEventListener("change", () => {
             const isLoan = document.getElementById("planPaymentOption").value === "Loan Required";
             document.getElementById("loanPlanFields").classList.toggle("hidden", !isLoan);
+        });
+
+        document.getElementById("documentModal").addEventListener("click", (event) => {
+            if (event.target.id === "documentModal") {
+                closeDocumentModal();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                closeDocumentModal();
+            }
         });
 
         async function savePaymentPlan() {

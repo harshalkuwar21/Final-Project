@@ -54,24 +54,35 @@
             backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, .3);
         }
-
-        .logo {
+ .logo {
             display: flex;
             align-items: center;
             gap: 14px;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
         }
 
         .logo img {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
-            transition: .35s;
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
         }
 
         .logo img:hover {
-            transform: rotate(8deg) scale(1.08);
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
         }
 
         /* NAV LINKS */
@@ -534,14 +545,10 @@
 
     <!-- NAVBAR -->
     <header class="navbar">
-        <div class="logo">
-            <img src="/images/logo.png">
-            DK3 Cars
-        </div>
-        <!-- <div class="nav-icons">
-            <i onclick="location.href='/showrooms'" class="fa fa-bell" id="notifIcon"></i>
-            <i class="fa fa-user-circle" id="userIcon"></i>
-        </div> -->
+     <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
     </header>
 
     <div class="container">

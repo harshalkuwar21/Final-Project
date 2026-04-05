@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCarsAndCustomers();
     setupFormSubmit();
     setupSearch();
+    setupDocumentModal();
 });
 
 // ============================================
@@ -39,7 +40,7 @@ function displayDocuments(documents) {
     if (groups.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="empty-state">
                         <div class="empty-state-icon"><i class="fas fa-file"></i></div>
                         <h3>No Documents Found</h3>
@@ -51,8 +52,9 @@ function displayDocuments(documents) {
         return;
     }
 
-    tbody.innerHTML = groups.map(group => `
+    tbody.innerHTML = groups.map((group, index) => `
         <tr class="document-row">
+            <td>${index + 1}</td>
             <td>${escapeHtml(group.customerLabel)}</td>
             <td>${escapeHtml(group.carLabel)}</td>
             <td>
@@ -69,6 +71,9 @@ function displayDocuments(documents) {
                     </button>
                     <button class="action-icon download" title="Download All" onclick="downloadGroupDocuments('${escapeJsValue(group.groupId)}')">
                         <i class="fas fa-download"></i>
+                    </button>
+                    <button class="action-icon" title="Delete Row" onclick="deleteGroupDocuments('${escapeJsValue(group.groupId)}')">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </td>
@@ -254,23 +259,40 @@ function refreshTypeFilter(documents) {
 
 function openAddDocumentModal() {
     document.getElementById('addDocumentModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function closeAddDocumentModal() {
     document.getElementById('addDocumentModal').style.display = 'none';
     document.getElementById('addDocumentForm').reset();
+    document.body.style.overflow = '';
 }
 
 function closeViewDocumentModal() {
+    currentDocumentId = null;
     currentGroup = null;
     document.getElementById('viewDocumentModal').style.display = 'none';
+    document.getElementById('viewDocumentContent').innerHTML = '';
+    document.body.style.overflow = '';
 }
 
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
-    }
-};
+function setupDocumentModal() {
+    document.addEventListener('click', function(event) {
+        if (event.target.id === 'addDocumentModal') {
+            closeAddDocumentModal();
+        }
+        if (event.target.id === 'viewDocumentModal') {
+            closeViewDocumentModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAddDocumentModal();
+            closeViewDocumentModal();
+        }
+    });
+}
 
 // ============================================
 // FORM SUBMISSION
@@ -346,6 +368,7 @@ function viewGroupDocuments(groupId) {
     };
     document.getElementById('deleteDocBtn').style.display = 'none';
     document.getElementById('viewDocumentModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function viewDocument(id) {
@@ -360,8 +383,9 @@ function viewDocument(id) {
     document.getElementById('downloadBtn').onclick = function() {
         downloadDocument(id);
     };
-    document.getElementById('deleteDocBtn').style.display = doc.source === 'DOCUMENT' ? 'inline-flex' : 'none';
+    document.getElementById('deleteDocBtn').style.display = canDeleteDocument(doc) ? 'inline-flex' : 'none';
     document.getElementById('viewDocumentModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
 }
 
 function renderDocumentPreviewCard(doc, singleView = false) {
@@ -381,8 +405,8 @@ function renderDocumentPreviewCard(doc, singleView = false) {
                 <button type="button" class="btn btn-secondary" onclick="downloadDocument('${escapeJsValue(doc.id)}')">
                     <i class="fas fa-download"></i> Download
                 </button>
-                ${doc.source === 'DOCUMENT' && !singleView ? `
-                    <button type="button" class="btn btn-secondary" onclick="deleteDocument(${doc.documentId})">
+                ${canDeleteDocument(doc) && !singleView ? `
+                    <button type="button" class="btn btn-secondary" onclick="deleteDocumentBySource('${escapeJsValue(doc.id)}')">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 ` : ''}
@@ -453,15 +477,19 @@ function downloadGroupDocuments(groupId) {
     group.documents.forEach(doc => downloadDocument(doc.id));
 }
 
+function deleteDocumentRequest(id) {
+    fetch(`/api/documents/${id}`, {
+        method: 'DELETE'
+    })
+        .then(response => response.json());
+}
+
 function deleteDocument(id) {
     if (!confirm('Are you sure you want to delete this document?')) {
         return;
     }
 
-    fetch(`/api/documents/${id}`, {
-        method: 'DELETE'
-    })
-        .then(response => response.json())
+    deleteDocumentRequest(id)
         .then(data => {
             if (data.success) {
                 showToast('Document deleted successfully', 'success');
@@ -477,11 +505,104 @@ function deleteDocument(id) {
         });
 }
 
-function deleteCurrentDocument() {
-    const doc = allDocuments.find(item => String(item.id) === String(currentDocumentId));
-    if (doc && doc.source === 'DOCUMENT' && doc.documentId) {
+function deleteBookingDocumentRequest(bookingId, documentCategory) {
+    fetch(`/api/documents/booking/${bookingId}/${encodeURIComponent(documentCategory)}`, {
+        method: 'DELETE'
+    })
+        .then(response => response.json());
+}
+
+function deleteBookingDocument(bookingId, documentCategory) {
+    if (!confirm('Are you sure you want to delete this booking document?')) {
+        return;
+    }
+
+    deleteBookingDocumentRequest(bookingId, documentCategory)
+        .then(data => {
+            if (data.success) {
+                showToast('Document deleted successfully', 'success');
+                closeViewDocumentModal();
+                loadDocuments();
+            } else {
+                showToast(data.message || 'Failed to delete document', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting booking document:', error);
+            showToast('Error deleting document', 'error');
+        });
+}
+
+function canDeleteDocument(doc) {
+    return !!doc && (doc.source === 'DOCUMENT' || doc.source === 'BOOKING');
+}
+
+function deleteDocumentBySource(id) {
+    const doc = allDocuments.find(item => String(item.id) === String(id));
+    if (!doc) return;
+
+    if (doc.source === 'BOOKING') {
+        deleteBookingDocument(doc.bookingId, doc.documentCategory);
+        return;
+    }
+
+    if (doc.documentId) {
         deleteDocument(doc.documentId);
     }
+}
+
+function deleteCurrentDocument() {
+    const doc = allDocuments.find(item => String(item.id) === String(currentDocumentId));
+    if (!doc) return;
+    deleteDocumentBySource(doc.id);
+}
+
+function deleteDocumentByRecord(doc) {
+    if (!doc) return Promise.resolve({ success: false, message: 'Document not found' });
+    if (doc.source === 'BOOKING') {
+        return deleteBookingDocumentRequest(doc.bookingId, doc.documentCategory);
+    }
+    if (doc.documentId) {
+        return deleteDocumentRequest(doc.documentId);
+    }
+    return Promise.resolve({ success: false, message: 'Document not deletable' });
+}
+
+async function deleteGroupDocuments(groupId) {
+    const group = groupDocuments(allDocuments).find(item => item.groupId === groupId);
+    if (!group || !Array.isArray(group.documents) || !group.documents.length) return;
+
+    const confirmed = confirm(`Delete this row and all ${group.documents.length} documents for ${group.customerLabel}?`);
+    if (!confirmed) return;
+
+    let deletedCount = 0;
+    let failedCount = 0;
+
+    for (const doc of group.documents) {
+        try {
+            const result = await deleteDocumentByRecord(doc);
+            if (result && result.success) {
+                deletedCount++;
+            } else {
+                failedCount++;
+            }
+        } catch (_) {
+            failedCount++;
+        }
+    }
+
+    closeViewDocumentModal();
+    loadDocuments();
+
+    if (deletedCount && !failedCount) {
+        showToast('Row deleted successfully', 'success');
+        return;
+    }
+    if (deletedCount && failedCount) {
+        showToast(`Deleted ${deletedCount} documents. ${failedCount} failed.`, 'info');
+        return;
+    }
+    showToast('Failed to delete row documents', 'error');
 }
 
 // ============================================
@@ -544,15 +665,24 @@ function getDocumentStatus(doc) {
 
 function formatTypeLabel(type) {
     const labelMap = {
-        CustomerID: 'Customer ID',
-        CustomerSignature: 'Signature',
+        AadhaarPhoto: 'Aadhaar Card',
+        PanPhoto: 'PAN Card',
+        SignaturePhoto: 'Signature',
         PassportPhoto: 'Passport Photo',
-        PaymentProof: 'Payment Screenshot',
-        PaymentReceipt: 'Payment Receipt',
+        PaymentScreenshot: 'Payment Screenshot',
+        DownPaymentReceipt: 'Down Payment Receipt',
         BookingReceipt: 'Booking Receipt',
+        ProformaInvoice: 'Proforma Invoice',
         AllotmentLetter: 'Allotment Letter',
         DeliveryConfirmation: 'Delivery Confirmation',
+        InsurancePolicy: 'Insurance Policy',
         TemporaryRegistration: 'Temporary Registration',
+        FinalInvoice: 'Final Invoice / Sale Bill',
+        RegistrationCertificate: 'Registration Certificate',
+        PucCertificate: 'PUC Certificate',
+        WarrantyDocument: 'Warranty Document',
+        RoadTaxReceipt: 'Road Tax Receipt',
+        FinanceSanctionLetter: 'Finance Sanction Letter',
         LoanDocument: 'Loan Document'
     };
     return labelMap[type] || type;
@@ -632,6 +762,14 @@ window.showToast = showToast;
 
 
     const logoutBtn = document.getElementById("logoutBtn");
+    const redirectAfterLogout = (message) => {
+        try {
+            sessionStorage.setItem("logoutMessage", message || "Logged out successfully.");
+        } catch (_) {
+            // ignore storage errors
+        }
+        window.location.href = "/login?logout=1";
+    };
     if (logoutBtn) {
         logoutBtn.addEventListener("click", async () => {
             if (!confirm("Are you sure you want to logout?")) return;
@@ -640,6 +778,6 @@ window.showToast = showToast;
             } catch (_) {
                 // ignore network errors and proceed to login
             }
-            window.location.href = "/login";
+            redirectAfterLogout("Logged out successfully.");
         });
     }

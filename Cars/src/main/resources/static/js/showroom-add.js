@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const img = document.getElementById('srImage');
     const contactInput = document.getElementById('srContact');
+    const logoutBtn = document.getElementById('logoutBtn');
     if(img){
         img.addEventListener('change', () => {
             updatePreview(img.files && img.files[0]);
@@ -12,6 +13,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     populateTimeOptions();
+    loadShowroomForEdit();
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to logout?')) return;
+            try {
+                await fetch('/user/logout', { method: 'POST' });
+            } catch (_) {
+                // ignore network errors and proceed to login
+            }
+            try {
+                sessionStorage.setItem('logoutMessage', 'Logged out successfully.');
+            } catch (_) {
+                // ignore storage errors
+            }
+            window.location.href = '/login?logout=1';
+        });
+    }
 });
 
 function populateTimeOptions() {
@@ -63,7 +81,99 @@ function previewImage(event){
     updatePreview(event && event.target && event.target.files ? event.target.files[0] : null);
 }
 
+function getShowroomIdFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
+
+function parseWorkingHours(value) {
+    const parts = String(value || '').split(' - ');
+    if (parts.length !== 2) {
+        return null;
+    }
+    const open = to24Hour(parts[0]);
+    const close = to24Hour(parts[1]);
+    if (!open || !close) {
+        return null;
+    }
+    return { open, close };
+}
+
+function to24Hour(value) {
+    const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return '';
+    let hour = Number(match[1]);
+    const minute = match[2];
+    const suffix = match[3].toUpperCase();
+    if (suffix === 'PM' && hour !== 12) hour += 12;
+    if (suffix === 'AM' && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, '0')}:${minute}`;
+}
+
+function setFormMode(isEdit) {
+    const title = document.getElementById('showroomFormTitle');
+    const btn = document.getElementById('srAddBtn');
+    if (title) {
+        title.textContent = isEdit ? 'Edit Showroom' : 'Add New Showroom';
+    }
+    if (btn) {
+        btn.textContent = isEdit ? 'Save Showroom Changes' : '+ Add Showroom';
+    }
+}
+
+function loadShowroomForEdit() {
+    const showroomId = getShowroomIdFromQuery();
+    if (!showroomId) {
+        setFormMode(false);
+        return;
+    }
+
+    const status = document.getElementById('srStatus');
+    setFormMode(true);
+    if (status) status.innerText = 'Loading showroom details...';
+
+    fetch(`/api/dashboard/showroom/${showroomId}`)
+        .then(res => {
+            if (!res.ok) return res.json().then(data => { throw new Error(data.message || 'Unable to load showroom'); });
+            return res.json();
+        })
+        .then(data => {
+            if (!data.ok || !data.showroom) {
+                throw new Error(data.message || 'Unable to load showroom');
+            }
+            const showroom = data.showroom;
+            const srId = document.getElementById('srId');
+            if (srId) srId.value = showroom.id || '';
+            document.getElementById('srName').value = showroom.name || '';
+            document.getElementById('srCity').value = showroom.city || '';
+            document.getElementById('srAddress').value = showroom.address || '';
+            document.getElementById('srContact').value = String(showroom.contactNumber || '').replace(/\D/g, '').slice(0, 10);
+            document.getElementById('srType').value = showroom.type || 'Normal';
+
+            const hours = parseWorkingHours(showroom.workingHours);
+            if (hours) {
+                document.getElementById('srOpenTime').value = hours.open;
+                document.getElementById('srCloseTime').value = hours.close;
+            }
+
+            if (showroom.imageUrl || showroom.image) {
+                const preview = document.getElementById('previewImg');
+                if (preview) {
+                    preview.src = showroom.imageUrl || showroom.image;
+                    preview.style.display = 'inline-block';
+                }
+            }
+
+            if (status) status.innerText = '';
+        })
+        .catch(err => {
+            console.error(err);
+            if (status) status.innerText = 'Failed to load showroom details: ' + (err.message || '');
+        });
+}
+
 function saveShowroom(){
+    const showroomId = (document.getElementById('srId') || {}).value || '';
     const name = (document.getElementById('srName')||{}).value || '';
     const city = (document.getElementById('srCity')||{}).value || '';
     const address = (document.getElementById('srAddress')||{}).value || '';
@@ -104,10 +214,11 @@ function saveShowroom(){
         fd.append('image', imageEl.files[0]);
     }
 
-    if(btn){ btn.disabled = true; btn.innerText = 'Uploading...'; }
+    const isEdit = Boolean(showroomId);
+    if(btn){ btn.disabled = true; btn.innerText = isEdit ? 'Saving...' : 'Uploading...'; }
     if(status) status.innerText = 'Uploading...';
 
-    fetch('/api/dashboard/showroom', { method: 'POST', body: fd })
+    fetch(showroomId ? `/api/dashboard/showroom/${showroomId}` : '/api/dashboard/showroom', { method: 'POST', body: fd })
         .then(r => {
             if(!r.ok) return r.text().then(t => { throw new Error(t||r.statusText); });
             return r.json();
@@ -116,12 +227,12 @@ function saveShowroom(){
             if(!s.ok){
                 throw new Error(s.message || 'Unable to save showroom');
             }
-            if(status) status.innerText = 'Showroom added successfully! Redirecting...';
+            if(status) status.innerText = `${isEdit ? 'Showroom updated' : 'Showroom added'} successfully! Redirecting...`;
             setTimeout(()=>{ window.location.href = '/showrooms'; }, 1000);
         })
         .catch(err => {
             console.error(err);
-            if(status) status.innerText = 'Failed to add showroom: ' + (err.message||'');
+            if(status) status.innerText = `Failed to ${isEdit ? 'update' : 'add'} showroom: ` + (err.message||'');
         })
-        .finally(()=>{ if(btn){ btn.disabled=false; btn.innerText = '+ Add Showroom'; } });
+        .finally(()=>{ if(btn){ btn.disabled=false; btn.innerText = isEdit ? 'Save Showroom Changes' : '+ Add Showroom'; } });
 }

@@ -12,10 +12,6 @@
     <div class="logo">
         <img src="/images/logo.png" alt="logo"> DK3 Cars
     </div>
-    <div class="nav-icons">
-            <i class="fa fa-bell"></i>
-            <i class="fa fa-user-circle"></i>
-    </div>
 </header>
 
 <div class="container">
@@ -84,6 +80,38 @@
             <label><input type="checkbox" id="eEnabled"> Enabled</label>
             <input id="ePassword" placeholder="New password (optional)">
             <div style="margin-top:8px;"><button class="btn-primary" id="eSaveBtn">Save</button> <button onclick="hideEdit()" class="btn-secondary">Cancel</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="staffNotificationModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideStaffNotifications()">&times;</button>
+        <div class="modal-body">
+            <h3>Staff Notifications</h3>
+            <p id="staffNotificationText">No new staff notifications right now.</p>
+            <div style="margin-top:8px;">
+                <button onclick="hideStaffNotifications()" class="btn-primary">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staffProfileModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideStaffProfile()">&times;</button>
+        <div class="modal-body">
+            <h3>My Profile</h3>
+            <input id="spFirst" placeholder="First name">
+            <input id="spLast" placeholder="Last name">
+            <input id="spEmail" placeholder="Email">
+            <input id="spContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
+            <input id="spPassword" type="password" placeholder="New password (optional)">
+            <div style="margin-top:8px;">
+                <button class="btn-primary" id="spSaveBtn">Save</button>
+                <button onclick="hideStaffProfile()" class="btn-secondary">Cancel</button>
+            </div>
+            <span id="spMsg" style="margin-top:8px;color:#666"></span>
         </div>
     </div>
 </div>

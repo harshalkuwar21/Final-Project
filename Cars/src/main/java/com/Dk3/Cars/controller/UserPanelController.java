@@ -4,6 +4,7 @@ import com.Dk3.Cars.entity.Booking;
 import com.Dk3.Cars.entity.BankDetail;
 import com.Dk3.Cars.entity.Car;
 import com.Dk3.Cars.entity.Customer;
+import com.Dk3.Cars.entity.HomeReview;
 import com.Dk3.Cars.entity.LoanDetail;
 import com.Dk3.Cars.entity.Notification;
 import com.Dk3.Cars.entity.Payment;
@@ -16,6 +17,7 @@ import com.Dk3.Cars.repository.BankDetailRepository;
 import com.Dk3.Cars.repository.BookingRepository;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.CustomerRepository;
+import com.Dk3.Cars.repository.HomeReviewRepository;
 import com.Dk3.Cars.repository.LoanDetailRepository;
 import com.Dk3.Cars.repository.PaymentStageRepository;
 import com.Dk3.Cars.repository.PaymentTransactionRepository;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -90,6 +93,8 @@ public class UserPanelController {
     private BankDetailRepository bankDetailRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private HomeReviewRepository homeReviewRepository;
 
     private boolean isUser(HttpSession session) {
         return "ROLE_USER".equals(session.getAttribute("USER_ROLE"));
@@ -250,18 +255,143 @@ public class UserPanelController {
         return ResponseEntity.ok(Map.of("ok", true, "showrooms", out));
     }
 
+    @GetMapping("/api/home-reviews")
+    @ResponseBody
+    public ResponseEntity<?> myHomeReviews(HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        List<Map<String, Object>> reviews = homeReviewRepository.findByUserIdOrderByCreatedAtDesc(user.getUserid())
+                .stream()
+                .map(this::homeReviewToMap)
+                .toList();
+        return ResponseEntity.ok(Map.of("ok", true, "reviews", reviews));
+    }
+
+    @PostMapping("/api/home-reviews")
+    @ResponseBody
+    public ResponseEntity<?> submitHomeReview(@RequestBody Map<String, Object> body, HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        String title = trimText(body.get("title"));
+        String message = trimText(body.get("message"));
+        String city = trimText(body.get("city"));
+        String showroomVisited = trimText(body.get("showroomVisited"));
+        int rating = parseInteger(body.get("rating"), 0);
+
+        if (title == null || message == null || city == null) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Title, city, and review message are required"));
+        }
+        if (rating < 1 || rating > 5) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Rating must be between 1 and 5"));
+        }
+
+        HomeReview review = new HomeReview();
+        review.setUserId(user.getUserid());
+        review.setUserEmail(user.getEmail());
+        review.setReviewerName(resolveUserDisplayName(user));
+        review.setCity(city);
+        review.setShowroomVisited(showroomVisited);
+        review.setTitle(title);
+        review.setMessage(message);
+        review.setRating(rating);
+        review.setApproved(true);
+
+        HomeReview saved = homeReviewRepository.save(review);
+        return ResponseEntity.ok(Map.of(
+                "ok", true,
+                "message", "Your review has been saved and is now visible on the home page.",
+                "review", homeReviewToMap(saved)
+        ));
+    }
+
+    @DeleteMapping("/api/home-reviews/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteHomeReview(@PathVariable Long id, HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        HomeReview review = homeReviewRepository.findById(id).orElse(null);
+        if (review == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Review not found"));
+        }
+
+        boolean ownReview = review.getUserId() != null && review.getUserId().equals(user.getUserid());
+        boolean sameEmail = review.getUserEmail() != null && review.getUserEmail().equalsIgnoreCase(user.getEmail());
+        if (!ownReview && !sameEmail) {
+            return ResponseEntity.status(403).body(Map.of("ok", false, "error", "You can delete only your own reviews"));
+        }
+
+        homeReviewRepository.delete(review);
+        return ResponseEntity.ok(Map.of("ok", true, "message", "Review deleted successfully"));
+    }
+
     @PostMapping("/api/compare")
     @ResponseBody
     public ResponseEntity<?> compareCars(@RequestParam List<Long> carIds, HttpSession session) {
         if (!isUser(session)) return unauthorized();
-        if (carIds == null || carIds.size() < 2) {
-            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Select at least 2 cars for comparison"));
+        if (carIds == null || carIds.size() != 2) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Select exactly 2 cars for comparison"));
         }
         List<Car> cars = carIds.stream()
                 .map(id -> carService.getCarById(id).orElse(null))
                 .filter(java.util.Objects::nonNull)
                 .toList();
-        return ResponseEntity.ok(Map.of("ok", true, "cars", cars));
+        if (cars.size() != 2) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Two valid cars are required for comparison"));
+        }
+
+        Car first = cars.get(0);
+        Car second = cars.get(1);
+        List<Map<String, Object>> comparison = new ArrayList<>();
+
+        int firstScore = 0;
+        int secondScore = 0;
+        List<String> firstReasons = new ArrayList<>();
+        List<String> secondReasons = new ArrayList<>();
+
+        int winnerSide = addComparisonMetric(comparison, "Price", formatCarPrice(first.getPrice()), formatCarPrice(second.getPrice()),
+                first.getId(), second.getId(), compareNumbers(first.getPrice(), second.getPrice(), false),
+                "Lower price", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        winnerSide = addComparisonMetric(comparison, "Mileage", getPrimaryMileage(first), getPrimaryMileage(second),
+                first.getId(), second.getId(), compareNumbers(extractLeadingNumber(getPrimaryMileage(first)), extractLeadingNumber(getPrimaryMileage(second)), true),
+                "Better mileage", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        winnerSide = addComparisonMetric(comparison, "User Review", formatRating(first.getReviewScore()), formatRating(second.getReviewScore()),
+                first.getId(), second.getId(), compareNumbers(nullableDouble(first.getReviewScore()), nullableDouble(second.getReviewScore()), true),
+                "Better user reviews", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        winnerSide = addComparisonMetric(comparison, "Engine", safeText(first.getEngineCc()), safeText(second.getEngineCc()),
+                first.getId(), second.getId(), compareNumbers(extractLeadingNumber(first.getEngineCc()), extractLeadingNumber(second.getEngineCc()), true),
+                "Stronger engine performance", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        winnerSide = addComparisonMetric(comparison, "Safety", safeText(first.getSafetyRating()), safeText(second.getSafetyRating()),
+                first.getId(), second.getId(), compareNumbers(extractLeadingNumber(first.getSafetyRating()), extractLeadingNumber(second.getSafetyRating()), true),
+                "Higher safety rating", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        winnerSide = addComparisonMetric(comparison, "Seating", safeText(first.getSeatingCapacity()), safeText(second.getSeatingCapacity()),
+                first.getId(), second.getId(), compareNumbers(extractLeadingNumber(first.getSeatingCapacity()), extractLeadingNumber(second.getSeatingCapacity()), true),
+                "More seating capacity", firstReasons, secondReasons);
+        if (winnerSide == 1) firstScore++;
+        if (winnerSide == 2) secondScore++;
+
+        Map<String, Object> summary = buildCompareSummary(first, second, firstScore, secondScore, firstReasons, secondReasons);
+        return ResponseEntity.ok(Map.of("ok", true, "cars", cars, "comparison", comparison, "summary", summary));
     }
 
     @GetMapping("/api/bookings")
@@ -278,6 +408,34 @@ public class UserPanelController {
             stepTracker.put(booking.getId(), computeStepTracker(booking, stages, loan));
         }
         return ResponseEntity.ok(Map.of("ok", true, "bookings", bookings, "stepTracker", stepTracker));
+    }
+
+    @DeleteMapping("/api/bookings/{bookingId}/documents/{documentCategory}")
+    @ResponseBody
+    public ResponseEntity<?> deleteMyBookingDocument(@PathVariable Long bookingId,
+                                                     @PathVariable String documentCategory,
+                                                     HttpSession session) {
+        if (!isUser(session)) return unauthorized();
+        User user = sessionUser(session).orElse(null);
+        if (user == null) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "User not found"));
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
+        }
+        String bookingOwnerEmail = booking.getCustomer() != null ? booking.getCustomer().getEmail() : null;
+        if (bookingOwnerEmail == null || !bookingOwnerEmail.equalsIgnoreCase(user.getEmail())) {
+            return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
+        }
+        if (!bookingService.isCustomerEditableDocument(documentCategory)) {
+            return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "This document cannot be deleted from the user panel"));
+        }
+
+        boolean deleted = bookingService.deleteBookingDocument(booking, documentCategory);
+        if (!deleted) {
+            return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Document not found"));
+        }
+        return ResponseEntity.ok(Map.of("ok", true, "message", "Document deleted successfully"));
     }
 
     @GetMapping("/api/payments")
@@ -961,6 +1119,106 @@ public class UserPanelController {
         return digits.length() > maxLength ? digits.substring(0, maxLength) : digits;
     }
 
+    private Map<String, Object> buildCompareSummary(Car first, Car second, int firstScore, int secondScore,
+                                                    List<String> firstReasons, List<String> secondReasons) {
+        Map<String, Object> summary = new LinkedHashMap<>();
+        boolean draw = firstScore == secondScore;
+        Car winner = draw ? null : (firstScore > secondScore ? first : second);
+        List<String> reasons = draw ? List.of("Both cars are closely matched on the selected specifications.")
+                : trimReasons(firstScore > secondScore ? firstReasons : secondReasons);
+
+        summary.put("draw", draw);
+        summary.put("firstScore", firstScore);
+        summary.put("secondScore", secondScore);
+        summary.put("winnerId", winner == null ? null : winner.getId());
+        summary.put("winnerName", winner == null ? "Both cars are evenly matched" : carDisplayName(winner));
+        summary.put("headline", draw
+                ? "Both cars are almost equally strong choices."
+                : carDisplayName(winner) + " looks better overall for this comparison.");
+        summary.put("reasons", reasons);
+        return summary;
+    }
+
+    private List<String> trimReasons(List<String> reasons) {
+        if (reasons == null || reasons.isEmpty()) return List.of("Balanced overall performance.");
+        return reasons.stream().distinct().limit(3).toList();
+    }
+
+    private int addComparisonMetric(List<Map<String, Object>> comparison, String label, String firstValue, String secondValue,
+                                    Long firstId, Long secondId, int winnerSide, String winnerReason,
+                                    List<String> firstReasons, List<String> secondReasons) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("label", label);
+        row.put("firstValue", firstValue);
+        row.put("secondValue", secondValue);
+        row.put("winner", winnerSide == 1 ? firstId : winnerSide == 2 ? secondId : null);
+        comparison.add(row);
+
+        if (winnerSide == 1) {
+            firstReasons.add(winnerReason);
+            return 1;
+        }
+        if (winnerSide == 2) {
+            secondReasons.add(winnerReason);
+            return 2;
+        }
+        return 0;
+    }
+
+    private int compareNumbers(Double first, Double second, boolean higherIsBetter) {
+        if (first == null && second == null) return 0;
+        if (first != null && second == null) return 1;
+        if (first == null) return 2;
+        int compared = Double.compare(first, second);
+        if (compared == 0) return 0;
+        if (higherIsBetter) return compared > 0 ? 1 : 2;
+        return compared < 0 ? 1 : 2;
+    }
+
+    private Double extractLeadingNumber(String value) {
+        if (value == null || value.isBlank()) return null;
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+(?:\\.\\d+)?)").matcher(value.replace(",", ""));
+        if (!matcher.find()) return null;
+        try {
+            return Double.parseDouble(matcher.group(1));
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private String formatCarPrice(double value) {
+        if (value <= 0) return "Price on request";
+        if (value >= 10000000) return String.format("Rs %.2f Crore", value / 10000000D);
+        return String.format("Rs %.2f Lakh", value / 100000D);
+    }
+
+    private String getPrimaryMileage(Car car) {
+        if (car == null) return "N/A";
+        if (car.getMileage() != null && !car.getMileage().isBlank()) return car.getMileage();
+        if (car.getMileageDetails() == null || car.getMileageDetails().isBlank()) return "N/A";
+        String firstRow = car.getMileageDetails().split("\\|")[0];
+        String[] parts = firstRow.split(":");
+        return parts.length >= 2 ? parts[1].trim() : firstRow.trim();
+    }
+
+    private String formatRating(Double score) {
+        if (score == null || score <= 0) return "N/A";
+        return String.format("%.1f/5", score);
+    }
+
+    private Double nullableDouble(Double value) {
+        return value == null || value <= 0 ? null : value;
+    }
+
+    private String safeText(String value) {
+        return value == null || value.isBlank() ? "N/A" : value;
+    }
+
+    private String carDisplayName(Car car) {
+        if (car == null) return "Selected car";
+        return ((car.getBrand() == null ? "" : car.getBrand()) + " " + (car.getModel() == null ? "" : car.getModel())).trim();
+    }
+
     private double roadTaxRateByState(String state) {
         String s = state == null ? "" : state.trim().toLowerCase();
         if (s.contains("maharashtra")) return 0.11;
@@ -986,6 +1244,36 @@ public class UserPanelController {
         map.put("link", notification.getLink());
         map.put("createdAt", notification.getCreatedAt());
         return map;
+    }
+
+    private Map<String, Object> homeReviewToMap(HomeReview review) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", review.getId());
+        map.put("reviewerName", review.getReviewerName());
+        map.put("city", review.getCity());
+        map.put("showroomVisited", review.getShowroomVisited());
+        map.put("title", review.getTitle());
+        map.put("message", review.getMessage());
+        map.put("rating", review.getRating());
+        map.put("createdAt", review.getCreatedAt());
+        return map;
+    }
+
+    private String resolveUserDisplayName(User user) {
+        if (user == null) return "DK3 Customer";
+        String fullName = ((user.getFirst() == null ? "" : user.getFirst()) + " "
+                + (user.getLast() == null ? "" : user.getLast())).trim();
+        if (!fullName.isBlank()) return fullName;
+        if (user.getEmail() != null && user.getEmail().contains("@")) {
+            return user.getEmail().substring(0, user.getEmail().indexOf('@'));
+        }
+        return "DK3 Customer";
+    }
+
+    private String trimText(Object value) {
+        if (value == null) return null;
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? null : text;
     }
 
     private void ensureDefaultBanks() {

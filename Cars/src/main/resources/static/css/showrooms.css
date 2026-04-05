@@ -1,1 +1,43 @@
 @import url('/css/typography.css');
+
+.showroom-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.showroom-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+}
+
+.showroom-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.showroom-action-btn.edit {
+    background: linear-gradient(135deg, #6c4ef6, #9f7bff);
+    color: #fff;
+    box-shadow: 0 10px 22px rgba(108, 78, 246, 0.22);
+}
+
+.showroom-action-btn.delete {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid rgba(190, 18, 60, 0.14);
+}
+
+.showroom-action-note {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}

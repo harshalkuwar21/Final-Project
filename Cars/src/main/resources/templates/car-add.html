@@ -41,7 +41,7 @@
             z-index: 999;
         }
 
-        .logo {
+         .logo {
             display: flex;
             align-items: center;
             gap: 14px;
@@ -59,7 +59,18 @@
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
         }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
 
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
         .nav-icons {
             display: flex;
             gap: 18px;
@@ -238,18 +249,14 @@
 </head>
 <body>
 <header class="navbar">
-    <div class="logo">
-        <img src="/images/logo.png" alt="logo">
-        DK3 Cars
-    </div>
-    <div class="nav-icons">
-        <i class="fa fa-bell"></i>
-        <i class="fa fa-user-circle"></i>
+  <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 </header>
 
 <div class="container">
-    <aside class="sidebar">
+        <aside class="sidebar">
         <ul>
             <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
             <li onclick="location.href='/showrooms'"><i class="fas fa-store"></i> Showroom</li>
@@ -383,9 +390,19 @@
                     <input name="variantDetails" type="text" placeholder="HTE~Petrol 1.5L Manual 7 STR~1311000|HTK Plus~Diesel 1.5L Manual~1904000">
                 </div>
                 <div class="form-group form-group-full">
-                    <label>Color Options</label>
-                    <textarea name="colorOptions" placeholder="Red~#ff2b2b~https://example.com/red-car.jpg&#10;White~#dfe4ea~https://example.com/white-car.jpg"></textarea>
-                    <div class="hint">Add one color per line in this format: Color Name~Hex Code~Car Color Image URL</div>
+                    <label>Color Names</label>
+                    <textarea name="colorOptionNames" placeholder="Red&#10;White&#10;Blue"></textarea>
+                    <div class="hint">One color name per line. Order should match the color code and color image fields below.</div>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Codes</label>
+                    <textarea name="colorOptionCodes" placeholder="#ff2b2b&#10;#dfe4ea&#10;#1d4ed8"></textarea>
+                    <div class="hint">One hex code per line, matching the color names order.</div>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Image URLs</label>
+                    <textarea name="colorOptionImages" placeholder="https://example.com/red-car.jpg&#10;https://example.com/white-car.jpg&#10;https://example.com/blue-car.jpg"></textarea>
+                    <div class="hint">One car image URL per line, matching the same color row.</div>
                 </div>
                 <div class="form-group">
                     <label>Review Score (0-5)</label>
@@ -412,8 +429,14 @@
                     <input name="reviewComfort" type="number" min="0" max="5" step="0.1" value="4.8">
                 </div>
                 <div class="form-group form-group-full">
-                    <label>FAQ Details</label>
-                    <input name="faqDetails" type="text" placeholder="What is on-road price?~Depends on city and taxes.|How many airbags?~Based on selected variant.">
+                    <label>FAQ Questions</label>
+                    <textarea name="faqQuestions" placeholder="What is on-road price?&#10;How many airbags?"></textarea>
+                    <div class="hint">One FAQ question per line. Keep the same order in answers below.</div>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Answers</label>
+                    <textarea name="faqAnswers" placeholder="Depends on city and taxes.&#10;Based on selected variant."></textarea>
+                    <div class="hint">One FAQ answer per line, matching the same FAQ question row.</div>
                 </div>
                 <div class="form-group form-group-full">
                     <label>Image URL</label>

@@ -42,8 +42,7 @@
             top: 20px;
             z-index: 999;
         }
-
-        .logo {
+ .logo {
             display: flex;
             align-items: center;
             gap: 14px;
@@ -52,11 +51,27 @@
         }
 
         .logo img {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             border-radius: 14px;
+            transition: .3s;
         }
 
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
         .nav-icons {
             display: flex;
             gap: 18px;
@@ -215,6 +230,13 @@
             gap: 12px;
         }
 
+        .current-image-card {
+            width: 170px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .current-images img {
             width: 150px;
             height: 100px;
@@ -222,6 +244,22 @@
             border-radius: 12px;
             border: 1px solid #e5e7eb;
             background: #f8fafc;
+        }
+
+        .remove-image-btn {
+            width: fit-content;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: #fff1f2;
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .remove-image-btn:hover {
+            background: #ffe4e6;
         }
 
         .hint {
@@ -263,17 +301,13 @@
 <body>
 <header class="navbar">
     <div class="logo">
-        <img src="/images/logo.png" alt="logo">
-        DK3 Cars
-    </div>
-    <div class="nav-icons">
-        <i class="fa fa-bell"></i>
-        <i class="fa fa-user-circle"></i>
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 </header>
 
 <div class="container">
-    <aside class="sidebar">
+        <aside class="sidebar">
         <ul>
             <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
             <li onclick="location.href='/cars/all'"><i class="fas fa-car-side"></i> All Vehicles</li>
@@ -434,19 +468,41 @@
                     <textarea name="variantDetails" rows="2" th:text="${car.variantDetails}"></textarea>
                 </div>
                 <div class="form-group form-group-full">
-                    <label>Color Options</label>
-                    <textarea name="colorOptions" rows="3" th:text="${existingColorOptionsText}" placeholder="Red~#ff2b2b~https://example.com/red-car.jpg&#10;White~#dfe4ea~https://example.com/white-car.jpg"></textarea>
-                    <p class="hint">Add one color per line in this format: Color Name~Hex Code~Car Color Image URL</p>
+                    <label>Color Names</label>
+                    <textarea name="colorOptionNames" rows="3" th:text="${existingColorOptionNamesText}" placeholder="Red&#10;White&#10;Blue"></textarea>
+                    <p class="hint">One color name per line. Keep the same order in code and image fields.</p>
                 </div>
                 <div class="form-group form-group-full">
-                    <label>FAQ Details</label>
-                    <textarea name="faqDetails" rows="2" th:text="${car.faqDetails}"></textarea>
+                    <label>Color Codes</label>
+                    <textarea name="colorOptionCodes" rows="3" th:text="${existingColorOptionCodesText}" placeholder="#ff2b2b&#10;#dfe4ea&#10;#1d4ed8"></textarea>
+                    <p class="hint">One hex code per line, matching each color name row.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Image URLs</label>
+                    <textarea name="colorOptionImages" rows="3" th:text="${existingColorOptionImagesText}" placeholder="https://example.com/red-car.jpg&#10;https://example.com/white-car.jpg&#10;https://example.com/blue-car.jpg"></textarea>
+                    <p class="hint">One image URL per line, matching each color name row.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Questions</label>
+                    <textarea name="faqQuestions" rows="3" th:text="${existingFaqQuestionsText}" placeholder="What is on-road price?&#10;How many airbags?"></textarea>
+                    <p class="hint">One FAQ question per line. Keep the same order in answers below.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Answers</label>
+                    <textarea name="faqAnswers" rows="3" th:text="${existingFaqAnswersText}" placeholder="Depends on city and taxes.&#10;Based on selected variant."></textarea>
+                    <p class="hint">One FAQ answer per line, matching the same FAQ question row.</p>
                 </div>
                 <div class="form-group form-group-full">
                     <label>Current Images</label>
-                    <div class="current-images">
-                        <img th:each="img : ${car.imageUrls}" th:src="${img}" alt="Vehicle image">
-                        <img th:if="${car.imageUrls == null or #lists.isEmpty(car.imageUrls)}" src="/images/car.jpg" alt="Vehicle image">
+                    <div class="current-images" id="currentImages">
+                        <div class="current-image-card" th:each="img : ${car.imageUrls}" th:attr="data-url=${img}">
+                            <img th:src="${img}" alt="Vehicle image">
+                            <button type="button" class="remove-image-btn" th:attr="data-url=${img}">Remove</button>
+                        </div>
+                        <div class="current-image-card" th:if="${car.imageUrls == null or #lists.isEmpty(car.imageUrls)}">
+                            <img src="/images/car.jpg" alt="Vehicle image">
+                            <span class="hint">No saved images available.</span>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group form-group-full">
@@ -456,13 +512,59 @@
                 </div>
                 <div class="form-group form-group-full">
                     <label>Upload New Images</label>
-                    <input name="images" type="file" multiple>
+                    <input name="images" type="file" multiple accept="image/*">
                     <p class="hint">Choose files from your device. Uploaded files are saved together with any image URLs above.</p>
                 </div>
+            
                 <button class="btn-primary" type="submit">Save Vehicle Changes</button>
             </form>
         </section>
     </main>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const imageUrlsField = document.querySelector('textarea[name="imageUrls"]');
+        const currentImages = document.getElementById("currentImages");
+
+        if (!imageUrlsField || !currentImages) {
+            return;
+        }
+
+        function getImageUrls() {
+            return imageUrlsField.value
+                .split(/\r?\n|,/)
+                .map(value => value.trim())
+                .filter(Boolean);
+        }
+
+        function setImageUrls(urls) {
+            imageUrlsField.value = urls.join("\n");
+        }
+
+        currentImages.addEventListener("click", (event) => {
+            const button = event.target.closest(".remove-image-btn");
+            if (!button) {
+                return;
+            }
+            const url = button.getAttribute("data-url");
+            const urls = getImageUrls().filter(item => item !== url);
+            setImageUrls(urls);
+
+            const card = button.closest(".current-image-card");
+            if (card) {
+                card.remove();
+            }
+
+            if (!currentImages.querySelector(".current-image-card")) {
+                currentImages.innerHTML = `
+                    <div class="current-image-card">
+                        <img src="/images/car.jpg" alt="Vehicle image">
+                        <span class="hint">No saved images available.</span>
+                    </div>
+                `;
+            }
+        });
+    });
+</script>
 </body>
 </html>

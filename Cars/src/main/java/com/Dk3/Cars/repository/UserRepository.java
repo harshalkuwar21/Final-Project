@@ -19,6 +19,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
     List<User> findByUserid(Long userid);
     // New methods for staff management
     List<User> findByRole(String role);
+    long countByShowroomId(Long showroomId);
     List<User> findByActive(boolean active);
     List<User> findByDepartment(String department);
 

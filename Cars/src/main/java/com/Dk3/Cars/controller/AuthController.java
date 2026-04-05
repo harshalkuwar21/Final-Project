@@ -25,13 +25,19 @@ public class AuthController {
         return "register";
     }
 
-    @GetMapping({"/login", "/"})
+    @GetMapping("/login")
     public String loginPage(HttpSession session) {
         String role = (String) session.getAttribute(SESSION_ROLE);
         if (role != null) {
             return redirectByRole(role);
         }
         return "login";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/login?logout=1";
     }
 
     @GetMapping("/dashboard")
@@ -71,12 +77,26 @@ public class AuthController {
     }
 
     @GetMapping("/showrooms")
-    public String inventoryPage() {
+    public String inventoryPage(HttpSession session) {
+        String role = (String) session.getAttribute(SESSION_ROLE);
+        if (role == null) {
+            return "redirect:/login";
+        }
+        if ("ROLE_USER".equals(role)) {
+            return redirectByRole(role);
+        }
         return "showrooms";
     }
 
     @GetMapping("/showrooms/add")
-    public String addShowroomPage() {
+    public String addShowroomPage(HttpSession session) {
+        String role = (String) session.getAttribute(SESSION_ROLE);
+        if (role == null) {
+            return "redirect:/login";
+        }
+        if ("ROLE_USER".equals(role)) {
+            return redirectByRole(role);
+        }
         return "showroom-add";
     }
 
