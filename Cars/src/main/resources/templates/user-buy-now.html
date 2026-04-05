@@ -345,7 +345,7 @@ width:100%;
                     <div><label>PAN Number</label><input name="panNumber" required></div>
                     <div><label>City</label><input name="city" required></div>
                     <div><label>State</label><input id="state" name="state" required></div>
-                    <div><label>PIN Code</label><input id="pinCode" name="pinCode" maxlength="6" required></div>
+                    <div><label>PIN Code</label><input name="pinCode" required></div>
                     <div><label>Aadhaar Photo</label><input type="file" name="aadhaarPhoto" required></div>
                     <div><label>PAN Photo</label><input type="file" name="panPhoto" required></div>
                     <div><label>Signature Upload</label><input type="file" name="signaturePhoto" required></div>
@@ -597,51 +597,6 @@ width:100%;
         return 0.10;
     }
 
-    function stateFromPinCode(pinCode) {
-        const pin = String(pinCode || "").replace(/\D/g, "");
-        if (pin.length !== 6) return "";
-
-        if (pin.startsWith("11")) return "Delhi";
-        if (pin.startsWith("12") || pin.startsWith("13")) return "Haryana";
-        if (pin.startsWith("14") || pin.startsWith("15") || pin.startsWith("16")) return "Punjab";
-        if (pin.startsWith("17")) return "Himachal Pradesh";
-        if (pin.startsWith("18") || pin.startsWith("19")) return "Jammu and Kashmir";
-        if (pin.startsWith("20") || pin.startsWith("21") || pin.startsWith("22") || pin.startsWith("23") ||
-            pin.startsWith("24") || pin.startsWith("25") || pin.startsWith("26") || pin.startsWith("27") ||
-            pin.startsWith("28")) return "Uttar Pradesh";
-        if (pin.startsWith("30") || pin.startsWith("31") || pin.startsWith("32") || pin.startsWith("33") ||
-            pin.startsWith("34")) return "Rajasthan";
-        if (pin.startsWith("36") || pin.startsWith("37") || pin.startsWith("38") || pin.startsWith("39")) return "Gujarat";
-        if (pin.startsWith("40") || pin.startsWith("41") || pin.startsWith("42") || pin.startsWith("43") || pin.startsWith("44")) return "Maharashtra";
-        if (pin.startsWith("45") || pin.startsWith("46") || pin.startsWith("47") || pin.startsWith("48")) return "Madhya Pradesh";
-        if (pin.startsWith("49")) return "Chhattisgarh";
-        if (pin.startsWith("50")) return "Telangana";
-        if (pin.startsWith("51") || pin.startsWith("52") || pin.startsWith("53") || pin.startsWith("54")) return "Andhra Pradesh";
-        if (pin.startsWith("56") || pin.startsWith("57") || pin.startsWith("58") || pin.startsWith("59")) return "Karnataka";
-        if (pin.startsWith("60") || pin.startsWith("61") || pin.startsWith("62") || pin.startsWith("63") || pin.startsWith("64")) return "Tamil Nadu";
-        if (pin.startsWith("67") || pin.startsWith("68") || pin.startsWith("69")) return "Kerala";
-        if (pin.startsWith("70") || pin.startsWith("71") || pin.startsWith("72") || pin.startsWith("73") || pin.startsWith("74")) return "West Bengal";
-        if (pin.startsWith("75") || pin.startsWith("76") || pin.startsWith("77")) return "Odisha";
-        if (pin.startsWith("78")) return "Assam";
-        if (pin.startsWith("79")) return "North East";
-        if (pin.startsWith("80") || pin.startsWith("81") || pin.startsWith("84") || pin.startsWith("85")) return "Bihar";
-        if (pin.startsWith("82") || pin.startsWith("83")) return "Jharkhand";
-        return "";
-    }
-
-    function applyStateFromPinCode() {
-        const pinInput = document.getElementById("pinCode");
-        const stateInput = document.getElementById("state");
-        if (!pinInput || !stateInput) return;
-
-        pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 6);
-        const stateName = stateFromPinCode(pinInput.value);
-        if (stateName) {
-            stateInput.value = stateName;
-            updateCalculation();
-        }
-    }
-
     function updateCalculation() {
         const bookingAmount = getNum("bookingAmount");
         const stateName = document.querySelector('input[name="state"]').value;
@@ -726,9 +681,6 @@ width:100%;
             updateCalculation();
         });
     });
-
-    document.getElementById("pinCode").addEventListener("input", applyStateFromPinCode);
-    document.getElementById("pinCode").addEventListener("change", applyStateFromPinCode);
 
     document.getElementById("carId").addEventListener("change", loadCarAndBanks);
     document.getElementById("paymentOption").dispatchEvent(new Event("change"));

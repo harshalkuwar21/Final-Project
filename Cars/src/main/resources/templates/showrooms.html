@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
-
 <head>
     <title>Inventory</title>
     <link rel="stylesheet" href="/css/showrooms.css">
@@ -28,7 +27,7 @@
             background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
         }
 
-        /* ================= NAVBAR ================= */
+          /* ================= NAVBAR ================= */
         .navbar {
             max-width: 1500px;
             margin: 25px auto;
@@ -170,257 +169,98 @@
             box-shadow: var(--shadow);
         }
 
-        h2 {
-            font-size: 20px;
-            margin: 12px 0 18px
-        }
+h2{font-size:20px;margin:12px 0 18px}
 
-        /* Panels */
-        .panel {
-            background: var(--card);
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 18px;
-            box-shadow: var(--shadow)
-        }
+/* Panels */
+.panel{background:var(--card);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 12px;font-size:16px}
 
-        .panel h3 {
-            margin: 0 0 12px;
-            font-size: 16px
-        }
+/* Add showroom form */
+.add-showroom-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:end}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:13px;color:var(--muted)}
+.form-group input[type='text'], .form-group select, .form-group input[type='file']{padding:10px 12px;border-radius:10px;border:1px solid #e6e9f2;background:#fbfbff}
 
-        /* Add showroom form */
-        .add-showroom-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            align-items: end
-        }
+/* file preview */
+.preview-wrapper{display:flex;align-items:center}
+.preview-img{width:120px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #eaeefb;margin-left:8px}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px
-        }
+/* Primary button */
+.btn-primary{grid-column:1/-1;padding:12px 18px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;font-weight:700;cursor:pointer;transition:transform .15s ease,opacity .15s ease}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary[disabled]{opacity:.6;cursor:not-allowed}
 
-        .form-group label {
-            font-size: 13px;
-            color: var(--muted)
-        }
+/* small link-style button for page navigation */
+.btn-link{background:transparent;color:var(--primary);padding:8px 12px;border-radius:8px;border:1px solid rgba(108,78,246,0.08);text-decoration:none;font-weight:600}
+.btn-link:hover{background:rgba(108,78,246,0.06)}
 
-        .form-group input[type='text'],
-        .form-group select,
-        .form-group input[type='file'] {
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #e6e9f2;
-            background: #fbfbff
-        }
+/* Toolbar (search) */
+.showroom-toolbar{display:flex;gap:12px;margin-bottom:12px}
+.showroom-toolbar input{flex:1;padding:10px;border-radius:12px;border:1px solid #e6e9f2;background:#fff}
 
-        /* file preview */
-        .preview-wrapper {
-            display: flex;
-            align-items: center
-        }
+/* Grid & Cards */
+.showroom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.showroom-card{background:linear-gradient(180deg,#fff,#fbfbff);border-radius:12px;overflow:hidden;box-shadow:0 8px 24px rgba(16,24,40,0.06);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+.showroom-card:hover{transform:translateY(-6px);box-shadow:0 18px 48px rgba(16,24,40,0.12)}
 
-        .preview-img {
-            width: 120px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 1px solid #eaeefb;
-            margin-left: 8px
-        }
+.image-box{position:relative;height:150px;overflow:hidden}
+.image-box img{width:100%;height:100%;object-fit:cover;display:block}
+.image-box .badge{position:absolute;left:12px;top:12px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+.badge-normal{background:#22c55e}
+.badge-premium{background:#f59e0b}
 
-        /* Primary button */
-        .btn-primary {
-            grid-column: 1/-1;
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: none;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform .15s ease, opacity .15s ease
-        }
+.info{padding:12px}
+.info h4{margin:0;font-size:15px}
+.info p{margin:6px 0;color:var(--muted);font-size:13px}
+.info small{color:var(--primary);display:inline-block;margin-top:6px}
 
-        .btn-primary:active {
-            transform: translateY(1px)
-        }
+/* Small screens */
+@media (max-width:900px){
+    .add-showroom-form{grid-template-columns:1fr}
+    .sidebar{display:none}
+    .container{padding:10px}
+}
 
-        .btn-primary[disabled] {
-            opacity: .6;
-            cursor: not-allowed
-        }
+/* Accessibility focus */
+a:focus, button:focus, input:focus{outline:3px solid rgba(108,78,246,0.12);outline-offset:2px}
 
-        /* small link-style button for page navigation */
-        .btn-link {
-            background: transparent;
-            color: var(--primary);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(108, 78, 246, 0.08);
-            text-decoration: none;
-            font-weight: 600
-        }
-
-        .btn-link:hover {
-            background: rgba(108, 78, 246, 0.06)
-        }
-
-        /* Toolbar (search) */
-        .showroom-toolbar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px
-        }
-
-        .showroom-toolbar input {
-            flex: 1;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #e6e9f2;
-            background: #fff
-        }
-
-        /* Grid & Cards */
-        .showroom-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 18px
-        }
-
-        .showroom-card {
-            background: linear-gradient(180deg, #fff, #fbfbff);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-            cursor: pointer;
-            transition: transform .18s ease, box-shadow .18s ease
-        }
-
-        .showroom-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 18px 48px rgba(16, 24, 40, 0.12)
-        }
-
-        .image-box {
-            position: relative;
-            height: 150px;
-            overflow: hidden
-        }
-
-        .image-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block
-        }
-
-        .image-box .badge {
-            position: absolute;
-            left: 12px;
-            top: 12px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff
-        }
-
-        .badge-normal {
-            background: #22c55e
-        }
-
-        .badge-premium {
-            background: #f59e0b
-        }
-
-        .info {
-            padding: 12px
-        }
-
-        .info h4 {
-            margin: 0;
-            font-size: 15px
-        }
-
-        .info p {
-            margin: 6px 0;
-            color: var(--muted);
-            font-size: 13px
-        }
-
-        .info small {
-            color: var(--primary);
-            display: inline-block;
-            margin-top: 6px
-        }
-
-        /* Small screens */
-        @media (max-width:900px) {
-            .add-showroom-form {
-                grid-template-columns: 1fr
-            }
-
-            .sidebar {
-                display: none
-            }
-
-            .container {
-                padding: 10px
-            }
-        }
-
-        /* Accessibility focus */
-        a:focus,
-        button:focus,
-        input:focus {
-            outline: 3px solid rgba(108, 78, 246, 0.12);
-            outline-offset: 2px
-        }
     </style>
 </head>
-
 <body>
-    <header class="navbar">
-        <div class="logo">
-            <img src="/images/logo.png">
-            DK3 Cars
-        </div>
-        <div class="nav-icons">
-            <i class="fa fa-bell"></i>
-            <i class="fa fa-user-circle"></i>
-        </div>
-    </header>
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png">
+        DK3 Cars
+    </div>
+    <div class="nav-icons">
+        <i class="fa fa-bell"></i>
+        <i class="fa fa-user-circle"></i>
+    </div>
+</header>
 
-    <div class="container">
-        <aside class="sidebar">
-            <ul>
-                <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
-                <li class="active" onclick="location.href='/showrooms'"><i class="fas fa-shop"></i> Showroom</li>
-                <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
-                <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
-                <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
-                <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
-                <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
-                <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
-                <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
-                <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-                <li class="logout" id="logoutBtn">
-                    <i class="fas fa-right-from-bracket"></i>
-                    <span>Logout</span>
-                </li>
-            </ul>
-        </aside>
-        <main class="main">
+<div class="container">
+    <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
+            <li class="active" onclick="location.href='/showrooms'"><i class="fas fa-shop"></i> Showroom</li>
+            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
+            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+            <li onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
+            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
+            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
+            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
+            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
+            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
+            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+    <main class="main">
 
-            <h2>Showroom Inventory <a href="/showrooms/add" class="btn-link">+ Add Showroom</a></h2>
+        <h2>Showroom Inventory <a href="/showrooms/add" class="btn-link">+ Add Showroom</a></h2>
 
-            <!-- ADD SHOWROOM FORM -->
-            <!-- ================= ADD SHOWROOM SECTION ================= -->
-            <!-- <section class="panel add-showroom-panel">
+        <!-- ADD SHOWROOM FORM -->
+        <!-- ================= ADD SHOWROOM SECTION ================= -->
+        <!-- <section class="panel add-showroom-panel">
             <h3>Add New Showroom</h3>
 
             <div class="add-showroom-form">
@@ -458,23 +298,23 @@
             </div>
         </section> -->
 
+    
+        <!-- ================= SHOWROOM SECTION ================= -->
+        <section class="panel">
+            <h3>Showrooms</h3>
 
-            <!-- ================= SHOWROOM SECTION ================= -->
-            <section class="panel">
-                <h3>Showrooms</h3>
+            <div class="showroom-toolbar">
+                <input type="text" placeholder="Search showroom..."
+                       onkeyup="filterShowrooms(this.value)">
+            </div>
 
-                <div class="showroom-toolbar">
-                    <input type="text" placeholder="Search showroom..." onkeyup="filterShowrooms(this.value)">
-                </div>
+            <div id="showroomGrid" class="showroom-grid"></div>
+        </section>
 
-                <div id="showroomGrid" class="showroom-grid"></div>
-            </section>
+    </main>
 
-        </main>
+</div>
 
-    </div>
-
-    <script src="/js/showrooms.js"></script>
+<script src="/js/showrooms.js"></script>
 </body>
-
 </html>
