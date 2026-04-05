@@ -1228,23 +1228,9 @@
     };
     const LIKED_CARS_KEY = "dk3-liked-cars";
 
-    function money(v) {
-        const amount = Number(v);
-        if (!Number.isFinite(amount) || amount <= 0) return "Price on request";
-        if (amount >= 10000000) return `Rs ${ (amount / 10000000).toFixed(2) } Crore`;
-        return `Rs ${ (amount / 100000).toFixed(2) } Lakh`;
-    }
+    function money(v) { return v == null ? "N/A" : "Rs " + Number(v).toLocaleString("en-IN"); }
     function cardTag(index) { return index === 0 ? "Best Seller" : (index === 1 ? "Deal of the Week" : "Luxury Choice"); }
     function normalizeBrand(v) { return (v || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
-    function carTitle(car) { return [car.brand, car.model].filter(Boolean).join(" ").trim() || "Featured Car"; }
-    function carImage(car) {
-        if (Array.isArray(car.imageUrls) && car.imageUrls.length) return car.imageUrls[0];
-        if (car.imageUrl) return car.imageUrl;
-        return "/images/car.jpg";
-    }
-    function carDetailsUrl(car) {
-        return `/user-panel/car-details?carId=${car.id}&car=${encodeURIComponent(carTitle(car))}`;
-    }
     function carFeatures(car) {
         const f = [];
         if (car.fuelType) f.push(car.fuelType);
@@ -1308,14 +1294,14 @@
                     <button class="card-favorite ${isCarLiked(car.id) ? "active" : ""}" type="button" data-like-car-id="${car.id}" onclick="toggleLikeCar(${car.id}, this)">
                         <i class="${isCarLiked(car.id) ? "fa-solid fa-heart" : "fa-regular fa-heart"}"></i>
                     </button>
-                    <img src="${carImage(car)}" alt="${carTitle(car)}">
+                    <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="${car.brand || ''}">
                 </div>
                 <div class="car-body">
-                    <div class="car-name">${carTitle(car)}</div>
+                    <div class="car-name">${car.brand || ''} ${car.model || ''}</div>
                     <div class="price">${money(car.price)}</div>
                     <div class="meta">${carFeatures(car).join(" - ") || "Smart infotainment - Safety - Comfort"}</div>
                     <div class="card-actions">
-                        <button class="card-btn secondary" onclick="location.href='${carDetailsUrl(car)}'">View Details</button>
+                        <button class="card-btn secondary" onclick="location.href='/user-panel/car-details?carId=${car.id}&car=${encodeURIComponent((car.brand || '') + ' ' + (car.model || ''))}'">View Details</button>
                         <button class="card-btn" onclick="location.href='/user-panel/buy-now?carId=${car.id}'">Book Car</button>
                     </div>
                 </div>
@@ -1369,21 +1355,6 @@
         }
         renderFeatured(list);
     }
-    async function loadUserGreeting() {
-        const hello = document.querySelector(".hello-user");
-        if (!hello) return;
-        try {
-            const res = await fetch("/user/profile");
-            if (!res.ok) return;
-            const data = await res.json();
-            const fullName = [data.first, data.last].filter(Boolean).join(" ").trim();
-            if (fullName) {
-                hello.textContent = `Hello ${fullName}`;
-            }
-        } catch (e) {
-            // Keep fallback greeting if profile is unavailable.
-        }
-    }
     async function loadDashboard() {
         try {
             const [dashRes, carsRes] = await Promise.all([fetch("/user-panel/api/dashboard"), fetch("/user-panel/api/cars?includeAll=true")]);
@@ -1422,7 +1393,6 @@
     updateNavbarLikedState();
     window.selectBrandFromTile = selectBrandFromTile;
     window.toggleLikeCar = toggleLikeCar;
-    loadUserGreeting();
     loadDashboard();
 </script>
 </body>

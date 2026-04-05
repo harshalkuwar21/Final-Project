@@ -88,18 +88,3 @@ function saveSaleChanges(id){
 }
 
 function deleteSale(id){ if(!confirm('Delete this sale?')) return; fetch(`/api/dashboard/sales/${id}`, { method:'DELETE' }).then(r=>r.json()).then(resp=>{ if(resp.ok){ loadSales(); } else alert(resp.message||'Failed'); }).catch(err=>{ console.error(err); alert('Failed'); }); }
-
-
-
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            if (!confirm("Are you sure you want to logout?")) return;
-            try {
-                await fetch("/user/logout", { method: "POST" });
-            } catch (_) {
-                // ignore network errors and proceed to login
-            }
-            window.location.href = "/login";
-        });
-    }

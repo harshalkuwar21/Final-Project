@@ -132,17 +132,3 @@ function escapeHtml(unsafe) {
 }
 
 window.applyFilters = applyFilters; window.clearFilters = clearFilters; window.markAllRead = markAllRead; window.openCreateModal = openCreateModal; window.closeCreateModal = closeCreateModal;
-
-
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", async () => {
-            if (!confirm("Are you sure you want to logout?")) return;
-            try {
-                await fetch("/user/logout", { method: "POST" });
-            } catch (_) {
-                // ignore network errors and proceed to login
-            }
-            window.location.href = "/login";
-        });
-    }

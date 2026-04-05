@@ -274,13 +274,6 @@ function isLiked(carId){
 return getStoredLikedCars().includes(Number(carId));
 }
 
-function formatCarPrice(value){
-const amount=Number(value||0);
-if(!Number.isFinite(amount) || amount<=0) return "Price on request";
-if(amount>=10000000) return `Rs ${(amount/10000000).toFixed(2)} Crore`;
-return `Rs ${(amount/100000).toFixed(2)} Lakh`;
-}
-
 function toggleLike(carId,btn){
 let likedIds=getStoredLikedCars();
 const numericId=Number(carId);
@@ -340,7 +333,7 @@ ${isLiked(car.id) ? "♥" : "♡"}
 
 <h3>${car.brand} ${car.model}</h3>
 
-<div class="line"><b>Price:</b> ${formatCarPrice(car.price)}</div>
+<div class="line"><b>Price:</b> ₹ ${car.price}</div>
 <div class="line"><b>Fuel:</b> ${car.fuelType}</div>
 <div class="line"><b>Transmission:</b> ${car.transmission}</div>
 <div class="line"><b>Mileage:</b> ${car.mileage||"-"}</div>
@@ -381,7 +374,7 @@ const res=await fetch("/user-panel/api/compare",{method:"POST",body});
 const data=await res.json();
 
 document.getElementById("compareResult").innerHTML=data.cars.map(c=>
-`${c.brand} ${c.model} - ${formatCarPrice(c.price)} - ${c.fuelType}`
+`${c.brand} ${c.model} - ₹${c.price} - ${c.fuelType}`
 ).join("<br>");
 
 }
