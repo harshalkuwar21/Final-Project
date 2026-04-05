@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Sales</title>
     <link rel="stylesheet" href="/css/sales.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
-<body>
-<header class="navbar">
-    <div class="logo"><img src="/images/logo.png" alt="logo"> DK3 Cars</div>
-    <div class="nav-icons">
-            <i class="fa fa-bell"></i>
-            <i class="fa fa-user-circle"></i>
-    </div>
-</header>
 
-<div class="container">
-   
+<body>
+    <header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
+    </header>
+
+    <div class="container">
+
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <ul class="menu">
@@ -41,7 +42,7 @@
                     <span>Bookings</span>
                 </li>
 
-                   <li class="active" onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
+                <li class="active" onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
 
                 <li class="customers" onclick="location.href='/customers'">
                     <i class="fas fa-users"></i>
@@ -70,7 +71,6 @@
                     <span>Notifications</span>
                 </li>
 
-
                 <li class="logout" id="logoutBtn">
                     <i class="fas fa-right-from-bracket"></i>
                     <span>Logout</span>
@@ -79,46 +79,70 @@
             </ul>
         </aside>
 
-    <main class="main">
-        <h2>Sales</h2>
+        <main class="main">
+            <h2>Sales</h2>
 
-        <section class="panel">
-            <h3>New Sale</h3>
-            <div class="form-row">
-                <select id="sCar"></select>
-                <input id="sBuyer" placeholder="Buyer name">
-                <select id="sStatus"><option>Paid</option><option>Pending</option><option>PendingReview</option></select>
-                <button class="btn-primary" onclick="createSale()">Create Sale</button>
-                <span id="sMsg" style="margin-left:8px;color:#666"></span>
-            </div>
-        </section>
+            <section class="panel">
+                <h3>New Sale</h3>
+                <div class="form-row">
+                    <select id="sCar"></select>
+                    <input id="sBuyer" placeholder="Buyer name">
+                    <select id="sStatus">
+                        <option>Paid</option>
+                        <option>Pending</option>
+                        <option>PendingReview</option>
+                    </select>
+                    <button class="btn-primary" onclick="createSale()">Create Sale</button>
+                    <span id="sMsg" style="margin-left:8px;color:#666"></span>
+                </div>
+            </section>
 
-        <section class="panel">
-            <h3>All Sales</h3>
-            <div class="sales-toolbar"><input id="searchSales" placeholder="Search by buyer or model..." oninput="filterSales(this.value)"></div>
-            <div class="sales-table-wrapper"><table class="sales-table"><thead><tr><th>Car</th><th>Buyer</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="salesBody"></tbody></table></div>
-        </section>
-    </main>
-</div>
+            <section class="panel">
+                <h3>All Sales</h3>
+                <div class="sales-toolbar"><input id="searchSales" placeholder="Search by buyer or model..."
+                        oninput="filterSales(this.value)"></div>
+                <div class="sales-table-wrapper">
+                    <table class="sales-table">
+                        <thead>
+                            <tr>
+                                <th>Car</th>
+                                <th>Buyer</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
 
-<!-- Detail Modal -->
-<div id="saleModal" class="modal" style="display:none">
-    <div class="modal-content">
-        <button class="close" onclick="hideSaleModal()">✕</button>
-        <div class="modal-body">
-            <img id="saleImg" src="/images/car.jpg" alt="car">
-            <div class="meta">
-                <h3 id="saleCar"></h3>
-                <p id="saleBuyer"></p>
-                <p id="saleDate"></p>
-                <p id="saleStatus"></p>
-                <select id="saleStatusSelect"><option>Paid</option><option>Pending</option><option>PendingReview</option></select>
-                <div style="margin-top:10px"><button class="btn-primary" id="saveSaleBtn">Save</button> <button class="btn-secondary" onclick="hideSaleModal()">Close</button></div>
+    <!-- Detail Modal -->
+    <div id="saleModal" class="modal" style="display:none">
+        <div class="modal-content">
+            <button class="close" onclick="hideSaleModal()">&times;</button>
+            <div class="modal-body">
+                <img id="saleImg" src="/images/car.jpg" alt="car">
+                <div class="meta">
+                    <h3 id="saleCar"></h3>
+                    <p id="saleBuyer"></p>
+                    <p id="saleDate"></p>
+                    <p id="saleStatus"></p>
+                    <select id="saleStatusSelect">
+                        <option>Paid</option>
+                        <option>Pending</option>
+                        <option>PendingReview</option>
+                    </select>
+                    <div style="margin-top:10px"><button class="btn-primary" id="saveSaleBtn">Save</button> <button
+                            class="btn-secondary" onclick="hideSaleModal()">Close</button></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="/js/sales.js"></script>
+    <script src="/js/sales.js"></script>
 </body>
+
 </html>

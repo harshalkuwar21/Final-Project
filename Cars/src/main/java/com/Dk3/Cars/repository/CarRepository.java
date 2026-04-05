@@ -27,6 +27,7 @@ public interface CarRepository extends JpaRepository<Car, Long> {
 
     List<Car> findByShowroomId(Long showroomId);
     List<Car> findByShowroomIdOrderByIdDesc(Long showroomId);
+    long countByShowroomId(Long showroomId);
 
     long countBySold(boolean sold);
 

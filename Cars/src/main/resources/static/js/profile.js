@@ -10,18 +10,27 @@ async function loadProfileToPage() {
     document.getElementById("pFirstPage").value = j.first || "";
     document.getElementById("pLastPage").value = j.last || "";
     document.getElementById("pEmailPage").value = j.email || "";
-    document.getElementById("pContactPage").value = j.contact || "";
+    document.getElementById("pContactPage").value = String(j.contact || "").replace(/\D/g, "").slice(0, 10);
     if (j.profilePhotoUrl) {
         document.getElementById("photoPreview").src = j.profilePhotoUrl;
     }
 }
 
 async function saveProfileFromPage() {
+    const contactInput = document.getElementById("pContactPage");
+    contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+    if (contactInput.value && !/^\d{10}$/.test(contactInput.value)) {
+        const msg = document.getElementById("pMsg");
+        msg.style.color = "red";
+        msg.textContent = "Mobile number must be exactly 10 digits.";
+        contactInput.focus();
+        return;
+    }
     const payload = {
         first: document.getElementById("pFirstPage").value.trim(),
         last: document.getElementById("pLastPage").value.trim(),
         email: document.getElementById("pEmailPage").value.trim(),
-        contact: document.getElementById("pContactPage").value.trim()
+        contact: contactInput.value.trim()
     };
     const pwd = document.getElementById("pPasswordPage").value;
     if (pwd && pwd.trim().length > 0) payload.password = pwd;
@@ -76,6 +85,9 @@ async function uploadPhoto() {
 
 window.addEventListener("load", () => {
     loadProfileToPage();
+    document.getElementById("pContactPage").addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    });
     document.getElementById("pSavePageBtn").addEventListener("click", saveProfileFromPage);
     document.getElementById("uploadPhotoBtn").addEventListener("click", uploadPhoto);
 });

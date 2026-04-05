@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Showroom Vehicles - DK3 Cars</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="/css/cars.css">
     <style>
-       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
 :root{
     --primary:#6c4ef6;
     --accent:#9f7bff;
@@ -21,7 +20,7 @@
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 body{
@@ -55,15 +54,36 @@ font-size:24px;
 font-weight:600;
 color:#222;
 }
+ .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-.logo img{
-transition:.3s;
-}
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
+        }
 
-.logo img:hover{
-transform:rotate(8deg) scale(1.05);
-}
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
 
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 .nav-icons i{
 font-size:20px;
 margin-left:16px;
@@ -340,13 +360,9 @@ margin-bottom:20px;
 </head>
 <body>
 <header class="navbar">
-    <div class="logo">
-        <img src="/images/logo.png" alt="logo" style="width: 60px; height: 60px; border-radius: 10px;">
-        DK3 Cars
-    </div>
-    <div class="nav-icons">
-        <i class="fas fa-bell"></i>
-        <i class="fas fa-user-circle"></i>
+     <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 </header>
 
@@ -387,7 +403,7 @@ margin-bottom:20px;
                         <p><strong>Fuel:</strong> <span th:text="${car.fuelType}"></span></p>
                         <p><strong>Transmission:</strong> <span th:text="${car.transmission ?: 'N/A'}"></span></p>
                         <p><strong>Color:</strong> <span th:text="${car.color ?: 'N/A'}"></span></p>
-                        <p><strong>Price:</strong> ₹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
+                        <p><strong>Price:</strong> â‚¹<span th:text="${#numbers.formatDecimal(car.price, 0, 'COMMA', 2, 'POINT')}"></span></p>
 
                         <div class="car-info-group">
                             <div class="info-item">

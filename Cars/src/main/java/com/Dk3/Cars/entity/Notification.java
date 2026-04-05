@@ -22,6 +22,8 @@ public class Notification {
 
     private String link; // optional link to related resource
 
+    private String recipientEmail; // user-specific notification target
+
     private LocalDateTime createdAt;
 
     @PrePersist

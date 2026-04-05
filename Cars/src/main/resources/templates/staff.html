@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Manage Staff</title>
     <link rel="stylesheet" href="/css/staff.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
 <header class="navbar">
     <div class="logo">
         <img src="/images/logo.png" alt="logo"> DK3 Cars
-    </div>
-    <div class="nav-icons">
-            <i class="fa fa-bell"></i>
-            <i class="fa fa-user-circle"></i>
     </div>
 </header>
 
@@ -49,7 +45,7 @@
                 <input id="sFirst" placeholder="First name">
                 <input id="sLast" placeholder="Last name">
                 <input id="sEmail" placeholder="Email">
-                <input id="sContact" placeholder="Contact">
+                <input id="sContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
                 <select id="sRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
                 <select id="sShowroomId"><option value="">No Showroom</option></select>
                 <input id="sPassword" placeholder="Password (optional)">
@@ -73,17 +69,49 @@
 <!-- Edit Modal -->
 <div id="editModal" class="modal" style="display:none">
     <div class="modal-content">
-        <button class="close" onclick="hideEdit()">✕</button>
+        <button class="close" onclick="hideEdit()">&times;</button>
         <div class="modal-body">
             <h3>Edit Staff</h3>
             <input id="eFirst" placeholder="First">
             <input id="eLast" placeholder="Last">
-            <input id="eContact" placeholder="Contact">
+            <input id="eContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
             <select id="eRole"><option>ROLE_STAFF</option><option>ROLE_ADMIN</option></select>
             <select id="eShowroomId"><option value="">No Showroom</option></select>
             <label><input type="checkbox" id="eEnabled"> Enabled</label>
             <input id="ePassword" placeholder="New password (optional)">
             <div style="margin-top:8px;"><button class="btn-primary" id="eSaveBtn">Save</button> <button onclick="hideEdit()" class="btn-secondary">Cancel</button></div>
+        </div>
+    </div>
+</div>
+
+<div id="staffNotificationModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideStaffNotifications()">&times;</button>
+        <div class="modal-body">
+            <h3>Staff Notifications</h3>
+            <p id="staffNotificationText">No new staff notifications right now.</p>
+            <div style="margin-top:8px;">
+                <button onclick="hideStaffNotifications()" class="btn-primary">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staffProfileModal" class="modal" style="display:none">
+    <div class="modal-content">
+        <button class="close" onclick="hideStaffProfile()">&times;</button>
+        <div class="modal-body">
+            <h3>My Profile</h3>
+            <input id="spFirst" placeholder="First name">
+            <input id="spLast" placeholder="Last name">
+            <input id="spEmail" placeholder="Email">
+            <input id="spContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
+            <input id="spPassword" type="password" placeholder="New password (optional)">
+            <div style="margin-top:8px;">
+                <button class="btn-primary" id="spSaveBtn">Save</button>
+                <button onclick="hideStaffProfile()" class="btn-secondary">Cancel</button>
+            </div>
+            <span id="spMsg" style="margin-top:8px;color:#666"></span>
         </div>
     </div>
 </div>

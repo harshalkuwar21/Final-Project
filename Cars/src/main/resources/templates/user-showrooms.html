@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="/css/typography.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact Showrooms</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
-font-family:'Poppins',sans-serif;
+font-family: var(--font-body);
 }
 
 body{
@@ -54,6 +54,33 @@ color:#005bbb;
 padding:10px 14px;
 border-radius:10px;
 font-size:14px;
+font-weight:600;
+}
+
+.toolbar{
+margin-top:20px;
+background:#fff;
+padding:16px 18px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+display:flex;
+gap:12px;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.toolbar input{
+flex:1;
+min-width:240px;
+padding:12px 14px;
+border-radius:12px;
+border:1px solid #dbe4f4;
+font-size:14px;
+}
+
+.toolbar .count{
+font-size:13px;
+color:#68758d;
 font-weight:600;
 }
 
@@ -137,8 +164,14 @@ box-shadow:0 12px 26px rgba(0,0,0,0.06);
     <div class="top">
         <div>
             <h2>Contact Showrooms</h2>
+            <p>Search showroom name and contact the right branch quickly.</p>
         </div>
         <a href="/user-dashboard">Back to Dashboard</a>
+    </div>
+
+    <div class="toolbar">
+        <input type="text" id="showroomSearchInput" placeholder="Search showroom name, city, address..." oninput="filterShowrooms(this.value)">
+        <div class="count" id="showroomCount">0 showrooms</div>
     </div>
 
     <div id="showroomGrid" class="grid"></div>
@@ -146,52 +179,97 @@ box-shadow:0 12px 26px rgba(0,0,0,0.06);
 </div>
 
 <script>
+let showroomCache = [];
+
+function escapeHtml(value){
+return String(value ?? "")
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#39;");
+}
+
 function showroomImage(showroom){
-return showroom.imageUrl || "/images/background.jpg";
+return showroom.imageUrl || showroom.image || "/images/background.jpg";
 }
 
-function mapLink(showroom){
-if(showroom.mapUrl){
-return showroom.mapUrl;
-}
-return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([showroom.name, showroom.address, showroom.city].filter(Boolean).join(", "))}`;
+function showroomType(showroom){
+return showroom.type || "Normal";
 }
 
-async function loadShowrooms(){
-const res = await fetch("/user-panel/api/showrooms");
-const data = await res.json();
+function phoneLink(number){
+const cleaned = String(number || "").replace(/[^\d+]/g, "");
+return cleaned ? `tel:${cleaned}` : "#";
+}
+
+function updateShowroomCount(count){
+const countBox = document.getElementById("showroomCount");
+if(countBox){
+countBox.textContent = `${count} showroom${count === 1 ? "" : "s"}`;
+}
+}
+
+function renderShowrooms(showrooms){
 const grid = document.getElementById("showroomGrid");
 const empty = document.getElementById("emptyState");
-const showrooms = data && data.ok && Array.isArray(data.showrooms) ? data.showrooms : [];
 
 if(!showrooms.length){
 grid.innerHTML = "";
 empty.style.display = "block";
+updateShowroomCount(0);
 return;
 }
 
 empty.style.display = "none";
+updateShowroomCount(showrooms.length);
 grid.innerHTML = showrooms.map(showroom => `
 <div class="card">
-    <img src="${showroomImage(showroom)}" alt="${showroom.name || 'Showroom'}">
+    <img src="${escapeHtml(showroomImage(showroom))}" alt="${escapeHtml(showroom.name || 'Showroom')}">
     <div class="content">
-        <h3>${showroom.name || "-"}</h3>
-        <div class="detail"><strong>City:</strong> ${showroom.city || "-"}</div>
-        <div class="detail"><strong>Address:</strong> ${showroom.address || "-"}</div>
-        <div class="detail"><strong>Working Hours:</strong> ${showroom.workingHours || "-"}</div>
-        <div class="detail"><strong>Contact:</strong> ${showroom.contactNumber || "-"}</div>
+        <h3>${escapeHtml(showroom.name || "-")}</h3>
+        <div class="detail"><strong>Type:</strong> ${escapeHtml(showroomType(showroom))}</div>
+        <div class="detail"><strong>City:</strong> ${escapeHtml(showroom.city || "-")}</div>
+        <div class="detail"><strong>Address:</strong> ${escapeHtml(showroom.address || "-")}</div>
+        <div class="detail"><strong>Working Hours:</strong> ${escapeHtml(showroom.workingHours || "-")}</div>
+        <div class="detail"><strong>Contact:</strong> ${escapeHtml(showroom.contactNumber || "-")}</div>
+        <div class="detail"><strong>Available Cars:</strong> ${escapeHtml(showroom.availableCarsCount ?? 0)}</div>
         <div class="actions">
-            <a class="btn call-btn" href="${showroom.contactNumber ? `tel:${showroom.contactNumber}` : '#'}">Call Now</a>
-            <a class="btn map-btn" href="${mapLink(showroom)}" target="_blank" rel="noopener noreferrer">View Map</a>
+            <a class="btn call-btn" href="${phoneLink(showroom.contactNumber)}">Call Now</a>
+            ${showroom.mapUrl ? `<a class="btn map-btn" href="${escapeHtml(showroom.mapUrl)}" target="_blank" rel="noopener noreferrer">View Map</a>` : ""}
         </div>
     </div>
 </div>
 `).join("");
 }
 
+function filterShowrooms(keyword){
+const query = String(keyword || "").trim().toLowerCase();
+if(!query){
+renderShowrooms(showroomCache);
+return;
+}
+
+const filtered = showroomCache.filter(showroom =>
+String(showroom.name || "").toLowerCase().includes(query) ||
+String(showroom.city || "").toLowerCase().includes(query) ||
+String(showroom.address || "").toLowerCase().includes(query) ||
+String(showroom.contactNumber || "").toLowerCase().includes(query)
+);
+renderShowrooms(filtered);
+}
+
+async function loadShowrooms(){
+const res = await fetch("/user-panel/api/showrooms");
+const data = await res.json();
+showroomCache = data && data.ok && Array.isArray(data.showrooms) ? data.showrooms : [];
+renderShowrooms(showroomCache);
+}
+
 loadShowrooms().catch(() => {
 document.getElementById("showroomGrid").innerHTML = "";
 document.getElementById("emptyState").style.display = "block";
+updateShowroomCount(0);
 });
 </script>
 </body>

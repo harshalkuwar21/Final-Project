@@ -38,7 +38,6 @@ z-index:1000;
 color: #0b0a0a;
 }
 
-
 .logo{
     display:flex;
     align-items:center;
@@ -53,6 +52,18 @@ color: #0b0a0a;
 .logo span{
     color:#000000;
 }
+ .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 
 /* Nav Links */
 .navbar nav{
@@ -356,7 +367,7 @@ border:1px solid #f5c6c6;
 <header class="navbar">
     <div class="logo">
         <img src="/images/logo.png" alt="DK3 Cars Logo">
-        <span>DK3 Cars</span>
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 
     <nav>
@@ -374,12 +385,12 @@ border:1px solid #f5c6c6;
 
         <form id="loginForm">
             <div class="input-group">
-                <span>✉️</span>
+                <span>&#9993;</span>
                 <input type="text" id="email" placeholder="Email " required>
             </div>
 
             <div class="input-group">
-                <span>🔒</span>
+                <span>&#128274;</span>
                 <input type="password" id="password" placeholder="Password" required>
             </div>
 
@@ -391,7 +402,7 @@ border:1px solid #f5c6c6;
 
             <div id="forgotBox" style="display:none; margin-top:10px;">
                 <div class="input-group">
-                    <span>✉️</span>
+                    <span>&#9993;</span>
                     <input type="email" id="fpEmail" placeholder="Registered Email">
                 </div>
                 <div class="input-group">

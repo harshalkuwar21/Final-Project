@@ -4,12 +4,16 @@ import com.Dk3.Cars.entity.Car;
 import com.Dk3.Cars.entity.Booking;
 import com.Dk3.Cars.entity.Customer;
 import com.Dk3.Cars.entity.Document;
+import com.Dk3.Cars.entity.User;
 import com.Dk3.Cars.repository.BookingRepository;
 import com.Dk3.Cars.repository.CarRepository;
 import com.Dk3.Cars.repository.CustomerRepository;
 import com.Dk3.Cars.repository.DocumentRepository;
+import com.Dk3.Cars.repository.UserRepository;
+import com.Dk3.Cars.service.BookingService;
 import com.Dk3.Cars.service.DocumentService;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,6 +46,12 @@ public class DocumentsRestController {
 
     @Autowired
     private BookingRepository bookingRepository;
+
+    @Autowired
+    private BookingService bookingService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // ============================================
     // GET ALL DOCUMENTS
@@ -160,10 +170,16 @@ public class DocumentsRestController {
     // ============================================
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteDocument(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> deleteDocument(@PathVariable Long id, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            if (!isStaffOrAdmin(session)) {
+                response.put("success", false);
+                response.put("message", "Unauthorized");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
             Optional<Document> document = documentService.getDocumentById(id);
 
             if (document.isEmpty()) {
@@ -194,6 +210,49 @@ public class DocumentsRestController {
             e.printStackTrace();
             response.put("success", false);
             response.put("message", "Failed to delete document");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @DeleteMapping("/booking/{bookingId}/{documentCategory}")
+    public ResponseEntity<Map<String, Object>> deleteBookingDocument(@PathVariable Long bookingId,
+                                                                     @PathVariable String documentCategory,
+                                                                     HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            if (!isStaffOrAdmin(session)) {
+                response.put("success", false);
+                response.put("message", "Unauthorized");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+
+            Booking booking = bookingRepository.findById(bookingId).orElse(null);
+            if (booking == null) {
+                response.put("success", false);
+                response.put("message", "Booking not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            if (!canAccessBooking(session, booking)) {
+                response.put("success", false);
+                response.put("message", "Access denied");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            }
+
+            boolean deleted = bookingService.deleteBookingDocument(booking, documentCategory);
+            if (!deleted) {
+                response.put("success", false);
+                response.put("message", "Document not found for this booking");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            response.put("success", true);
+            response.put("message", "Booking document deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Failed to delete booking document");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
@@ -381,20 +440,27 @@ public class DocumentsRestController {
 
     private List<Map<String, Object>> bookingDocumentsToMaps(Booking booking) {
         List<Map<String, Object>> docs = new ArrayList<>();
-        addBookingDocument(docs, booking, "Aadhaar Card", "CustomerID", booking.getAadhaarPhotoUrl(), null);
-        addBookingDocument(docs, booking, "PAN Card", "CustomerID", booking.getPanPhotoUrl(), null);
-        addBookingDocument(docs, booking, "Signature", "CustomerSignature", booking.getSignaturePhotoUrl(), null);
+        addBookingDocument(docs, booking, "Aadhaar Card", "AadhaarPhoto", booking.getAadhaarPhotoUrl(), null);
+        addBookingDocument(docs, booking, "PAN Card", "PanPhoto", booking.getPanPhotoUrl(), null);
+        addBookingDocument(docs, booking, "Signature", "SignaturePhoto", booking.getSignaturePhotoUrl(), null);
         addBookingDocument(docs, booking, "Passport Photo", "PassportPhoto", booking.getPassportPhotoUrl(), null);
-        addBookingDocument(docs, booking, "Payment Screenshot", "PaymentProof", booking.getPaymentScreenshotUrl(), null);
-        addBookingDocument(docs, booking, "Down Payment Receipt", "PaymentReceipt", booking.getDownPaymentReceiptUrl(), null);
+        addBookingDocument(docs, booking, "Payment Screenshot", "PaymentScreenshot", booking.getPaymentScreenshotUrl(), null);
+        addBookingDocument(docs, booking, "Down Payment Receipt", "DownPaymentReceipt", booking.getDownPaymentReceiptUrl(), null);
         addBookingDocument(docs, booking, "Booking Receipt", "BookingReceipt", booking.getBookingReceiptUrl(), null);
-        addBookingDocument(docs, booking, "Proforma Invoice", "Invoice", booking.getProformaInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Proforma Invoice", "ProformaInvoice", booking.getProformaInvoiceUrl(), null);
         addBookingDocument(docs, booking, "Allotment Letter", "AllotmentLetter", booking.getAllotmentLetterUrl(), null);
         addBookingDocument(docs, booking, "Delivery Confirmation", "DeliveryConfirmation", booking.getDeliveryConfirmationLetterUrl(), null);
-        addBookingDocument(docs, booking, "Insurance Policy", "Insurance", booking.getInsuranceDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Insurance Policy", "InsurancePolicy", booking.getInsuranceDocumentUrl(), null);
         addBookingDocument(docs, booking, "Temporary Registration", "TemporaryRegistration", booking.getTemporaryRegistrationUrl(), null);
-        addBookingDocument(docs, booking, "Final Invoice", "Invoice", booking.getFinalInvoiceUrl(), null);
-        addBookingDocument(docs, booking, "Warranty Document", "Warranty", booking.getWarrantyDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Final Invoice / Sale Bill", "FinalInvoice", booking.getFinalInvoiceUrl(), null);
+        addBookingDocument(docs, booking, "Registration Certificate", "RegistrationCertificate", booking.getRegistrationCertificateUrl(), null);
+        addBookingDocument(docs, booking, "PUC Certificate", "PucCertificate", booking.getPucCertificateUrl(), null);
+        addBookingDocument(docs, booking, "Warranty Document", "WarrantyDocument", booking.getWarrantyDocumentUrl(), null);
+        addBookingDocument(docs, booking, "Service Book", "ServiceBook", booking.getServiceBookUrl(), null);
+        addBookingDocument(docs, booking, "Delivery Note", "DeliveryNote", booking.getDeliveryNoteUrl(), null);
+        addBookingDocument(docs, booking, "Road Tax Receipt", "RoadTaxReceipt", booking.getRoadTaxReceiptUrl(), null);
+        addBookingDocument(docs, booking, "Finance Sanction Letter", "FinanceSanctionLetter", booking.getFinanceSanctionLetterUrl(), null);
+        addBookingDocument(docs, booking, "Finance Agreement", "FinanceAgreement", booking.getFinanceAgreementUrl(), null);
         addBookingDocument(docs, booking, "Loan Document", "LoanDocument", booking.getLoanDocumentUrl(), null);
         return docs;
     }
@@ -445,6 +511,30 @@ public class DocumentsRestController {
         }
 
         docs.add(map);
+    }
+
+    private boolean isStaffOrAdmin(HttpSession session) {
+        String role = String.valueOf(session.getAttribute("USER_ROLE"));
+        return "ROLE_ADMIN".equals(role) || (role != null && !"ROLE_USER".equals(role) && !"null".equals(role));
+    }
+
+    private boolean isAdmin(HttpSession session) {
+        return "ROLE_ADMIN".equals(String.valueOf(session.getAttribute("USER_ROLE")));
+    }
+
+    private Optional<User> getSessionUser(HttpSession session) {
+        Object userIdObj = session.getAttribute("USER_ID");
+        if (userIdObj == null) return Optional.empty();
+        return userRepository.findById(Long.valueOf(String.valueOf(userIdObj)));
+    }
+
+    private boolean canAccessBooking(HttpSession session, Booking booking) {
+        if (isAdmin(session)) return true;
+        Long staffShowroomId = getSessionUser(session).map(User::getShowroomId).orElse(null);
+        Long bookingShowroomId = booking != null && booking.getCar() != null && booking.getCar().getShowroom() != null
+                ? booking.getCar().getShowroom().getId()
+                : null;
+        return staffShowroomId != null && staffShowroomId.equals(bookingShowroomId);
     }
 
     private String extractFileName(String fileUrl) {

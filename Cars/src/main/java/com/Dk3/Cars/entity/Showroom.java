@@ -17,6 +17,8 @@ public class Showroom {
     private String city;
     private String address;
     private String contactNumber;
+    @Column(name = "showroom_type")
+    private String type;
     private String mapUrl;
     private String workingHours;
     private String managerName;

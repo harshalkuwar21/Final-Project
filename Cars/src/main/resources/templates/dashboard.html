@@ -2,12 +2,12 @@
 <html lang="en">
 
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
-    <title>DK3 Cars – Admin Dashboard</title>
+    <title>DK3 Cars - Admin Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
     <style>
@@ -27,7 +27,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
 
         body {
@@ -54,24 +54,35 @@
             backdrop-filter: blur(14px);
             border: 1px solid rgba(255, 255, 255, .3);
         }
-
-        .logo {
+ .logo {
             display: flex;
             align-items: center;
             gap: 14px;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
         }
 
         .logo img {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
-            transition: .35s;
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
         }
 
         .logo img:hover {
-            transform: rotate(8deg) scale(1.08);
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
         }
 
         /* NAV LINKS */
@@ -210,38 +221,33 @@
 
         /* ================= HERO ================= */
 
+        /* ================= HERO ================= */
         .hero {
-            height: 320px;
+            height: 450px;
+            padding: 55px;
             border-radius: 26px;
-            background: url("/images/staff.jpg") center/cover;
+            background: url("/IMAGES/staff.png") center / cover;
+            position: relative;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 30px;
-            color: white;
             box-shadow: var(--shadow);
-            position: relative;
-            overflow: hidden;
         }
 
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0, 0, 0, .3), rgba(0, 0, 0, .1));
+        .hero-content {
+            max-width: 560px;
+            padding: 34px;
+            border-radius: 34px;
         }
 
-        .hero h1 {
-            font-size: 28px;
-            position: relative;
-            z-index: 2;
+        .hero-content h1 {
+            font-size: 36px;
+            font-weight: 700;
         }
 
-        .hero img {
-            height: 160px;
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            z-index: 2;
+        .hero-content p {
+            margin-top: 10px;
+            font-size: 16px;
+            color: black;
         }
 
         /* ================= STATS ================= */
@@ -463,15 +469,13 @@
 
         /* ================= STAFF ================= */
 
+        
+        /* ================= STAFF ================= */
         .staff-card {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 14px;
-            background: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
         }
 
         .staff-card img {
@@ -519,6 +523,20 @@
                 grid-template-columns: 1fr;
             }
 
+            .hero {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .hero h1 {
+                font-size: 26px;
+            }
+
+            .hero-media {
+                justify-self: start;
+                width: min(100%, 320px);
+            }
+
         }
     </style>
 </head>
@@ -527,14 +545,10 @@
 
     <!-- NAVBAR -->
     <header class="navbar">
-        <div class="logo">
-            <img src="/images/logo.png">
-            DK3 Cars
-        </div>
-        <div class="nav-icons">
-            <i onclick="location.href='/showrooms'" class="fa fa-bell" id="notifIcon"></i>
-            <i class="fa fa-user-circle" id="userIcon"></i>
-        </div>
+     <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
     </header>
 
     <div class="container">
@@ -613,11 +627,10 @@
             <!-- DASHBOARD -->
             <section class="page-section active" id="dashboard">
                 <div class="hero">
-                    <div>
+                    <div class="hero-content">
                         <h1>Welcome, Admin!</h1>
-                        <p>Manage system overview and user activities efficiently</p>
+                        <p>Manage system overview, inventory, sales, and team activity from one place.</p>
                     </div>
-
                 </div>
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -637,7 +650,7 @@
                     </div>
                     <div class="stat-card">
                         <i class="fas fa-rupee-sign" style="color:#e91e63;"></i>
-                        <h2 id="monthlyRevenue">₹0</h2>
+                        <h2 id="monthlyRevenue">Rs. 0</h2>
                         <p>Monthly Revenue</p>
                     </div>
                     <div class="stat-card">
@@ -649,7 +662,7 @@
 
                 <!-- Charts Section -->
                 <div class="charts-section">
-                    <h2 style="margin: 30px 0 20px 0; color: var(--primary);">📊 Business Analytics</h2>
+                    <h2 style="margin: 30px 0 20px 0; color: var(--primary);">&#128202; Business Analytics</h2>
                     <div class="charts-grid">
                         <div class="chart-card">
                             <h3>Monthly Sales</h3>
@@ -730,13 +743,13 @@
     <!-- Profile Modal -->
     <div id="profileModal" class="modal" style="display:none">
         <div class="modal-content">
-            <button class="close" onclick="hideProfile()">✕</button>
+            <button class="close" onclick="hideProfile()">&times;</button>
             <div class="modal-body">
                 <h3>Profile</h3>
                 <input id="pFirst" placeholder="First name">
                 <input id="pLast" placeholder="Last name">
                 <input id="pEmail" placeholder="Email">
-                <input id="pContact" placeholder="Contact">
+                <input id="pContact" type="tel" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" placeholder="Contact">
                 <input id="pPassword" placeholder="New password (optional)">
                 <div style="margin-top:8px;"><button class="btn" id="pSaveBtn">Save</button></div>
             </div>

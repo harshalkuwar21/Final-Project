@@ -1,9 +1,36 @@
-document.getElementById("loginForm").addEventListener("submit", function(e) {
+document.addEventListener("DOMContentLoaded", () => {
+    const msg = document.getElementById("msg");
+    const loginForm = document.getElementById("loginForm");
+    const forgotLink = document.getElementById("forgotLink");
+    const forgotBox = document.getElementById("forgotBox");
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+    const resetPwdBtn = document.getElementById("resetPwdBtn");
+    const params = new URLSearchParams(window.location.search);
+
+    function setMessage(text, color) {
+        msg.style.color = color;
+        msg.innerText = text;
+    }
+
+    try {
+        const storedLogoutMessage = sessionStorage.getItem("logoutMessage");
+        if (storedLogoutMessage) {
+            setMessage(storedLogoutMessage, "green");
+            sessionStorage.removeItem("logoutMessage");
+        } else if (params.get("logout") === "1") {
+            setMessage("Logged out successfully.", "green");
+        }
+    } catch (_) {
+        if (params.get("logout") === "1") {
+            setMessage("Logged out successfully.", "green");
+        }
+    }
+
+    loginForm?.addEventListener("submit", function(e) {
         e.preventDefault();
 
         const email = document.getElementById("email").value;
         const password = document.getElementById("password").value;
-        const msg = document.getElementById("msg");
 
         fetch("/user/login", {
             method: "POST",
@@ -18,31 +45,20 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
         .then(res => res.json())
         .then(data => {
             if (data.status === "success") {
-                msg.style.color = "green";
-                msg.innerText = data.message;
+                setMessage(data.message, "green");
 
-                // redirect after success
                 setTimeout(() => {
                     window.location.href = data.redirectUrl || "/dashboard";
                 }, 1000);
 
             } else {
-                msg.style.color = "red";
-                msg.innerText = data.message;
+                setMessage(data.message, "red");
             }
         })
-        .catch(err => {
-            msg.style.color = "red";
-            msg.innerText = "Server error. Please try again.";
+        .catch(() => {
+            setMessage("Server error. Please try again.", "red");
         });
     });
-
-document.addEventListener("DOMContentLoaded", () => {
-    const msg = document.getElementById("msg");
-    const forgotLink = document.getElementById("forgotLink");
-    const forgotBox = document.getElementById("forgotBox");
-    const sendOtpBtn = document.getElementById("sendOtpBtn");
-    const resetPwdBtn = document.getElementById("resetPwdBtn");
 
     forgotLink?.addEventListener("click", (e) => {
         e.preventDefault();
@@ -58,8 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ email })
         });
         const data = await res.json();
-        msg.style.color = data.ok ? "green" : "red";
-        msg.innerText = data.message || "Unable to send OTP";
+        setMessage(data.message || "Unable to send OTP", data.ok ? "green" : "red");
     });
 
     resetPwdBtn?.addEventListener("click", async () => {
@@ -72,7 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ email, otp, newPassword })
         });
         const data = await res.json();
-        msg.style.color = data.ok ? "green" : "red";
-        msg.innerText = data.message || "Unable to reset password";
+        setMessage(data.message || "Unable to reset password", data.ok ? "green" : "red");
     });
 });

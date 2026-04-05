@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/typography.css">
+    <meta charset="utf-8">
+    <title>Edit Vehicle | DK3 Cars</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary: #6c4ef6;
+            --accent: #9f7bff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 18px 45px rgba(0, 0, 0, .15);
+            --bg: #f1f5f9;
+            --danger: #b91c1c;
+            --success: #166534;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
+        }
+
+        .navbar {
+            max-width: 1500px;
+            margin: 25px auto;
+            padding: 14px 28px;
+            background: var(--glass);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 20px;
+            z-index: 999;
+        }
+ .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
+        }
+
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
+        .nav-icons {
+            display: flex;
+            gap: 18px;
+        }
+
+        .nav-icons i {
+            font-size: 20px;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .nav-icons i:hover {
+            background: #f3f4ff;
+            color: var(--primary);
+            transform: scale(1.15);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            display: flex;
+            gap: 24px;
+            padding-bottom: 40px;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: linear-gradient(180deg, #fff, #f3f1ff);
+            border-radius: 28px;
+            padding: 24px 16px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sidebar li {
+            padding: 14px 18px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: .3s;
+            font-weight: 500;
+        }
+
+        .sidebar li i {
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .sidebar li:hover {
+            background: rgba(108, 78, 246, .1);
+            transform: translateX(6px);
+        }
+
+        .sidebar li.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+        }
+
+        .sidebar li.active i {
+            color: #fff;
+        }
+
+        .main {
+            flex: 1;
+            background: var(--bg);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .back-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .message {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .message.success {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .edit-car-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #e6e9f2;
+            background: #fbfbff;
+            resize: vertical;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .current-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .current-image-card {
+            width: 170px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .current-images img {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .remove-image-btn {
+            width: fit-content;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: #fff1f2;
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .remove-image-btn:hover {
+            background: #ffe4e6;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            grid-column: 1 / -1;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .edit-car-form {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .header-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="logo">
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
+</header>
+
+<div class="container">
+        <aside class="sidebar">
+        <ul>
+            <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i> Dashboard</li>
+            <li onclick="location.href='/cars/all'"><i class="fas fa-car-side"></i> All Vehicles</li>
+            <li class="active"><i class="fas fa-pen"></i> Edit Vehicle</li>
+        </ul>
+    </aside>
+
+    <main class="main">
+        <section class="panel">
+            <div class="header-row">
+                <div>
+                    <h3>Edit Vehicle</h3>
+                    <p class="hint">Update the selected car details and save your changes.</p>
+                </div>
+                <a class="back-link" href="/cars/all"><i class="fas fa-arrow-left"></i> Back to vehicles</a>
+            </div>
+
+            <div th:if="${error}" class="message error" th:text="${error}"></div>
+            <div th:if="${success}" class="message success" th:text="${success}"></div>
+
+            <form class="edit-car-form" th:action="@{/cars/edit/{id}(id=${car.id})}" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Brand</label>
+                    <input name="brand" type="text" th:value="${car.brand}" required>
+                </div>
+                <div class="form-group">
+                    <label>Model</label>
+                    <input name="model" type="text" th:value="${car.model}" required>
+                </div>
+                <div class="form-group">
+                    <label>Variant</label>
+                    <input name="variant" type="text" th:value="${car.variant}">
+                </div>
+                <div class="form-group">
+                    <label>Fuel Type</label>
+                    <select name="fuelType">
+                        <option value="Petrol" th:selected="${car.fuelType == 'Petrol'}">Petrol</option>
+                        <option value="Diesel" th:selected="${car.fuelType == 'Diesel'}">Diesel</option>
+                        <option value="EV" th:selected="${car.fuelType == 'EV'}">EV</option>
+                        <option value="CNG" th:selected="${car.fuelType == 'CNG'}">CNG</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Transmission</label>
+                    <select name="transmission">
+                        <option value="Manual" th:selected="${car.transmission == 'Manual'}">Manual</option>
+                        <option value="Automatic" th:selected="${car.transmission == 'Automatic'}">Automatic</option>
+                        <option value="CVT" th:selected="${car.transmission == 'CVT'}">CVT</option>
+                        <option value="IVT" th:selected="${car.transmission == 'IVT'}">IVT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <input name="color" type="text" th:value="${car.color}">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input name="price" type="number" step="0.01" th:value="${car.price}" required>
+                </div>
+                <div class="form-group">
+                    <label>Mileage</label>
+                    <input name="mileage" type="text" th:value="${car.mileage}">
+                </div>
+                <div class="form-group">
+                    <label>Engine CC</label>
+                    <input name="engineCc" type="text" th:value="${car.engineCc}">
+                </div>
+                <div class="form-group">
+                    <label>Safety Rating</label>
+                    <input name="safetyRating" type="text" th:value="${car.safetyRating}">
+                </div>
+                <div class="form-group">
+                    <label>Seating Capacity</label>
+                    <input name="seatingCapacity" type="text" th:value="${car.seatingCapacity}">
+                </div>
+                <div class="form-group">
+                    <label>Fuel Options</label>
+                    <input name="fuelOptions" type="text" th:value="${car.fuelOptions}">
+                </div>
+                <div class="form-group">
+                    <label>Transmission Options</label>
+                    <input name="transmissionOptions" type="text" th:value="${car.transmissionOptions}">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="Available" th:selected="${car.status == 'Available'}">Available</option>
+                        <option value="Sold" th:selected="${car.status == 'Sold'}">Sold</option>
+                        <option value="Reserved" th:selected="${car.status == 'Reserved'}">Reserved</option>
+                        <option value="Under Maintenance" th:selected="${car.status == 'Under Maintenance'}">Under Maintenance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>VIN</label>
+                    <input name="vin" type="text" th:value="${car.vin}">
+                </div>
+                <div class="form-group">
+                    <label>Engine No</label>
+                    <input name="engineNo" type="text" th:value="${car.engineNo}">
+                </div>
+                <div class="form-group">
+                    <label>Purchase Date</label>
+                    <input name="purchaseDate" type="date" th:value="${car.purchaseDate}">
+                </div>
+                <div class="form-group">
+                    <label>Stock Quantity</label>
+                    <input name="stockQuantity" type="number" min="1" th:value="${car.stockQuantity}">
+                </div>
+                <div class="form-group" th:if="${!isStaffUser}">
+                    <label>Showroom</label>
+                    <select name="showroom" required>
+                        <option value="">Select showroom</option>
+                        <option th:each="sr : ${showrooms}"
+                                th:value="${sr.id}"
+                                th:text="${sr.name}"
+                                th:selected="${selectedShowroomId == sr.id}"></option>
+                    </select>
+                </div>
+                <div class="form-group" th:if="${isStaffUser}">
+                    <label>Assigned Showroom</label>
+                    <input type="text" th:value="${assignedShowroomName}" readonly>
+                    <input type="hidden" name="showroom" th:value="${assignedShowroomId}">
+                </div>
+                <div class="form-group">
+                    <label>Supplier Info</label>
+                    <input name="supplierInfo" type="text" th:value="${car.supplierInfo}">
+                </div>
+                <div class="form-group">
+                    <label>Review Score (0-5)</label>
+                    <input name="reviewScore" type="number" min="0" max="5" step="0.1" th:value="${car.reviewScore}">
+                </div>
+                <div class="form-group">
+                    <label>Review Exterior (0-5)</label>
+                    <input name="reviewExterior" type="number" min="0" max="5" step="0.1" th:value="${car.reviewExterior}">
+                </div>
+                <div class="form-group">
+                    <label>Review Performance (0-5)</label>
+                    <input name="reviewPerformance" type="number" min="0" max="5" step="0.1" th:value="${car.reviewPerformance}">
+                </div>
+                <div class="form-group">
+                    <label>Review Value (0-5)</label>
+                    <input name="reviewValue" type="number" min="0" max="5" step="0.1" th:value="${car.reviewValue}">
+                </div>
+                <div class="form-group">
+                    <label>Review Fuel Economy (0-5)</label>
+                    <input name="reviewFuelEconomy" type="number" min="0" max="5" step="0.1" th:value="${car.reviewFuelEconomy}">
+                </div>
+                <div class="form-group">
+                    <label>Review Comfort (0-5)</label>
+                    <input name="reviewComfort" type="number" min="0" max="5" step="0.1" th:value="${car.reviewComfort}">
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Mileage Details</label>
+                    <textarea name="mileageDetails" rows="2" th:text="${car.mileageDetails}"></textarea>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Variant Details</label>
+                    <textarea name="variantDetails" rows="2" th:text="${car.variantDetails}"></textarea>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Names</label>
+                    <textarea name="colorOptionNames" rows="3" th:text="${existingColorOptionNamesText}" placeholder="Red&#10;White&#10;Blue"></textarea>
+                    <p class="hint">One color name per line. Keep the same order in code and image fields.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Codes</label>
+                    <textarea name="colorOptionCodes" rows="3" th:text="${existingColorOptionCodesText}" placeholder="#ff2b2b&#10;#dfe4ea&#10;#1d4ed8"></textarea>
+                    <p class="hint">One hex code per line, matching each color name row.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Color Image URLs</label>
+                    <textarea name="colorOptionImages" rows="3" th:text="${existingColorOptionImagesText}" placeholder="https://example.com/red-car.jpg&#10;https://example.com/white-car.jpg&#10;https://example.com/blue-car.jpg"></textarea>
+                    <p class="hint">One image URL per line, matching each color name row.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Questions</label>
+                    <textarea name="faqQuestions" rows="3" th:text="${existingFaqQuestionsText}" placeholder="What is on-road price?&#10;How many airbags?"></textarea>
+                    <p class="hint">One FAQ question per line. Keep the same order in answers below.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>FAQ Answers</label>
+                    <textarea name="faqAnswers" rows="3" th:text="${existingFaqAnswersText}" placeholder="Depends on city and taxes.&#10;Based on selected variant."></textarea>
+                    <p class="hint">One FAQ answer per line, matching the same FAQ question row.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Current Images</label>
+                    <div class="current-images" id="currentImages">
+                        <div class="current-image-card" th:each="img : ${car.imageUrls}" th:attr="data-url=${img}">
+                            <img th:src="${img}" alt="Vehicle image">
+                            <button type="button" class="remove-image-btn" th:attr="data-url=${img}">Remove</button>
+                        </div>
+                        <div class="current-image-card" th:if="${car.imageUrls == null or #lists.isEmpty(car.imageUrls)}">
+                            <img src="/images/car.jpg" alt="Vehicle image">
+                            <span class="hint">No saved images available.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Image URLs</label>
+                    <textarea name="imageUrls" rows="3" th:text="${existingImageUrlsText}" placeholder="Paste one or more image URLs. Use a new line or comma between each URL."></textarea>
+                    <p class="hint">Keep existing URLs, add new ones, or remove any you no longer want to store.</p>
+                </div>
+                <div class="form-group form-group-full">
+                    <label>Upload New Images</label>
+                    <input name="images" type="file" multiple accept="image/*">
+                    <p class="hint">Choose files from your device. Uploaded files are saved together with any image URLs above.</p>
+                </div>
+            
+                <button class="btn-primary" type="submit">Save Vehicle Changes</button>
+            </form>
+        </section>
+    </main>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const imageUrlsField = document.querySelector('textarea[name="imageUrls"]');
+        const currentImages = document.getElementById("currentImages");
+
+        if (!imageUrlsField || !currentImages) {
+            return;
+        }
+
+        function getImageUrls() {
+            return imageUrlsField.value
+                .split(/\r?\n|,/)
+                .map(value => value.trim())
+                .filter(Boolean);
+        }
+
+        function setImageUrls(urls) {
+            imageUrlsField.value = urls.join("\n");
+        }
+
+        currentImages.addEventListener("click", (event) => {
+            const button = event.target.closest(".remove-image-btn");
+            if (!button) {
+                return;
+            }
+            const url = button.getAttribute("data-url");
+            const urls = getImageUrls().filter(item => item !== url);
+            setImageUrls(urls);
+
+            const card = button.closest(".current-image-card");
+            if (card) {
+                card.remove();
+            }
+
+            if (!currentImages.querySelector(".current-image-card")) {
+                currentImages.innerHTML = `
+                    <div class="current-image-card">
+                        <img src="/images/car.jpg" alt="Vehicle image">
+                        <span class="hint">No saved images available.</span>
+                    </div>
+                `;
+            }
+        });
+    });
+</script>
+</body>
+</html>

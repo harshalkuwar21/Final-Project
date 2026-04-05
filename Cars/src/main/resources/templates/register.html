@@ -24,6 +24,7 @@ flex-direction:column;
 color:#333;
 }
 
+
 /* NAVBAR */
 
 .navbar{
@@ -55,6 +56,18 @@ color: #0b0a0a;
 .logo span{
     color:#000000;
 }
+ .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 
 /* Nav Links */
 .navbar nav{
@@ -398,7 +411,7 @@ text-decoration:underline;
 <header class="navbar">
     <div class="logo">
         <img src="/images/logo.png" alt="DK3 Cars Logo">
-        <span>DK3 Cars</span>
+<div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
     </div>
 
     <nav>
@@ -419,31 +432,31 @@ text-decoration:underline;
 
       <!-- First Name -->
       <div class="input-group">
-        <span>👤</span>
+        <span>&#128100;</span>
         <input type="text" name="firstName" placeholder="First Name" required>
       </div>
 
       <!-- Last Name -->
       <div class="input-group">
-        <span>👤</span>
+        <span>&#128100;</span>
         <input type="text" name="lastName" placeholder="Last Name" required>
       </div>
 
       <!-- Email -->
       <div class="input-group">
-        <span>✉️</span>
+        <span>&#9993;</span>
         <input type="email" name="email" placeholder="Email Address" required>
       </div>
 
       <!-- Contact -->
       <div class="input-group">
-        <span>📞</span>
-        <input type="tel" name="contact" placeholder="Contact Number" pattern="[0-9]{10}" required>
+        <span>&#128222;</span>
+        <input type="tel" name="contact" placeholder="Contact Number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" required>
       </div>
 
       <!-- Password -->
       <div class="input-group">
-        <span>🔒</span>
+        <span>&#128274;</span>
         <input type="password" name="password" placeholder="Password" required>
       </div>
 
@@ -456,13 +469,6 @@ text-decoration:underline;
       <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
 
       <button class="btn" id="register-btn" type="submit">Register</button>
-
-      <p class="or">Or continue with</p>
-
-      <div class="social">
-        <button type="button" class="google">G Sign up with Google</button>
-        <button type="button" class="facebook">f Facebook</button>
-      </div>
 
       <p class="login">
         Already have an account? <a href="/login">Login</a>

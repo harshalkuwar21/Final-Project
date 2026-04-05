@@ -1,3 +1,5 @@
+@import url('/css/typography.css');
+
 :root {
     --primary: #6c4ef6;
     --accent: #9f7bff;
@@ -13,7 +15,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-body);
 }
 
 body {
@@ -40,28 +42,36 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(16, 185, 129, 0.1);
 }
+ .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 28px;
+            font-weight: 700;
+        }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    font-size: 24px;
-    font-weight: 700;
-    color: #333;
-}
+        .logo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 14px;
+            transition: .3s;
+        }
 
-.logo img {
-    width: 50px;
-    height: 50px;
-    border-radius: 10px;
-    transition: 0.3s;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
+        .logo img:hover {
+            transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
 
-.logo img:hover {
-    transform: rotate(5deg) scale(1.08);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
-}
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 
 .nav-icons {
     display: flex;
@@ -264,7 +274,7 @@ main h2 i {
     border-radius: 10px;
     font-size: 14px;
     transition: var(--transition);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     background: white;
 }
 
@@ -292,7 +302,7 @@ main h2 i {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
 }
 
 .btn:disabled {
@@ -504,7 +514,7 @@ main h2 i {
     margin-bottom: 14px;
     border: 2px solid #e0f2f1;
     border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     transition: var(--transition);
 }
 

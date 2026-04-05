@@ -1,4 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
+    function redirectAfterLogout(message) {
+        try {
+            sessionStorage.setItem("logoutMessage", message || "Logged out successfully.");
+        } catch (_) {
+            // ignore storage errors
+        }
+        window.location.href = "/login?logout=1";
+    }
+
     loadStats();
     loadSales();
     loadTopSelling();
@@ -16,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (_) {
                 // ignore network errors and proceed to login
             }
-            window.location.href = "/login";
+            redirectAfterLogout("Logged out successfully.");
         });
     }
 });

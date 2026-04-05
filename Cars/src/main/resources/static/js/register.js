@@ -2,8 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('register-form');
   const msg = document.getElementById('form-message');
   const btn = document.getElementById('register-btn');
+  const contactInput = form ? form.querySelector('input[name="contact"]') : null;
 
   if (!form) return;
+
+  if (contactInput) {
+    contactInput.addEventListener('input', () => {
+      contactInput.value = contactInput.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -25,6 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!data.first || !data.last || !data.email || !data.password) {
       showMessage('Please fill in all required fields.', 'error');
       btn.disabled = false;
+      return;
+    }
+    data.contact = data.contact.replace(/\D/g, '').slice(0, 10);
+    if (!/^\d{10}$/.test(data.contact)) {
+      showMessage('Mobile number must be exactly 10 digits.', 'error');
+      btn.disabled = false;
+      btn.textContent = originalBtnText || 'Register';
+      if (contactInput) contactInput.focus();
       return;
     }
 

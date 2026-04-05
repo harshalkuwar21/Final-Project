@@ -1,3 +1,5 @@
+@import url('/css/typography.css');
+
 :root {
     --primary: #6c4ef6;
     --secondary: #9f7bff;
@@ -19,7 +21,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: var(--font-body);
 }
 
 body {
@@ -44,8 +46,7 @@ body {
             top: 20px;
             z-index: 999;
         }
-
-        .logo {
+ .logo {
             display: flex;
             align-items: center;
             gap: 14px;
@@ -62,6 +63,18 @@ body {
 
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
+        }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
         }
 
         .nav-links a {
@@ -236,7 +249,7 @@ main h2 {
     border-radius: 10px;
     font-size: 14px;
     transition: var(--transition);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     background: white;
 }
 
@@ -264,7 +277,7 @@ main h2 {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
 }
 
 .btn:disabled {
@@ -462,7 +475,7 @@ main h2 {
     margin-bottom: 14px;
     border: 2px solid #e9eef8;
     border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     transition: var(--transition);
 }
 

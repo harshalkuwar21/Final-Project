@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DK3 Cars | User Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
         :root {
@@ -24,16 +24,16 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: var(--font-body);
         }
-
-        body {
-            min-height: 100vh;
-            background:
-                linear-gradient(135deg, rgba(108, 78, 246, 0.3), rgba(159, 123, 255, 0.3)),
-                url("/IMAGES/staff5.jpg") center / cover fixed;
-            color: var(--text);
-        }
+body {
+    min-height: 100vh;
+    background:
+        linear-gradient(120deg, #eef3ff, #f9fbff), 
+        linear-gradient(135deg, rgba(220, 219, 228, 0.3), rgba(157, 153, 171, 0.3)), /* overlay */
+        url("/IMAGES/staff5.jpg") center / cover fixed;
+    color: var(--text);
+}
 
         .page {
             max-width: 1400px;
@@ -75,6 +75,18 @@
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
         }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
+
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 
         .nav-links {
             display: flex;
@@ -114,6 +126,133 @@
             display: flex;
             align-items: center;
             gap: 14px;
+        }
+
+        .notification-wrap {
+            position: relative;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -2px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        .notif-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: min(380px, 88vw);
+            background: #fff;
+            border: 1px solid #e5e3ef;
+            border-radius: 18px;
+            box-shadow: 0 22px 45px rgba(19, 26, 54, 0.18);
+            padding: 14px;
+            display: none;
+            z-index: 1200;
+        }
+
+        .notif-panel.open {
+            display: block;
+        }
+
+        .notif-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .notif-head h4 {
+            font-size: 16px;
+        }
+
+        .notif-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notif-markall {
+            border: none;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .notif-close {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 50%;
+            background: #f3f4f8;
+            color: #4b5563;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .notif-list {
+            display: grid;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: #f8f7fc;
+            border: 1px solid #ece8f8;
+            cursor: pointer;
+        }
+
+        .notif-item.unread {
+            background: #eef3ff;
+            border-color: #d9e2ff;
+        }
+
+        .notif-item strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .notif-item p {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #5d6480;
+            margin-bottom: 6px;
+        }
+
+        .notif-time {
+            font-size: 11px;
+            color: #7a829f;
+        }
+
+        .notif-empty {
+            padding: 16px;
+            border-radius: 14px;
+            background: #f8f7fc;
+            text-align: center;
+            color: #666f8d;
+            font-size: 13px;
         }
 
         .icon-btn {
@@ -721,6 +860,184 @@
             text-transform: uppercase;
         }
 
+        .review-share-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .review-form-card,
+        .review-list-card {
+            background: #fff;
+            border: 1px solid #e2deef;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 22px rgba(16, 24, 54, .07);
+        }
+
+        .review-note {
+            color: #5d6782;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .review-form {
+            display: grid;
+            gap: 14px;
+        }
+
+        .review-form-row {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .review-form input,
+        .review-form select,
+        .review-form textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid #d8dff1;
+            background: #f9fbff;
+            padding: 13px 14px;
+            color: #1d2747;
+            font-size: 15px;
+        }
+
+        .review-form textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .review-submit {
+            width: fit-content;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 26px rgba(108, 78, 246, .22);
+        }
+
+        .review-submit[disabled] {
+            opacity: .7;
+            cursor: wait;
+        }
+
+        .review-status {
+            margin-top: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 20px;
+        }
+
+        .review-side-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .review-side-head h4 {
+            font-size: 24px;
+        }
+
+        .review-side-head a {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .review-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .review-item {
+            border-radius: 16px;
+            border: 1px solid #e3e8f6;
+            background: #f8faff;
+            padding: 16px;
+        }
+
+        .review-item-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .review-item h5 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .review-rating-badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #fff3d6;
+            color: #9a6200;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .review-rating-badge i {
+            margin-right: 2px;
+        }
+
+        .review-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .review-delete-btn {
+            border: 1px solid #fecaca;
+            background: #fff1f2;
+            color: #b91c1c;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .review-delete-btn:hover {
+            background: #ffe4e6;
+            transform: translateY(-1px);
+        }
+
+        .review-item p {
+            color: #59647e;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .review-item-meta {
+            margin-top: 10px;
+            color: #7a84a0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .review-empty {
+            border-radius: 16px;
+            border: 1px dashed #cfd8ec;
+            background: #fbfcff;
+            color: #6d7691;
+            padding: 22px;
+            text-align: center;
+        }
+
         /* ================= BRANDS ================= */
         .brands-section {
             margin-top: 22px;
@@ -892,6 +1209,10 @@
                 grid-template-columns: 1fr 1fr;
             }
 
+            .review-share-grid {
+                grid-template-columns: 1fr;
+            }
+
             .promo-grid,
             .owner-grid,
             .quick-links,
@@ -975,6 +1296,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .review-form-row {
+                grid-template-columns: 1fr;
+            }
+
             .promo-grid,
             .owner-grid,
             .quick-links,
@@ -990,13 +1315,14 @@
     <header class="navbar">
         <div class="logo">
             <img src="/images/logo.png" alt="DK3 Cars">
-            <span>DK3 Cars</span>
+            <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>             
         </div>
         <nav class="nav-links">
             <a class="active" href="/user-dashboard">Home</a>
             <a href="/user-panel/cars">Inventory</a>
             <a href="/user-panel/bookings">Bookings</a>
-            <a href="/user-panel/showrooms">Showrooms</a>
+            <!-- <a href="/user-panel/showrooms">Showrooms</a> -->
+            <a href="#reviewShare">Reviews</a>
         </nav>
         <div class="nav-icons">
             <div class="hello-user">Hello User</div>
@@ -1009,6 +1335,24 @@
             <button class="icon-btn" id="mapNavBtn" title="Showroom Map" type="button">
                 <i class="fa-solid fa-location-dot"></i>
             </button>
+            <div class="notification-wrap">
+                <button class="icon-btn" id="notificationsBellBtn" title="Notifications" type="button">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+                </button>
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-head">
+                        <h4>Notifications</h4>
+                        <div class="notif-actions">
+                            <button class="notif-markall" id="markAllNotifBtn" type="button">Mark all read</button>
+                            <button class="notif-close" id="notifCloseBtn" type="button" aria-label="Close notifications">&times;</button>
+                        </div>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <div class="notif-empty">Loading notifications...</div>
+                    </div>
+                </div>
+            </div>
             <button class="contact-btn" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
             <button class="btn-logout" id="logoutBtn">Logout</button>
         </div>
@@ -1024,12 +1368,6 @@
             <div class="hero-actions">
                 <button class="hero-btn primary" onclick="location.href='/user-panel/cars'">View Inventory</button>
                 <button class="hero-btn light" onclick="location.href='/user-panel/showrooms'">Contact Sales</button>
-            </div>
-            <div class="brand-row">
-                <span class="chip">BMW</span>
-                <span class="chip">HYUNDAI</span>
-                <span class="chip">TATA</span>
-                <span class="chip">MERCEDES</span>
             </div>
         </div>
     </section>
@@ -1155,6 +1493,44 @@
         </div>
     </section>
 
+    <section class="section" id="reviewShare">
+        <h3>Share Your Review</h3>
+        <div class="review-share-grid">
+            <article class="review-form-card">
+                <p class="review-note">This review is stored in the database and also shown on the public home page review section.</p>
+                <form id="homeReviewForm" class="review-form">
+                    <div class="review-form-row">
+                        <input type="text" id="reviewCity" placeholder="Your city" maxlength="60" required>
+                        <input type="text" id="reviewShowroom" placeholder="Showroom visited (optional)" maxlength="80">
+                    </div>
+                    <div class="review-form-row">
+                        <input type="text" id="reviewTitle" placeholder="Review title" maxlength="120" required>
+                        <select id="reviewRating" required>
+                            <option value="5">5 Star</option>
+                            <option value="4">4 Star</option>
+                            <option value="3">3 Star</option>
+                            <option value="2">2 Star</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <textarea id="reviewMessage" placeholder="Write your experience with DK3 Cars..." maxlength="1200" required></textarea>
+                    <button type="submit" class="review-submit" id="reviewSubmitBtn">Submit Review</button>
+                </form>
+                <div class="review-status" id="reviewStatus"></div>
+            </article>
+
+            <article class="review-list-card">
+                <div class="review-side-head">
+                    <h4>My Recent Reviews</h4>
+                    <a href="/#reviews">Open Home Reviews</a>
+                </div>
+                <div id="myReviewList" class="review-list">
+                    <div class="review-empty">Loading your saved reviews...</div>
+                </div>
+            </article>
+        </div>
+    </section>
+
     <footer class="footer">
         <div class="footer-main">
             <div class="footer-brand">
@@ -1228,9 +1604,23 @@
     };
     const LIKED_CARS_KEY = "dk3-liked-cars";
 
-    function money(v) { return v == null ? "N/A" : "Rs " + Number(v).toLocaleString("en-IN"); }
+    function money(v) {
+        const amount = Number(v);
+        if (!Number.isFinite(amount) || amount <= 0) return "Price on request";
+        if (amount >= 10000000) return `Rs ${ (amount / 10000000).toFixed(2) } Crore`;
+        return `Rs ${ (amount / 100000).toFixed(2) } Lakh`;
+    }
     function cardTag(index) { return index === 0 ? "Best Seller" : (index === 1 ? "Deal of the Week" : "Luxury Choice"); }
     function normalizeBrand(v) { return (v || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+    function carTitle(car) { return [car.brand, car.model].filter(Boolean).join(" ").trim() || "Featured Car"; }
+    function carImage(car) {
+        if (Array.isArray(car.imageUrls) && car.imageUrls.length) return car.imageUrls[0];
+        if (car.imageUrl) return car.imageUrl;
+        return "/images/car.jpg";
+    }
+    function carDetailsUrl(car) {
+        return `/user-panel/car-details?carId=${car.id}&car=${encodeURIComponent(carTitle(car))}`;
+    }
     function carFeatures(car) {
         const f = [];
         if (car.fuelType) f.push(car.fuelType);
@@ -1294,14 +1684,14 @@
                     <button class="card-favorite ${isCarLiked(car.id) ? "active" : ""}" type="button" data-like-car-id="${car.id}" onclick="toggleLikeCar(${car.id}, this)">
                         <i class="${isCarLiked(car.id) ? "fa-solid fa-heart" : "fa-regular fa-heart"}"></i>
                     </button>
-                    <img src="${(car.imageUrls && car.imageUrls.length) ? car.imageUrls[0] : '/images/car.jpg'}" alt="${car.brand || ''}">
+                    <img src="${carImage(car)}" alt="${carTitle(car)}">
                 </div>
                 <div class="car-body">
-                    <div class="car-name">${car.brand || ''} ${car.model || ''}</div>
+                    <div class="car-name">${carTitle(car)}</div>
                     <div class="price">${money(car.price)}</div>
                     <div class="meta">${carFeatures(car).join(" - ") || "Smart infotainment - Safety - Comfort"}</div>
                     <div class="card-actions">
-                        <button class="card-btn secondary" onclick="location.href='/user-panel/car-details?carId=${car.id}&car=${encodeURIComponent((car.brand || '') + ' ' + (car.model || ''))}'">View Details</button>
+                        <button class="card-btn secondary" onclick="location.href='${carDetailsUrl(car)}'">View Details</button>
                         <button class="card-btn" onclick="location.href='/user-panel/buy-now?carId=${car.id}'">Book Car</button>
                     </div>
                 </div>
@@ -1355,6 +1745,101 @@
         }
         renderFeatured(list);
     }
+    async function loadUserGreeting() {
+        const hello = document.querySelector(".hello-user");
+        if (!hello) return;
+        try {
+            const res = await fetch("/user/profile");
+            if (!res.ok) return;
+            const data = await res.json();
+            const fullName = [data.first, data.last].filter(Boolean).join(" ").trim();
+            if (fullName) {
+                hello.textContent = `Hello ${fullName}`;
+            }
+        } catch (e) {
+            // Keep fallback greeting if profile is unavailable.
+        }
+    }
+    function formatNotificationTime(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+    }
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+    function updateNotificationBadge(count) {
+        const badge = document.getElementById("notifBadge");
+        if (!badge) return;
+        if (!count) {
+            badge.style.display = "none";
+            badge.textContent = "0";
+            return;
+        }
+        badge.style.display = "inline-flex";
+        badge.textContent = count > 9 ? "9+" : String(count);
+    }
+    function renderNotifications(list) {
+        const box = document.getElementById("notifList");
+        if (!box) return;
+        if (!Array.isArray(list) || !list.length) {
+            box.innerHTML = '<div class="notif-empty">No notifications yet.</div>';
+            return;
+        }
+        box.innerHTML = list.map(item => `
+            <div class="notif-item ${item.readFlag ? "" : "unread"}" onclick='openNotificationItem(${item.id}, ${JSON.stringify(item.link || "")})'>
+                <strong>${escapeHtml(item.title || "Notification")}</strong>
+                <p>${escapeHtml(item.message || "")}</p>
+                <div class="notif-time">${formatNotificationTime(item.createdAt)}</div>
+            </div>
+        `).join("");
+    }
+    async function loadUserNotifications() {
+        try {
+            const res = await fetch("/user-panel/api/notifications");
+            const data = await res.json();
+            if (data.ok) {
+                renderNotifications(data.notifications || []);
+            }
+        } catch (e) {
+            const box = document.getElementById("notifList");
+            if (box) box.innerHTML = '<div class="notif-empty">Unable to load notifications.</div>';
+        }
+    }
+    async function loadNotificationCount() {
+        try {
+            const res = await fetch("/user-panel/api/notifications/unread-count");
+            const data = await res.json();
+            updateNotificationBadge(data.ok ? Number(data.count || 0) : 0);
+        } catch (e) {
+            updateNotificationBadge(0);
+        }
+    }
+    async function openNotificationItem(id, link) {
+        try {
+            await fetch(`/user-panel/api/notifications/${id}/mark-read`, { method: "POST" });
+        } catch (e) {
+            // ignore read tracking failures and continue navigation
+        }
+        document.getElementById("notifPanel")?.classList.remove("open");
+        await loadNotificationCount();
+        await loadUserNotifications();
+        if (link) window.location.href = link;
+    }
+    async function markAllNotificationsRead() {
+        try {
+            await fetch("/user-panel/api/notifications/mark-all-read", { method: "POST" });
+        } catch (e) {
+            // ignore and refresh UI
+        }
+        await loadNotificationCount();
+        await loadUserNotifications();
+    }
     async function loadDashboard() {
         try {
             const [dashRes, carsRes] = await Promise.all([fetch("/user-panel/api/dashboard"), fetch("/user-panel/api/cars?includeAll=true")]);
@@ -1378,22 +1863,202 @@
             document.getElementById("brandGrid").innerHTML = '<div class="car-card"><div class="car-body">Unable to load brands.</div></div>';
         }
     }
+    function formatReviewDate(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "" : date.toLocaleString();
+    }
+    function renderMyReviews(reviews) {
+        const box = document.getElementById("myReviewList");
+        if (!box) return;
+        if (!Array.isArray(reviews) || !reviews.length) {
+            box.innerHTML = '<div class="review-empty">You have not submitted any review yet. Submit one here and it will also appear on the home page.</div>';
+            return;
+        }
+        box.innerHTML = reviews.map(review => `
+            <article class="review-item">
+                <div class="review-item-top">
+                    <h5>${escapeHtml(review.title || "Customer Review")}</h5>
+                    <span class="review-rating-badge">${"★".repeat(Number(review.rating || 5))}</span>
+                </div>
+                <p>${escapeHtml(review.message || "")}</p>
+                <div class="review-item-meta">
+                    ${escapeHtml(review.city || "India")}
+                    ${review.showroomVisited ? ` • ${escapeHtml(review.showroomVisited)}` : ""}
+                    ${review.createdAt ? ` • ${escapeHtml(formatReviewDate(review.createdAt))}` : ""}
+                </div>
+            </article>
+        `).join("");
+        const reviewCards = box.querySelectorAll(".review-item");
+        reviewCards.forEach((card, index) => {
+            const review = reviews[index];
+            if (!review || !review.id) return;
+
+            const top = card.querySelector(".review-item-top");
+            if (!top) return;
+
+            let actions = top.querySelector(".review-item-actions");
+            if (!actions) {
+                actions = document.createElement("div");
+                actions.className = "review-item-actions";
+                const ratingBadge = top.querySelector(".review-rating-badge");
+                if (ratingBadge) {
+                    top.removeChild(ratingBadge);
+                    actions.appendChild(ratingBadge);
+                }
+                top.appendChild(actions);
+            }
+
+            if (!actions.querySelector(".review-delete-btn")) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "review-delete-btn";
+                button.innerHTML = '<i class="fa-solid fa-trash"></i> Delete';
+                button.addEventListener("click", () => deleteMyReview(review.id));
+                actions.appendChild(button);
+            }
+        });
+    }
+    async function deleteMyReview(reviewId) {
+        if (!reviewId) return;
+        const status = document.getElementById("reviewStatus");
+        if (!confirm("Delete this review from your dashboard and home page?")) return;
+
+        if (status) {
+            status.style.color = "#4c5a7d";
+            status.textContent = "Deleting your review...";
+        }
+
+        try {
+            const res = await fetch(`/user-panel/api/home-reviews/${reviewId}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || data.message || "Unable to delete review");
+            }
+
+            if (status) {
+                status.style.color = "#166534";
+                status.textContent = data.message || "Review deleted successfully.";
+            }
+            await loadMyReviews();
+        } catch (e) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = e.message || "Unable to delete review right now.";
+            }
+        }
+    }
+    async function loadMyReviews() {
+        try {
+            const res = await fetch("/user-panel/api/home-reviews");
+            const data = await res.json();
+            renderMyReviews(data && data.ok ? data.reviews || [] : []);
+        } catch (e) {
+            const box = document.getElementById("myReviewList");
+            if (box) {
+                box.innerHTML = '<div class="review-empty">Unable to load your reviews right now.</div>';
+            }
+        }
+    }
+    async function submitHomeReview(event) {
+        event.preventDefault();
+        const city = document.getElementById("reviewCity").value.trim();
+        const showroomVisited = document.getElementById("reviewShowroom").value.trim();
+        const title = document.getElementById("reviewTitle").value.trim();
+        const rating = Number(document.getElementById("reviewRating").value);
+        const message = document.getElementById("reviewMessage").value.trim();
+        const status = document.getElementById("reviewStatus");
+        const btn = document.getElementById("reviewSubmitBtn");
+
+        if (!city || !title || !message) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = "City, title, and review message are required.";
+            }
+            return;
+        }
+
+        btn.disabled = true;
+        if (status) {
+            status.style.color = "#4c5a7d";
+            status.textContent = "Saving your review...";
+        }
+
+        try {
+            const res = await fetch("/user-panel/api/home-reviews", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ city, showroomVisited, title, rating, message })
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || data.message || "Unable to save review");
+            }
+
+            document.getElementById("homeReviewForm").reset();
+            if (status) {
+                status.style.color = "#166534";
+                status.textContent = data.message || "Review saved successfully.";
+            }
+            await loadMyReviews();
+        } catch (e) {
+            if (status) {
+                status.style.color = "#c2410c";
+                status.textContent = e.message || "Unable to save review right now.";
+            }
+        } finally {
+            btn.disabled = false;
+        }
+    }
     document.getElementById("searchBtn").addEventListener("click", applyFilterAndRender);
+    document.getElementById("homeReviewForm").addEventListener("submit", submitHomeReview);
     document.getElementById("likedNavBtn").addEventListener("click", () => { location.href = "/user-panel/liked-cars"; });
     document.getElementById("profileNavBtn").addEventListener("click", () => { location.href = "/user-panel/profile"; });
     document.getElementById("mapNavBtn").addEventListener("click", () => { location.href = "/user-panel/map"; });
+    document.getElementById("notificationsBellBtn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        document.getElementById("notifPanel").classList.toggle("open");
+        await loadUserNotifications();
+        await loadNotificationCount();
+    });
+    document.getElementById("markAllNotifBtn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        await markAllNotificationsRead();
+    });
+    document.getElementById("notifCloseBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.getElementById("notifPanel")?.classList.remove("open");
+    });
+    document.addEventListener("click", (e) => {
+        const wrap = document.querySelector(".notification-wrap");
+        if (wrap && !wrap.contains(e.target)) {
+            document.getElementById("notifPanel")?.classList.remove("open");
+        }
+    });
     document.getElementById("logoutBtn").addEventListener("click", async () => {
         try {
             await fetch("/user/logout", { method: "POST" });
         } finally {
-            location.href = "/login";
+            try {
+                sessionStorage.setItem("logoutMessage", "Logged out successfully.");
+            } catch (_) {
+                // ignore storage errors
+            }
+            location.href = "/login?logout=1";
         }
     });
     likedCarIds = getStoredLikedCars();
     updateNavbarLikedState();
     window.selectBrandFromTile = selectBrandFromTile;
     window.toggleLikeCar = toggleLikeCar;
+    window.openNotificationItem = openNotificationItem;
+    loadUserGreeting();
     loadDashboard();
+    loadNotificationCount();
+    loadUserNotifications();
+    loadMyReviews();
 </script>
 </body>
 </html>

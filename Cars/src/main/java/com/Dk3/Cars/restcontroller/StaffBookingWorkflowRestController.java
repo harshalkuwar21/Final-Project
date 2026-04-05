@@ -10,6 +10,7 @@ import com.Dk3.Cars.repository.PaymentStageRepository;
 import com.Dk3.Cars.repository.PaymentTransactionRepository;
 import com.Dk3.Cars.repository.UserRepository;
 import com.Dk3.Cars.service.BookingService;
+import com.Dk3.Cars.service.NotificationService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,6 +38,7 @@ public class StaffBookingWorkflowRestController {
     @Autowired private PaymentTransactionRepository paymentTransactionRepository;
     @Autowired private PaymentStageRepository paymentStageRepository;
     @Autowired private LoanDetailRepository loanDetailRepository;
+    @Autowired private NotificationService notificationService;
 
     private boolean isStaffOrAdmin(HttpSession session) {
         String role = String.valueOf(session.getAttribute("USER_ROLE"));
@@ -318,12 +320,15 @@ public class StaffBookingWorkflowRestController {
 
         booking.setInsuranceCompanyName(companyName);
         booking.setInsurancePolicyNumber(policyNumber.trim());
-        booking.setInsuranceDocumentUrl(insuranceDocumentUrl);
+        if (insuranceDocumentUrl != null && !insuranceDocumentUrl.isBlank()) {
+            booking.setInsuranceDocumentUrl(insuranceDocumentUrl);
+        }
         booking.setInsuranceGeneratedAt(LocalDateTime.now());
         booking.setWorkflowStatus("Insurance Generated");
         booking.setStatus("Insurance Generated");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateInsuranceDocuments(booking);
         markStage(id, "Delivery Ready", "Pending", "Insurance generated. RTO application pending.");
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
@@ -356,13 +361,16 @@ public class StaffBookingWorkflowRestController {
         booking.setInsuranceSubmittedToRto(true);
         booking.setRtoAuthority("Ministry of Road Transport and Highways");
         booking.setTemporaryRegistrationNumber(temporaryRegistrationNumber.trim());
-        booking.setTemporaryRegistrationUrl(temporaryRegistrationUrl);
+        if (temporaryRegistrationUrl != null && !temporaryRegistrationUrl.isBlank()) {
+            booking.setTemporaryRegistrationUrl(temporaryRegistrationUrl);
+        }
         booking.setRtoApplicationStatus("TR Issued");
         booking.setRtoAppliedAt(LocalDateTime.now());
         booking.setWorkflowStatus("RTO Applied");
         booking.setStatus("RTO Applied");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateRtoDocuments(booking);
         markStage(id, "Delivery Ready", "Pending", "TR issued. Delivery-day verification pending.");
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking));
     }
@@ -396,14 +404,15 @@ public class StaffBookingWorkflowRestController {
         booking.setOriginalDocumentsVerified(true);
         booking.setPhysicalVerificationDone(true);
         booking.setDeliveryNoteSigned(true);
-        booking.setFinalInvoiceUrl(finalInvoiceUrl);
-        booking.setWarrantyDocumentUrl(warrantyDocumentUrl);
-        booking.setLoanDocumentUrl(loanDocumentUrl);
+        if (finalInvoiceUrl != null && !finalInvoiceUrl.isBlank()) booking.setFinalInvoiceUrl(finalInvoiceUrl);
+        if (warrantyDocumentUrl != null && !warrantyDocumentUrl.isBlank()) booking.setWarrantyDocumentUrl(warrantyDocumentUrl);
+        if (loanDocumentUrl != null && !loanDocumentUrl.isBlank()) booking.setLoanDocumentUrl(loanDocumentUrl);
         booking.setDeliveryCompletedAt(LocalDateTime.now());
         booking.setWorkflowStatus("Delivered");
         booking.setStatus("Delivered");
         booking.setStatusUpdatedAt(LocalDateTime.now());
-        bookingRepository.save(booking);
+        booking = bookingRepository.save(booking);
+        booking = bookingService.generateDeliveryDocumentsAndNotify(booking);
         markStage(id, "Delivery Ready", "Completed", "Vehicle handed over to customer.");
 
         Map<String, Object> docs = new LinkedHashMap<>();
@@ -411,7 +420,14 @@ public class StaffBookingWorkflowRestController {
         docs.put("insurance", booking.getInsuranceDocumentUrl());
         docs.put("temporaryRegistration", booking.getTemporaryRegistrationNumber());
         docs.put("temporaryRegistrationUrl", booking.getTemporaryRegistrationUrl());
+        docs.put("registrationCertificateUrl", booking.getRegistrationCertificateUrl());
+        docs.put("pucCertificateUrl", booking.getPucCertificateUrl());
         docs.put("warranty", booking.getWarrantyDocumentUrl());
+        docs.put("serviceBook", booking.getServiceBookUrl());
+        docs.put("deliveryNote", booking.getDeliveryNoteUrl());
+        docs.put("roadTaxReceipt", booking.getRoadTaxReceiptUrl());
+        docs.put("financeSanctionLetter", booking.getFinanceSanctionLetterUrl());
+        docs.put("financeAgreement", booking.getFinanceAgreementUrl());
         docs.put("loanDocuments", booking.getLoanDocumentUrl());
         return ResponseEntity.ok(Map.of("ok", true, "booking", booking, "handoverDocuments", docs));
     }
@@ -460,6 +476,22 @@ public class StaffBookingWorkflowRestController {
             return ResponseEntity.badRequest().body(Map.of("ok", false, "error", "Pre-verification is required before booking confirmation"));
         }
         Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Approved", null, confirmedDeliveryDate);
+        updated.ifPresent(b -> {
+            if (b.getCustomer() != null && b.getCustomer().getEmail() != null && !b.getCustomer().getEmail().isBlank()) {
+                String confirmedDate = b.getExpectedDeliveryDate() != null
+                        ? b.getExpectedDeliveryDate().toString()
+                        : (confirmedDeliveryDate != null ? confirmedDeliveryDate.toString() : "To be confirmed");
+                String slot = b.getDeliveryTimeSlot() == null || b.getDeliveryTimeSlot().isBlank() ? "scheduled slot" : b.getDeliveryTimeSlot();
+                notificationService.createUserNotification(
+                        b.getCustomer().getEmail(),
+                        "Car Available for Your Requested Date",
+                        "Showroom staff checked your booking and confirmed that the car is available. Delivery is scheduled for "
+                                + confirmedDate + " during " + slot + ".",
+                        "INFO",
+                        "/user-panel/bookings"
+                );
+            }
+        });
         return updated.<ResponseEntity<?>>map(b -> ResponseEntity.ok(Map.of("ok", true, "booking", b)))
                 .orElseGet(() -> ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found")));
     }
@@ -471,6 +503,17 @@ public class StaffBookingWorkflowRestController {
         if (existing.isEmpty()) return ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found"));
         if (!canAccessBooking(session, existing.get())) return ResponseEntity.status(403).body(Map.of("ok", false, "error", "Access denied"));
         Optional<Booking> updated = bookingService.updateWorkflowStatus(id, "Rejected", reason, null);
+        updated.ifPresent(b -> {
+            if (b.getCustomer() != null && b.getCustomer().getEmail() != null && !b.getCustomer().getEmail().isBlank()) {
+                notificationService.createUserNotification(
+                        b.getCustomer().getEmail(),
+                        "Requested Car Date Not Available",
+                        "Showroom staff reviewed your booking request and could not confirm the requested schedule. Reason: " + reason,
+                        "WARNING",
+                        "/user-panel/bookings"
+                );
+            }
+        });
         return updated.<ResponseEntity<?>>map(b -> ResponseEntity.ok(Map.of("ok", true, "booking", b)))
                 .orElseGet(() -> ResponseEntity.status(404).body(Map.of("ok", false, "error", "Booking not found")));
     }

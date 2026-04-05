@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Detail</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         :root {
@@ -13,7 +13,8 @@
             --glass: rgba(255, 255, 255, 0.95);
             --border: #7b7777;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Poppins, sans-serif; }
+        html { scroll-behavior: smooth; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); }
         body { background: radial-gradient(circle at top, #e6f7f4, #eef3f6); }
         .header { max-width: 1200px; margin: 20px auto; padding: 16px 26px; background: rgba(255,255,255,.96); border-radius: 22px; position: sticky; top: 16px; z-index: 1200; box-shadow: 0 25px 55px rgba(0,0,0,.25); }
         .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -30,8 +31,9 @@
         .nav-actions i { font-size: 18px; cursor: pointer; color: #333; padding: 8px; border-radius: 50%; transition: .3s; }
         .nav-actions i:hover { background: #f3f4ff; color: #7b2ff7; transform: scale(1.15); }
         .contact-btn { padding: 10px 22px; border-radius: 20px; border: none; background: linear-gradient(135deg, #7b2ff7, #a855f7); color: #fff; font-weight: 600; cursor: pointer; }
-        .section { max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--glass); border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,.12); }
+        .section { max-width: 1200px; margin: 60px auto; padding: 40px; background: var(--glass); border-radius: 30px; box-shadow: 0 25px 60px rgba(0,0,0,.12); scroll-margin-top: 130px; }
         .title { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+        .title i { margin-right: 10px; color: var(--primary); }
         .overview-grid { display: grid; grid-template-columns: 1.4fr .9fr; gap: 36px; }
         .carousel { position: relative; height: 300px; border-radius: 22px; overflow: hidden; background: #f7f9fb; cursor: pointer; }
         .carousel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: .6s; }
@@ -44,10 +46,46 @@
         .price-panel { padding: 34px; border-radius: 26px; background: #fff; border: 2px dashed var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,.1); }
         .price { font-size: 34px; font-weight: 700; }
         .price span { display: block; font-size: 14px; color: #666; margin-top: 6px; }
-        .emi { margin: 18px 0; padding: 14px; background: #f4fffc; border-radius: 14px; font-weight: 500; }
+        .emi { margin: 18px 0 14px; padding: 14px; background: #f4fffc; border-radius: 14px; font-weight: 600; color: #135b51; }
+        .emi-subtext {
+            font-size: 12px;
+            color: #5f6b69;
+            margin-top: 6px;
+            line-height: 1.5;
+        }
+        .emi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .emi-card {
+            border: 1px solid #d7e6e2;
+            border-radius: 16px;
+            padding: 14px 12px;
+            background: #fbfffe;
+            text-align: center;
+        }
+        .emi-card strong {
+            display: block;
+            font-size: 18px;
+            color: #0d564d;
+            margin: 6px 0;
+        }
+        .emi-card span {
+            display: block;
+            font-size: 12px;
+            color: #5c6666;
+        }
         .btn { width: 100%; padding: 14px; border-radius: 18px; border: none; background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff; font-weight: 600; cursor: pointer; }
         .spec-grid,.mileage-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 18px; }
         .spec,.mileage { padding: 18px; border-radius: 18px; text-align: center; border: 2px solid var(--border); }
+        .spec i,.mileage i {
+            display: block;
+            font-size: 22px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
         .details-table { border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
         .details-tr { display: grid; grid-template-columns: 1fr 1.5fr; border-bottom: 1px solid var(--border); }
         .details-tr:last-child { border-bottom: none; }
@@ -73,6 +111,13 @@
         .faq-a { max-height: 0; overflow: hidden; transition: max-height .3s ease; color: #555; }
         .faq-item.open .faq-a { max-height: 200px; margin-top: 10px; }
 
+        .price-note {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #5b6665;
+            line-height: 1.6;
+        }
+
         .color-dots { display: flex; justify-content: center; gap: 12px; margin: 10px 0; }
         .color-dots span { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #aaa; cursor: pointer; }
         .color-dots span.active { border: 3px solid var(--primary); }
@@ -83,11 +128,113 @@
         .lightbox.active,.img-lightbox.active { display: flex; }
         .lightbox img,.img-lightbox img { max-width: 90%; max-height: 90%; }
         .close-btn { position: absolute; top: 30px; right: 40px; font-size: 42px; color: #fff; cursor: pointer; }
+        .charge-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .58);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 3500;
+        }
+        .charge-modal.active { display: flex; }
+        .charge-card {
+            width: min(640px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 30px 70px rgba(0,0,0,.28);
+        }
+        .charge-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .charge-top h3 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .charge-top p {
+            color: #5c666d;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .charge-close {
+            border: none;
+            background: #edf4f3;
+            color: #25534d;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .charge-list {
+            border: 1px solid #dde7e5;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+        .charge-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 16px;
+            padding: 15px 18px;
+            border-bottom: 1px solid #edf1f0;
+            align-items: center;
+        }
+        .charge-row:last-child { border-bottom: none; }
+        .charge-row.total {
+            background: linear-gradient(135deg, #e8fbf6, #fff3f2);
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .charge-caption {
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: #f6fbfa;
+            color: #4d5957;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .charge-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .charge-actions button {
+            flex: 1;
+            min-width: 180px;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .charge-actions .secondary {
+            background: #eef2f4;
+            color: #314143;
+        }
+        .charge-actions .primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+        }
         .footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; gap: 4px; z-index: 1000; }
         .footer button { flex: 1; padding: 16px; border: none; color: #fff; font-weight: 600; cursor: pointer; }
         .contact { background: var(--primary); }
         .offer { background: var(--accent); }
-        @media(max-width: 900px) { .overview-grid { grid-template-columns: 1fr; } .nav { display: none; } }
+        @media(max-width: 900px) {
+            .overview-grid { grid-template-columns: 1fr; }
+            .nav { display: none; }
+            .emi-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -99,15 +246,17 @@
         </div>
         <nav class="nav">
             <a href="#overview" class="active">Overview</a>
+            <a href="#specs">Key Specifications</a>
             <a href="#mileage">Mileage</a>
+            <a href="#colors">Colours</a>
+            <a href="#reviews">Reviews</a>
             <a href="#variants">Variants</a>
+            <a href="#faq">FAQs</a>
             <a href="#images">Images</a>
         </nav>
-        <div class="nav-actions">
-            <i class="fa-regular fa-heart"></i>
-            <i class="fa-solid fa-location-dot"></i>
+        <!-- <div class="nav-actions">
             <button class="contact-btn" onclick="location.href='/user-panel/showrooms'">Contact Us</button>
-        </div>
+        </div> -->
     </div>
 </header>
 
@@ -127,8 +276,9 @@
         <div class="price-panel">
             <h2 id="priceTitle">Price</h2>
             <div class="price" id="carPrice">Rs 0<span id="onRoadText">On-Road</span></div>
-            <div class="emi" id="emiText">EMI Rs 0 - for 5 Years</div>
-            <button class="btn" id="buyNowBtn">Book Now</button>
+            <div class="emi" id="emiText">Starting EMI Rs 0 / month</div>
+            <div class="emi-grid" id="emiGrid"></div>
+            <button class="btn" id="buyNowBtn">Get EMI Offers</button>
         </div>
     </div>
 </section>
@@ -141,12 +291,12 @@
 </section>
 
 <section class="section" id="specs">
-    <div class="title">Key Specifications</div>
+    <div class="title"><i class="fa-solid fa-gauge-high"></i>Key Specifications</div>
     <div class="spec-grid" id="specGrid"></div>
 </section>
 
 <section class="section" id="mileage">
-    <div class="title">Mileage</div>
+    <div class="title"><i class="fa-solid fa-gas-pump"></i>Mileage</div>
     <div class="mileage-grid" id="mileageGrid"></div>
 </section>
 
@@ -190,11 +340,47 @@
     <div class="img-lightbox" id="imgLightbox"><span class="close-btn" onclick="closeImg()">&times;</span><img id="lightboxImg" alt="car"></div>
 </section>
 
+<div class="charge-modal" id="chargeModal">
+    <div class="charge-card">
+        <div class="charge-top">
+            <div>
+                <h3 id="chargeTitle">Estimated On-Road Price</h3>
+                <p id="chargeSubtitle">Charges summary</p>
+            </div>
+            <button class="charge-close" id="closeChargeModal" type="button" aria-label="Close charges modal">&times;</button>
+        </div>
+        <div class="charge-list" id="chargeList"></div>
+        <div class="charge-caption" id="chargeCaption"></div>
+        <div class="charge-actions">
+            <button class="secondary" id="cancelChargeBtn" type="button">Close</button>
+            <button class="primary" id="continueBookingBtn" type="button">Continue Booking</button>
+        </div>
+    </div>
+</div>
+
+<div class="charge-modal" id="emiOfferModal">
+    <div class="charge-card">
+        <div class="charge-top">
+            <div>
+                <h3 id="emiOfferTitle">EMI Offers</h3>
+                <p id="emiOfferSubtitle">Monthly EMI options</p>
+            </div>
+            <button class="charge-close" id="closeEmiModal" type="button" aria-label="Close EMI offers modal">&times;</button>
+        </div>
+        <div class="charge-list" id="emiOfferList"></div>
+        <div class="charge-caption" id="emiOfferCaption"></div>
+        <div class="charge-actions">
+            <button class="secondary" id="cancelEmiBtn" type="button">Close</button>
+            <button class="primary" id="emiBookNowBtn" type="button">Book This Car</button>
+        </div>
+    </div>
+</div>
+
 <div class="lightbox" id="lightbox" onclick="this.classList.remove('active')"><img id="lightImg" alt="car"></div>
 
 <div class="footer">
     <button class="contact" onclick="location.href='/user-panel/showrooms'">Contact Dealer</button>
-    <button class="offer" id="offerBtn">Get Offers</button>
+    <button class="offer" id="offerBtn">Book Now</button>
 </div>
 
 <script>
@@ -202,9 +388,190 @@
     let dots = [];
     let index = 0;
     let currentCarId = null;
+    let currentCarData = null;
 
     function formatINR(value) {
         return "Rs " + Number(value || 0).toLocaleString("en-IN");
+    }
+
+    function formatCarPrice(value) {
+        const amount = Number(value || 0);
+        if (!Number.isFinite(amount) || amount <= 0) return "Price on request";
+        if (amount >= 10000000) return `Rs ${(amount / 10000000).toFixed(2)} Crore`;
+        return `Rs ${(amount / 100000).toFixed(2)} Lakh`;
+    }
+
+    function calculateMonthlyEmi(principal, annualRate, years) {
+        const monthlyRate = annualRate / 12 / 100;
+        const months = years * 12;
+        if (!principal || !months) return 0;
+        if (!monthlyRate) return principal / months;
+        return (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+            (Math.pow(1 + monthlyRate, months) - 1);
+    }
+
+    function roundAmount(value) {
+        return Math.round(Number(value || 0) * 100) / 100;
+    }
+
+    function inferStateFromCar(car) {
+        const showroomCity = String(car?.showroom?.city || "").toLowerCase();
+        if (showroomCity.includes("mumbai") || showroomCity.includes("pune") || showroomCity.includes("nashik") || showroomCity.includes("nagpur")) return "Maharashtra";
+        if (showroomCity.includes("bangalore") || showroomCity.includes("bengaluru") || showroomCity.includes("mysore")) return "Karnataka";
+        if (showroomCity.includes("delhi")) return "Delhi";
+        if (showroomCity.includes("ahmedabad") || showroomCity.includes("surat") || showroomCity.includes("vadodara") || showroomCity.includes("rajkot")) return "Gujarat";
+        if (showroomCity.includes("chennai") || showroomCity.includes("coimbatore") || showroomCity.includes("madurai")) return "Tamil Nadu";
+        if (showroomCity.includes("hyderabad") || showroomCity.includes("warangal")) return "Telangana";
+        return "Maharashtra";
+    }
+
+    function roadTaxRateByState(state) {
+        const s = String(state || "").trim().toLowerCase();
+        if (s.includes("maharashtra")) return 0.11;
+        if (s.includes("karnataka")) return 0.13;
+        if (s.includes("delhi")) return 0.10;
+        if (s.includes("gujarat")) return 0.08;
+        if (s.includes("tamil nadu") || s.includes("tamilnadu")) return 0.10;
+        if (s.includes("telangana")) return 0.10;
+        return 0.10;
+    }
+
+    function calculateEstimatedCharges(car) {
+        const carPrice = Number(car?.price || 0);
+        const state = inferStateFromCar(car);
+        const roadTax = roundAmount(carPrice * roadTaxRateByState(state));
+        const rto = roundAmount(carPrice * 0.0125);
+        const insurance = roundAmount(Math.max(carPrice * 0.035, 12000));
+        const fastag = 500;
+        const handling = 8500;
+        const tcs = carPrice > 1000000 ? roundAmount(carPrice * 0.01) : 0;
+        const accessories = 0;
+        const extendedWarranty = 0;
+        const total = roundAmount(
+            carPrice +
+            roadTax +
+            rto +
+            insurance +
+            fastag +
+            handling +
+            tcs +
+            accessories +
+            extendedWarranty
+        );
+
+        return {
+            state,
+            carPrice,
+            roadTax,
+            rto,
+            insurance,
+            fastag,
+            handling,
+            tcs,
+            accessories,
+            extendedWarranty,
+            total
+        };
+    }
+
+    function closeChargeModal() {
+        document.getElementById("chargeModal").classList.remove("active");
+    }
+
+    function closeEmiOfferModal() {
+        document.getElementById("emiOfferModal").classList.remove("active");
+    }
+
+    function populateEmi(car) {
+        const charges = calculateEstimatedCharges(car);
+        const finalPrice = Number(charges.total || 0);
+        const annualRate = 9.25;
+        const bookingAmount = 10000;
+        const downPayment = roundAmount(finalPrice * 0.10);
+        const financeAmount = Math.max(0, finalPrice - bookingAmount - downPayment);
+        const tenures = [3, 5, 7];
+        const emiGrid = document.getElementById("emiGrid");
+        const emiValues = tenures.map(years => {
+            return {
+                years,
+                monthlyEmi: roundAmount(calculateMonthlyEmi(financeAmount, annualRate, years))
+            };
+        });
+
+        const lowest = emiValues.reduce((best, item) => item.monthlyEmi < best.monthlyEmi ? item : best, emiValues[0]);
+        document.getElementById("emiText").innerHTML = `
+            Starting EMI ${formatINR(lowest.monthlyEmi)} / month
+            <div class="emi-subtext">Estimated on final on-road amount after booking amount and 10% down payment at ${annualRate}% annual interest for ${lowest.years} years tenure.</div>
+        `;
+
+        emiGrid.innerHTML = emiValues.map(item => `
+            <div class="emi-card">
+                <span>${item.years} Years</span>
+                <strong>${formatINR(item.monthlyEmi)}</strong>
+                <span>per month EMI</span>
+            </div>
+        `).join("");
+    }
+
+    function openEmiOfferModal() {
+        if (!currentCarData) return;
+        const charges = calculateEstimatedCharges(currentCarData);
+        const finalPrice = Number(charges.total || 0);
+        const annualRate = 9.25;
+        const bookingAmount = 10000;
+        const downPayment = roundAmount(finalPrice * 0.10);
+        const financedAmount = Math.max(0, finalPrice - bookingAmount - downPayment);
+        const offers = [3, 5, 7].map(years => ({
+            years,
+            amount: roundAmount(calculateMonthlyEmi(financedAmount, annualRate, years))
+        }));
+        const carName = `${currentCarData.brand || ""} ${currentCarData.model || ""}`.trim() || "Selected Car";
+
+        document.getElementById("emiOfferTitle").textContent = `${carName} EMI Offers`;
+        document.getElementById("emiOfferSubtitle").textContent = `Estimated EMI on final on-road amount for ${currentCarData.showroom?.city || "your city"} showroom`;
+        document.getElementById("emiOfferList").innerHTML = `
+            <div class="charge-row"><span>Ex-Showroom Car Price</span><strong>${formatCarPrice(charges.carPrice)}</strong></div>
+            <div class="charge-row"><span>Estimated Final On-Road Price</span><strong>${formatCarPrice(finalPrice)}</strong></div>
+            <div class="charge-row"><span>Booking Amount</span><strong>${formatCarPrice(bookingAmount)}</strong></div>
+            <div class="charge-row"><span>Estimated Down Payment (10%)</span><strong>${formatCarPrice(downPayment)}</strong></div>
+            <div class="charge-row"><span>Estimated Finance Amount</span><strong>${formatCarPrice(financedAmount)}</strong></div>
+            ${offers.map(item => `
+                <div class="charge-row">
+                    <span>${item.years} Years EMI Plan</span>
+                    <strong>${formatINR(item.amount)} / month</strong>
+                </div>
+            `).join("")}
+        `;
+        document.getElementById("emiOfferCaption").textContent = `These EMI offers are based on the same estimated final price that is shown during booking and billing at ${annualRate}% annual interest.`;
+        document.getElementById("emiBookNowBtn").onclick = () => {
+            closeEmiOfferModal();
+            openChargeModal();
+        };
+        document.getElementById("emiOfferModal").classList.add("active");
+    }
+
+    function openChargeModal() {
+        if (!currentCarData) return;
+        const carName = `${currentCarData.brand || ""} ${currentCarData.model || ""}`.trim() || "Selected Car";
+        const charges = calculateEstimatedCharges(currentCarData);
+
+        document.getElementById("chargeTitle").textContent = `${carName} Price Breakup`;
+        document.getElementById("chargeSubtitle").textContent = `Estimated on-road amount for ${currentCarData.showroom?.city || "your city"} showroom`;
+        document.getElementById("chargeList").innerHTML = `
+            <div class="charge-row"><span>Ex-Showroom Car Price</span><strong>${formatCarPrice(charges.carPrice)}</strong></div>
+            <div class="charge-row"><span>Road Tax</span><strong>${formatCarPrice(charges.roadTax)}</strong></div>
+            <div class="charge-row"><span>RTO Registration Charges</span><strong>${formatCarPrice(charges.rto)}</strong></div>
+            <div class="charge-row"><span>Insurance</span><strong>${formatCarPrice(charges.insurance)}</strong></div>
+            <div class="charge-row"><span>FASTag</span><strong>${formatCarPrice(charges.fastag)}</strong></div>
+            <div class="charge-row"><span>Handling / Logistics</span><strong>${formatCarPrice(charges.handling)}</strong></div>
+            <div class="charge-row"><span>TCS</span><strong>${formatCarPrice(charges.tcs)}</strong></div>
+            <div class="charge-row total"><span>Total Estimated On-Road Price</span><strong>${formatCarPrice(charges.total)}</strong></div>
+        `;
+        document.getElementById("chargeCaption").textContent = `This estimated final on-road price is the same base amount used in booking and final billing for ${charges.state}. Optional accessories and extended warranty, if chosen later, are added separately.`;
+        document.getElementById("continueBookingBtn").onclick = () => {
+            location.href = `/user-panel/buy-now?carId=${currentCarData.id}`;
+        };
+        document.getElementById("chargeModal").classList.add("active");
     }
 
     function parseColorOptions(car) {
@@ -231,6 +598,27 @@
         const first = car.mileageDetails.split("|")[0] || "";
         const parts = first.split(":");
         return parts.length >= 2 ? parts.slice(1).join(":").trim() : "N/A";
+    }
+
+    function specIcon(label) {
+        const key = String(label || "").toLowerCase();
+        if (key.includes("price")) return "fa-indian-rupee-sign";
+        if (key.includes("engine")) return "fa-gears";
+        if (key.includes("fuel")) return "fa-gas-pump";
+        if (key.includes("transmission")) return "fa-gear";
+        if (key.includes("seating")) return "fa-users";
+        if (key.includes("safety")) return "fa-shield-heart";
+        return "fa-circle-info";
+    }
+
+    function mileageIcon(label) {
+        const key = String(label || "").toLowerCase();
+        if (key.includes("petrol")) return "fa-gas-pump";
+        if (key.includes("diesel")) return "fa-oil-can";
+        if (key.includes("ev") || key.includes("electric")) return "fa-bolt";
+        if (key.includes("cng")) return "fa-leaf";
+        if (key.includes("automatic")) return "fa-car-side";
+        return "fa-road";
     }
 
     function show(n) {
@@ -282,14 +670,14 @@
     function populateSpecs(car) {
         const specGrid = document.getElementById("specGrid");
         const specs = [
-            { k: "Price", v: formatINR(car.price) },
+            { k: "Price", v: formatCarPrice(car.price) },
             { k: "Engine", v: car.engineCc || "N/A" },
             { k: "Fuel Type", v: car.fuelOptions || car.fuelType || "N/A" },
             { k: "Transmission", v: car.transmissionOptions || car.transmission || "N/A" },
             { k: "Seating Capacity", v: car.seatingCapacity || "N/A" },
             { k: "Safety Rating", v: car.safetyRating || "N/A" }
         ];
-        specGrid.innerHTML = specs.map(s => `<div class="spec"><b>${s.k}</b><br><br>${s.v}</div>`).join("");
+        specGrid.innerHTML = specs.map(s => `<div class="spec"><i class="fa-solid ${specIcon(s.k)}"></i><b>${s.k}</b><br><br>${s.v}</div>`).join("");
     }
 
     function populateMileage(car) {
@@ -304,7 +692,7 @@
         if (!rows.length) {
             rows.push({label: `${car.fuelType || "Fuel"} - ${car.transmission || "Transmission"}`, value: car.mileage || "N/A"});
         }
-        mileageGrid.innerHTML = rows.map(r => `<div class="mileage"><b>${r.label}</b><p>${r.value}</p></div>`).join("");
+        mileageGrid.innerHTML = rows.map(r => `<div class="mileage"><i class="fa-solid ${mileageIcon(r.label)}"></i><b>${r.label}</b><p>${r.value}</p></div>`).join("");
     }
 
     function populateImages(imageUrls, title) {
@@ -332,7 +720,7 @@
         const transTags = (car.transmissionOptions || car.transmission || "Transmission").split(/[,/&|]/).map(s => s.trim()).filter(Boolean);
         const tags = [...new Set([...fuelTags, ...transTags])];
         filters.innerHTML = tags.map(t => `<button>${t}</button>`).join("");
-        rowsBox.innerHTML = variants.map(v => `<div class="variant-row"><div><h4>${v.name}</h4><p>${v.info}</p></div><b>${formatINR(v.price)}</b></div>`).join("");
+        rowsBox.innerHTML = variants.map(v => `<div class="variant-row"><div><h4>${v.name}</h4><p>${v.info}</p></div><b>${formatCarPrice(v.price)}</b></div>`).join("");
     }
 
     function populateColors(car, carName) {
@@ -403,12 +791,13 @@
     }
 
     function applyCarData(car) {
+        currentCarData = car;
         const carName = `${car.brand || ""} ${car.model || ""}`.trim() || "Car";
         document.title = `${carName} - Car Detail`;
         document.getElementById("carTitle").textContent = carName;
         document.getElementById("priceTitle").textContent = `${carName} Price`;
-        document.getElementById("carPrice").innerHTML = `${formatINR(car.price)}<span id="onRoadText">On-Road ${car.showroom?.city || "Nashik"}</span>`;
-        document.getElementById("emiText").textContent = `EMI ${formatINR((car.price || 0) / 60)} - for 5 Years`;
+        document.getElementById("carPrice").innerHTML = `${formatCarPrice(car.price)}<span id="onRoadText">Ex-Showroom ${car.showroom?.city || "Nashik"}</span>`;
+        populateEmi(car);
         document.getElementById("detailVersion").textContent = car.variant || `${car.transmission || "Standard"} ${car.fuelType || "Fuel"}`;
         document.getElementById("detailCity").textContent = car.showroom?.city || "Nashik";
         document.getElementById("variantTitle").textContent = `${carName} Variants`;
@@ -421,8 +810,8 @@
         populateReviews(car, carName);
         populateFaq(car);
         populateImages(galleryUrls, carName);
-        document.getElementById("buyNowBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
-        document.getElementById("offerBtn").onclick = () => location.href = `/user-panel/buy-now?carId=${car.id}`;
+        document.getElementById("buyNowBtn").onclick = openEmiOfferModal;
+        document.getElementById("offerBtn").onclick = openChargeModal;
     }
 
     async function loadCar() {
@@ -444,6 +833,17 @@
             location.href = "/user-panel/cars";
         }
     }
+
+    document.getElementById("closeChargeModal").addEventListener("click", closeChargeModal);
+    document.getElementById("cancelChargeBtn").addEventListener("click", closeChargeModal);
+    document.getElementById("chargeModal").addEventListener("click", (e) => {
+        if (e.target.id === "chargeModal") closeChargeModal();
+    });
+    document.getElementById("closeEmiModal").addEventListener("click", closeEmiOfferModal);
+    document.getElementById("cancelEmiBtn").addEventListener("click", closeEmiOfferModal);
+    document.getElementById("emiOfferModal").addEventListener("click", (e) => {
+        if (e.target.id === "emiOfferModal") closeEmiOfferModal();
+    });
 
     setInterval(next, 4000);
     loadCar();

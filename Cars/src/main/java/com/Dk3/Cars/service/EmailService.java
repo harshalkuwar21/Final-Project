@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+
 @org.springframework.scheduling.annotation.Async
 @Service
 public class EmailService {
@@ -22,7 +23,6 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromAddress;
 
-
     @Async
     public void sendVerificationEmail(String to, String link) {
 
@@ -30,14 +30,17 @@ public class EmailService {
         message.setFrom(fromAddress);
         message.setTo(to);
         message.setSubject("Verify your DK3 Cars account");
-        message.setText("""
-        Welcome to DK3 Cars 🚗
+        message.setText(
+                """
+                            Welcome to DK3 Cars 🚗
+                        Create your account to explore top-quality vehicles, enjoy tailored services, and experience excellence in automotive solutions.
 
-        confirm your account:
-        """ + link + """
+                                confirm your account:
+                                """
+                        + link + """
 
-        If you did not create this account, ignore this email.
-        """);
+                                If you did not create this account, ignore this email.
+                                """);
 
         try {
             mailSender.send(message);
@@ -64,7 +67,8 @@ public class EmailService {
     }
 
     @Async
-    public void sendBookingConfirmationWithAttachments(String to, String subject, String body, Map<String, byte[]> attachments) {
+    public void sendBookingConfirmationWithAttachments(String to, String subject, String body,
+            Map<String, byte[]> attachments) {
         try {
             var mimeMessage = mailSender.createMimeMessage();
             var helper = new MimeMessageHelper(mimeMessage, true);
@@ -81,5 +85,4 @@ public class EmailService {
             logger.error("Failed to send booking confirmation email to {}: {}", to, e.getMessage(), e);
         }
     }
-
-} 
+}

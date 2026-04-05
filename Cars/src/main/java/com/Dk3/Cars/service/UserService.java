@@ -17,16 +17,21 @@ public class UserService {
     private BCryptPasswordEncoder passwordEncoder;
 
     public User register(UserDto userDto) {
+        String email = userDto.getEmail() == null ? "" : userDto.getEmail().trim();
+        String contact = normalizeDigits(userDto.getContact(), 10);
 
-        if (userRepository.findByEmail(userDto.getEmail()).isPresent()) {
+        if (userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email already registered!");
+        }
+        if (!contact.matches("\\d{10}")) {
+            throw new RuntimeException("Mobile number must be exactly 10 digits!");
         }
 
         User user = new User();
         user.setFirst(userDto.getFirst());
         user.setLast(userDto.getLast());
-        user.setEmail(userDto.getEmail());
-        user.setContact(userDto.getContact());
+        user.setEmail(email);
+        user.setContact(contact);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
         // Set default role for newly registered users
@@ -36,5 +41,13 @@ public class UserService {
         user.setEnabled(false);
 
         return userRepository.save(user);
+    }
+
+    private String normalizeDigits(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > maxLength ? digits.substring(0, maxLength) : digits;
     }
 }

@@ -1,55 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="utf-8">
     <title>Customers</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-   :root{
---primary:#6c4ef6;
---secondary:#9f7bff;
---success:#2dd36f;
---warning:#ff9f43;
---danger:#ff5722;
---info:#6759f7;
---light:#f8f9fa;
---dark:#343a40;
+/* ================= ROOT ================= */
+        :root {
+            --primary: #6c4ef6;
+            --primary-dark: #5536f3;
+            --success: #2ecc71;
+            --warning: #f5a623;
+            --danger: #e74c3c;
+            --accent: #9f7bff;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 18px 45px rgba(0, 0, 0, 0.15);
+        }
 
---accent:#a88bff;
---glass:rgba(255,255,255,0.88);
---shadow:0 20px 50px rgba(0,0,0,0.15);
---border-radius:16px;
---transition:all .35s ease;
+        /* ================= RESET ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
 
---bg:linear-gradient(135deg,#eef2ff,#f8fbff,#f1f5f9);
-}
+       
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, rgba(108, 78, 246, .1), rgba(159, 123, 255, .1));
+        }
 
-/* Reset */
+        body,
+        .navbar,
+        .sidebar,
+        .main,
+        .page-section {
+            transition: background 0.4s ease, color 0.4s ease;
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Poppins','Segoe UI',sans-serif;
-}
-
-/* Body */
-
-body{
-background:var(--bg);
-background-size:400% 400%;
-animation:bgMove 18s infinite alternate;
-min-height:100vh;
-padding:20px;
-color:#333;
-}
-
-@keyframes bgMove{
-0%{background-position:left}
-100%{background-position:right}
-}
 
 /* Navbar */
 
@@ -69,7 +60,7 @@ z-index:999;
 backdrop-filter:blur(15px);
 border:1px solid rgba(255,255,255,0.35);
 }
-.logo {
+ .logo {
             display: flex;
             align-items: center;
             gap: 14px;
@@ -87,7 +78,18 @@ border:1px solid rgba(255,255,255,0.35);
         .logo img:hover {
             transform: rotate(10deg) scale(1.08);
         }
+         .logo-text {
+            font-size: 22px;
+            font-weight: 800;
+            color: #000;
+        }
 
+        .logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: #666;
+        }
 /* Nav Links */
 
 .nav-links a{
@@ -524,29 +526,15 @@ padding:20px;
     <!-- NAVBAR -->
     <header class="navbar">
         <div class="logo">
-            <img src="/images/logo.png">
-            DK3 Cars
-        </div>
-        <div class="nav-icons">
-            <i onclick="location.href='/showrooms'" class="fa fa-bell" id="notifIcon"></i>
-            <i class="fa fa-user-circle" id="userIcon"></i>
-        </div>
+        <img src="/images/logo.png" alt="DK3 Cars Logo">
+        <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+    </div>
     </header>
 
 <div class="container">
     <aside class="sidebar">
         <ul>
             <li onclick="location.href='/dashboard'"><i class="fa fa-home"></i>Return to Dashboard</li>
-            <!-- <li onclick="location.href='/showrooms'"><i class="fas fa-car"></i> Showroom</li>
-            <li onclick="location.href='/bookings'"><i class="fas fa-calendar-check"></i> Bookings</li>
-            <li onclick="location.href='/sales'"><i class="fas fa-shopping-cart"></i> Sales</li>
-            <li class="active" onclick="location.href='/customers'"><i class="fas fa-users"></i> Customers</li>
-            <li onclick="location.href='/staff'"><i class="fas fa-user-tie"></i> Staff</li>
-            <li onclick="location.href='/finance'"><i class="fas fa-money-bill-wave"></i> Finance</li>
-            <li onclick="location.href='/documents'"><i class="fas fa-file-alt"></i> Documents</li>
-            <li onclick="location.href='/reports'"><i class="fas fa-chart-bar"></i> Reports</li>
-            <li onclick="location.href='/notifications'"><i class="fas fa-bell"></i> Notifications</li>
-            <li onclick="location.href='/settings'"><i class="fas fa-cog"></i> Settings</li> -->
         </ul>
     </aside>
 
@@ -581,7 +569,7 @@ padding:20px;
 <!-- Edit modal -->
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="hideEdit()">✕</button>
+        <button class="close" onclick="hideEdit()">&times;</button>
         <div class="modal-body">
             <h3><i class="fas fa-edit"></i> Edit Customer</h3>
             <input id="eFirst" placeholder="First Name" required>

@@ -1,33 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Success</title>
-    <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #f5f8ff; color: #13223b; }
-        .wrap { max-width: 680px; margin: 70px auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 12px 30px rgba(19,34,59,.1); text-align: center; }
-        h2 { margin-top: 0; color: #148a3f; }
-        .meta { margin: 10px 0; color: #465a7b; }
-        .btns { margin-top: 18px; display: flex; justify-content: center; gap: 10px; }
-        a { text-decoration: none; padding: 10px 16px; border-radius: 8px; }
-        .primary { background: #005bbb; color: #fff; }
-        .light { background: #edf4ff; color: #004a9a; border: 1px solid #c9dcff; }
-    </style>
+<link rel="stylesheet" href="/css/typography.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful</title>
+
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+}
+
+body {
+    background: #f4f6fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: #1a2b49;
+}
+
+/* Card */
+.wrap {
+    background: #ffffff;
+    max-width: 650px;
+    width: 90%;
+    padding: 30px;
+    border-radius: 14px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* Icon */
+.success-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    background: #e6f9f0;
+    color: #16a34a;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Text */
+h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #16a34a;
+}
+
+.meta {
+    font-size: 14px;
+    color: #5b6b88;
+    margin: 8px 0;
+}
+
+/* Buttons */
+.btns {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+a {
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.2s ease;
+}
+
+/* Primary */
+.primary {
+    background: #2563eb;
+    color: #fff;
+}
+
+.primary:hover {
+    background: #1e4fd8;
+}
+
+/* Secondary */
+.light {
+    background: #eef2ff;
+    color: #1e3a8a;
+    border: 1px solid #dbe3ff;
+}
+
+.light:hover {
+    background: #e0e7ff;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    h2 {
+        font-size: 20px;
+    }
+}
+</style>
 </head>
+
 <body>
+
 <div class="wrap">
-    <h2>Payment Completed Successfully</h2>
-    <div class="meta">Your booking request has been submitted.</div>
+    
+    <div class="success-icon">&#10003;</div>
+
+    <h2>Payment Successful</h2>
+
+    <div class="meta">
+        Your payment has been processed successfully.
+    </div>
+
+    <div class="meta">
+        Your booking request has been confirmed and is now being processed.
+    </div>
+
     <div class="meta" id="bid"></div>
+
     <div class="btns">
         <a class="primary" href="/user-panel/bookings">View My Bookings</a>
-        <a class="light" href="/user-dashboard">Back to Dashboard</a>
+        <a class="light" href="/user-dashboard">Go to Dashboard</a>
     </div>
+
 </div>
+
 <script>
     const bid = new URLSearchParams(location.search).get("bookingId");
-    if (bid) document.getElementById("bid").textContent = `Booking ID: #${bid}`;
+    if (bid) {
+        document.getElementById("bid").textContent = `Booking Reference ID: #${bid}`;
+    }
 </script>
+
 </body>
 </html>

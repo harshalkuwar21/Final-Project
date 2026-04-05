@@ -1,6 +1,8 @@
+@import url('/css/typography.css');
+
 /* Test Drives CSS */
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--font-body);
     margin: 20px;
 }
 

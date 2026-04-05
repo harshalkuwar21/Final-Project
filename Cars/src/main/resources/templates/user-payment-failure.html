@@ -1,19 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Failed</title>
     <style>
-        body { margin: 0; font-family: "Segoe UI", sans-serif; background: #fff6f6; color: #2f1c1c; }
-        .wrap { max-width: 680px; margin: 70px auto; background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 12px 30px rgba(66,17,17,.1); text-align: center; }
-        h2 { margin-top: 0; color: #c83535; }
-        .meta { margin: 10px 0; color: #6f4646; }
-        .btns { margin-top: 18px; display: flex; justify-content: center; gap: 10px; }
-        a { text-decoration: none; padding: 10px 16px; border-radius: 8px; }
-        .primary { background: #005bbb; color: #fff; }
-        .light { background: #fff; color: #7d3030; border: 1px solid #f0c7c7; }
-    </style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: linear-gradient(135deg, #fff6f6, #ffecec);
+    color: #2f1c1c;
+}
+
+/* Card */
+.wrap {
+    max-width: 680px;
+    margin: 80px auto;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(200, 53, 53, 0.15);
+    transition: 0.3s ease;
+}
+
+.wrap:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(200, 53, 53, 0.25);
+}
+
+/* Title */
+h2 {
+    margin-top: 0;
+    font-size: 26px;
+    font-weight: 600;
+    color: #c83535;
+}
+
+/* Sub text */
+.meta {
+    margin: 10px 0;
+    color: #6f4646;
+    font-size: 14px;
+}
+
+/* Buttons container */
+.btns {
+    margin-top: 22px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Buttons */
+a {
+    text-decoration: none;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Primary Button */
+.primary {
+    background: linear-gradient(135deg, #c83535, #ff6b6b);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(200, 53, 53, 0.3);
+}
+
+.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(200, 53, 53, 0.5);
+}
+
+/* Secondary Button */
+.light {
+    background: #fff;
+    color: #7d3030;
+    border: 1px solid #f0c7c7;
+}
+
+.light:hover {
+    background: #fff3f3;
+    transform: translateY(-2px);
+}
+
+/* Shine Effect */
+a::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.5), transparent);
+    transition: 0.5s;
+}
+
+a:hover::before {
+    left: 100%;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .wrap {
+        margin: 30px 15px;
+        padding: 25px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+}
+</style>
 </head>
 <body>
 <div class="wrap">

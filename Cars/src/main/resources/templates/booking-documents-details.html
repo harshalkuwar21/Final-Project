@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <link rel="stylesheet" href="/css/typography.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Documents & Payment Details</title>
@@ -14,11 +15,13 @@
             --border: #e5e7eb;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            font-family: var(--font-body);
+        }
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #dbeafe, #f8fafc);
             color: #111827;
             padding: 20px;
@@ -233,9 +236,21 @@
                 <a class="link-pill" th:if="${booking.proformaInvoiceUrl}" th:href="${booking.proformaInvoiceUrl}" target="_blank">Proforma Invoice</a>
                 <a class="link-pill" th:if="${booking.allotmentLetterUrl}" th:href="${booking.allotmentLetterUrl}" target="_blank">Allotment Letter</a>
                 <a class="link-pill" th:if="${booking.deliveryConfirmationLetterUrl}" th:href="${booking.deliveryConfirmationLetterUrl}" target="_blank">Delivery Confirmation</a>
+                <a class="link-pill" th:if="${booking.insuranceDocumentUrl}" th:href="${booking.insuranceDocumentUrl}" target="_blank">Insurance Policy</a>
+                <a class="link-pill" th:if="${booking.temporaryRegistrationUrl}" th:href="${booking.temporaryRegistrationUrl}" target="_blank">Temporary Registration</a>
+                <a class="link-pill" th:if="${booking.finalInvoiceUrl}" th:href="${booking.finalInvoiceUrl}" target="_blank">Final Invoice / Sale Bill</a>
+                <a class="link-pill" th:if="${booking.registrationCertificateUrl}" th:href="${booking.registrationCertificateUrl}" target="_blank">Registration Certificate</a>
+                <a class="link-pill" th:if="${booking.pucCertificateUrl}" th:href="${booking.pucCertificateUrl}" target="_blank">PUC Certificate</a>
+                <a class="link-pill" th:if="${booking.warrantyDocumentUrl}" th:href="${booking.warrantyDocumentUrl}" target="_blank">Warranty Booklet</a>
+                <a class="link-pill" th:if="${booking.serviceBookUrl}" th:href="${booking.serviceBookUrl}" target="_blank">Service Book</a>
+                <a class="link-pill" th:if="${booking.deliveryNoteUrl}" th:href="${booking.deliveryNoteUrl}" target="_blank">Delivery Note</a>
+                <a class="link-pill" th:if="${booking.roadTaxReceiptUrl}" th:href="${booking.roadTaxReceiptUrl}" target="_blank">Road Tax Receipt</a>
+                <a class="link-pill" th:if="${booking.financeSanctionLetterUrl}" th:href="${booking.financeSanctionLetterUrl}" target="_blank">Finance Sanction Letter</a>
+                <a class="link-pill" th:if="${booking.financeAgreementUrl}" th:href="${booking.financeAgreementUrl}" target="_blank">Finance Agreement</a>
+                <a class="link-pill" th:if="${booking.loanDocumentUrl}" th:href="${booking.loanDocumentUrl}" target="_blank">Loan Document</a>
             </div>
             <p class="empty"
-               th:if="${booking.aadhaarPhotoUrl == null and booking.panPhotoUrl == null and booking.signaturePhotoUrl == null and booking.passportPhotoUrl == null and booking.paymentScreenshotUrl == null and booking.downPaymentReceiptUrl == null and booking.bookingReceiptUrl == null and booking.proformaInvoiceUrl == null and booking.allotmentLetterUrl == null and booking.deliveryConfirmationLetterUrl == null}">
+               th:if="${booking.aadhaarPhotoUrl == null and booking.panPhotoUrl == null and booking.signaturePhotoUrl == null and booking.passportPhotoUrl == null and booking.paymentScreenshotUrl == null and booking.downPaymentReceiptUrl == null and booking.bookingReceiptUrl == null and booking.proformaInvoiceUrl == null and booking.allotmentLetterUrl == null and booking.deliveryConfirmationLetterUrl == null and booking.insuranceDocumentUrl == null and booking.temporaryRegistrationUrl == null and booking.finalInvoiceUrl == null and booking.registrationCertificateUrl == null and booking.pucCertificateUrl == null and booking.warrantyDocumentUrl == null and booking.serviceBookUrl == null and booking.deliveryNoteUrl == null and booking.roadTaxReceiptUrl == null and booking.financeSanctionLetterUrl == null and booking.financeAgreementUrl == null and booking.loanDocumentUrl == null}">
                 No documents uploaded for this booking.
             </p>
         </section>

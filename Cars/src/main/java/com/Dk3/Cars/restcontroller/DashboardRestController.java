@@ -79,6 +79,112 @@ public class DashboardRestController {
         return staffShowroomId != null && staffShowroomId.equals(carShowroomId);
     }
 
+    private boolean canManageShowroom(HttpSession session, Showroom showroom) {
+        String role = (String) session.getAttribute("USER_ROLE");
+        if (!isStaffRole(role)) return true;
+        User sessionUser = getSessionUser(session);
+        Long staffShowroomId = sessionUser == null ? null : sessionUser.getShowroomId();
+        Long showroomId = showroom == null ? null : showroom.getId();
+        return staffShowroomId != null && staffShowroomId.equals(showroomId);
+    }
+
+    private String normalizeColorOptions(String colorOptions) {
+        if (colorOptions == null || colorOptions.isBlank()) {
+            return null;
+        }
+        List<String> rows = new ArrayList<>();
+        for (String entry : colorOptions.split("[\\r\\n|]+")) {
+            String cleaned = entry == null ? "" : entry.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows.isEmpty() ? null : String.join("|", rows);
+    }
+
+    private List<String> splitColorOptionColumn(String raw) {
+        List<String> rows = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return rows;
+        }
+        for (String line : raw.split("\\r?\\n")) {
+            String cleaned = line == null ? "" : line.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows;
+    }
+
+    private String mergeColorOptionColumns(String colorOptionNames,
+                                           String colorOptionCodes,
+                                           String colorOptionImages,
+                                           String fallbackColorOptions) {
+        List<String> names = splitColorOptionColumn(colorOptionNames);
+        List<String> codes = splitColorOptionColumn(colorOptionCodes);
+        List<String> images = splitColorOptionColumn(colorOptionImages);
+        int max = Math.max(names.size(), Math.max(codes.size(), images.size()));
+        if (max == 0) {
+            return normalizeColorOptions(fallbackColorOptions);
+        }
+
+        List<String> rows = new ArrayList<>();
+        for (int i = 0; i < max; i++) {
+            String name = i < names.size() ? names.get(i) : "";
+            String code = i < codes.size() ? codes.get(i) : "";
+            String image = i < images.size() ? images.get(i) : "";
+            if (name.isBlank() && code.isBlank() && image.isBlank()) {
+                continue;
+            }
+            if (name.isBlank()) {
+                name = "Color " + (i + 1);
+            }
+            if (code.isBlank()) {
+                code = "#444444";
+            }
+            rows.add(name + "~" + code + "~" + image);
+        }
+
+        return rows.isEmpty() ? normalizeColorOptions(fallbackColorOptions) : String.join("|", rows);
+    }
+
+    private List<String> splitFaqColumn(String raw) {
+        List<String> rows = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return rows;
+        }
+        for (String line : raw.split("\\r?\\n")) {
+            String cleaned = line == null ? "" : line.trim();
+            if (!cleaned.isEmpty()) {
+                rows.add(cleaned);
+            }
+        }
+        return rows;
+    }
+
+    private String mergeFaqColumns(String faqQuestions, String faqAnswers, String fallbackFaqDetails) {
+        List<String> questions = splitFaqColumn(faqQuestions);
+        List<String> answers = splitFaqColumn(faqAnswers);
+        int max = Math.max(questions.size(), answers.size());
+        if (max == 0) {
+            return fallbackFaqDetails;
+        }
+
+        List<String> rows = new ArrayList<>();
+        for (int i = 0; i < max; i++) {
+            String question = i < questions.size() ? questions.get(i) : "";
+            String answer = i < answers.size() ? answers.get(i) : "";
+            if (question.isBlank() && answer.isBlank()) {
+                continue;
+            }
+            if (question.isBlank()) {
+                question = "FAQ " + (i + 1);
+            }
+            rows.add(question + "~" + answer);
+        }
+        return rows.isEmpty() ? fallbackFaqDetails : String.join("|", rows);
+    }
+
     @GetMapping("/stats")
     public Map<String, Object> getStats() {
 
@@ -196,19 +302,27 @@ public class DashboardRestController {
 
         return showroomRepository.findAll()
                 .stream()
-                .map(s -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", s.getId());
-                    map.put("name", s.getName());
-                    map.put("city", s.getCity());
-                    map.put("image", s.getImageUrl());
-                    map.put("address", s.getAddress());
-                    map.put("contactNumber", s.getContactNumber());
-                    map.put("workingHours", s.getWorkingHours());
-                    map.put("mapUrl", s.getMapUrl());
-                    return map;
-                })
+                .map(this::showroomToMap)
                 .toList();
+    }
+
+    @GetMapping("/showroom/{id}")
+    public Map<String, Object> getShowroom(@PathVariable Long id, HttpSession session) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        Showroom showroom = showroomRepository.findById(id).orElse(null);
+        if (showroom == null) {
+            response.put("ok", false);
+            response.put("message", "Showroom not found.");
+            return response;
+        }
+        if (!canManageShowroom(session, showroom)) {
+            response.put("ok", false);
+            response.put("message", "You do not have permission to view this showroom.");
+            return response;
+        }
+        response.put("ok", true);
+        response.put("showroom", showroomToMap(showroom));
+        return response;
     }
 
     @GetMapping("/me")
@@ -346,7 +460,7 @@ public class DashboardRestController {
 
         String first = (String) body.getOrDefault("first", "");
         String last = (String) body.getOrDefault("last", "");
-        String contact = (String) body.getOrDefault("contact", "");
+        String contact = normalizeContact((String) body.getOrDefault("contact", ""));
         String pwd = (String) body.getOrDefault("password", "changeme123");
         String role = (String) body.getOrDefault("role", "ROLE_STAFF");
         boolean enabled = Boolean.parseBoolean(String.valueOf(body.getOrDefault("enabled", true)));
@@ -355,6 +469,11 @@ public class DashboardRestController {
         if (showroomId != null && showroomRepository.findById(showroomId).isEmpty()) {
             resp.put("ok", false);
             resp.put("message", "Invalid showroomId");
+            return resp;
+        }
+        if (contact != null && !contact.isBlank() && !contact.matches("\\d{10}")) {
+            resp.put("ok", false);
+            resp.put("message", "Mobile number must be exactly 10 digits");
             return resp;
         }
 
@@ -386,7 +505,15 @@ public class DashboardRestController {
 
         if (body.containsKey("first")) u.setFirst((String) body.get("first"));
         if (body.containsKey("last")) u.setLast((String) body.get("last"));
-        if (body.containsKey("contact")) u.setContact((String) body.get("contact"));
+        if (body.containsKey("contact")) {
+            String contact = normalizeContact((String) body.get("contact"));
+            if (contact != null && !contact.isBlank() && !contact.matches("\\d{10}")) {
+                resp.put("ok", false);
+                resp.put("message", "Mobile number must be exactly 10 digits");
+                return resp;
+            }
+            u.setContact(contact);
+        }
         if (body.containsKey("role")) u.setRole((String) body.get("role"));
         if (body.containsKey("enabled")) u.setEnabled(Boolean.parseBoolean(String.valueOf(body.get("enabled"))));
         if (body.containsKey("showroomId")) {
@@ -414,24 +541,254 @@ public class DashboardRestController {
     }
 
     @PostMapping("/showroom")
-    public Showroom saveShowroom(
+    public Map<String, Object> saveShowroom(
             @RequestParam String name,
             @RequestParam String city,
-            @RequestParam MultipartFile image) throws Exception {
+            @RequestParam String address,
+            @RequestParam String contactNumber,
+            @RequestParam String type,
+            @RequestParam String workingHours,
+            @RequestParam(required = false) MultipartFile image) throws Exception {
 
-        String uploadDir = "uploads/";
-        Files.createDirectories(Paths.get(uploadDir));
+        Map<String, Object> response = new LinkedHashMap<>();
 
-        String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-        Path path = Paths.get(uploadDir + fileName);
-        Files.write(path, image.getBytes());
+        String showroomName = trimToNull(name);
+        String showroomCity = trimToNull(city);
+        String showroomAddress = trimToNull(address);
+        String showroomContact = trimToNull(contactNumber);
+        String showroomType = trimToNull(type);
+        String showroomWorkingHours = trimToNull(workingHours);
+
+        if (showroomName == null || showroomCity == null || showroomAddress == null
+                || showroomContact == null || showroomWorkingHours == null) {
+            response.put("ok", false);
+            response.put("message", "Name, city, address, contact number, and working details are required.");
+            return response;
+        }
+
+        String digits = showroomContact.replaceAll("\\D", "");
+        if (digits.length() != 10) {
+            response.put("ok", false);
+            response.put("message", "Contact number must be exactly 10 digits.");
+            return response;
+        }
 
         Showroom showroom = new Showroom();
-        showroom.setName(name);
-        showroom.setCity(city);
-        showroom.setImageUrl("/uploads/" + fileName);
+        showroom.setName(showroomName);
+        showroom.setCity(showroomCity);
+        showroom.setAddress(showroomAddress);
+        showroom.setContactNumber(digits);
+        showroom.setType(showroomType == null ? "Normal" : showroomType);
+        showroom.setWorkingHours(showroomWorkingHours);
+        showroom.setMapUrl(null);
+        showroom.setImageUrl(storeShowroomImage(image));
 
-        return showroomRepository.save(showroom);
+        Showroom saved = showroomRepository.save(showroom);
+        response.put("ok", true);
+        response.put("message", "Showroom added successfully.");
+        response.put("showroom", showroomToMap(saved));
+        return response;
+    }
+
+    @PutMapping("/showroom/{id}")
+    public Map<String, Object> updateShowroom(@PathVariable Long id,
+                                              @RequestBody Map<String, Object> body,
+                                              HttpSession session) {
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        Showroom showroom = showroomRepository.findById(id).orElse(null);
+        if (showroom == null) {
+            response.put("ok", false);
+            response.put("message", "Showroom not found.");
+            return response;
+        }
+        if (!canManageShowroom(session, showroom)) {
+            response.put("ok", false);
+            response.put("message", "You do not have permission to edit this showroom.");
+            return response;
+        }
+
+        String showroomName = trimToNull(body.containsKey("name") ? String.valueOf(body.get("name")) : showroom.getName());
+        String showroomCity = trimToNull(body.containsKey("city") ? String.valueOf(body.get("city")) : showroom.getCity());
+        String showroomAddress = trimToNull(body.containsKey("address") ? String.valueOf(body.get("address")) : showroom.getAddress());
+        String showroomContact = trimToNull(body.containsKey("contactNumber") ? String.valueOf(body.get("contactNumber")) : showroom.getContactNumber());
+        String showroomType = trimToNull(body.containsKey("type") ? String.valueOf(body.get("type")) : showroom.getType());
+        String showroomWorkingHours = trimToNull(body.containsKey("workingHours") ? String.valueOf(body.get("workingHours")) : showroom.getWorkingHours());
+        String showroomImageUrl = trimToNull(body.containsKey("imageUrl") ? String.valueOf(body.get("imageUrl")) : showroom.getImageUrl());
+
+        if (showroomName == null || showroomCity == null || showroomAddress == null
+                || showroomContact == null || showroomWorkingHours == null) {
+            response.put("ok", false);
+            response.put("message", "Name, city, address, contact number, and working details are required.");
+            return response;
+        }
+
+        String digits = showroomContact.replaceAll("\\D", "");
+        if (digits.length() != 10) {
+            response.put("ok", false);
+            response.put("message", "Contact number must be exactly 10 digits.");
+            return response;
+        }
+
+        showroom.setName(showroomName);
+        showroom.setCity(showroomCity);
+        showroom.setAddress(showroomAddress);
+        showroom.setContactNumber(digits);
+        showroom.setType(showroomType == null ? "Normal" : showroomType);
+        showroom.setWorkingHours(showroomWorkingHours);
+        if (showroomImageUrl != null) {
+            showroom.setImageUrl(showroomImageUrl);
+        }
+
+        Showroom saved = showroomRepository.save(showroom);
+        response.put("ok", true);
+        response.put("message", "Showroom updated successfully.");
+        response.put("showroom", showroomToMap(saved));
+        return response;
+    }
+
+    @PostMapping("/showroom/{id}")
+    public Map<String, Object> updateShowroomForm(@PathVariable Long id,
+                                                  @RequestParam String name,
+                                                  @RequestParam String city,
+                                                  @RequestParam String address,
+                                                  @RequestParam String contactNumber,
+                                                  @RequestParam String type,
+                                                  @RequestParam String workingHours,
+                                                  @RequestParam(required = false) MultipartFile image,
+                                                  HttpSession session) throws Exception {
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        Showroom showroom = showroomRepository.findById(id).orElse(null);
+        if (showroom == null) {
+            response.put("ok", false);
+            response.put("message", "Showroom not found.");
+            return response;
+        }
+        if (!canManageShowroom(session, showroom)) {
+            response.put("ok", false);
+            response.put("message", "You do not have permission to edit this showroom.");
+            return response;
+        }
+
+        String showroomName = trimToNull(name);
+        String showroomCity = trimToNull(city);
+        String showroomAddress = trimToNull(address);
+        String showroomContact = trimToNull(contactNumber);
+        String showroomType = trimToNull(type);
+        String showroomWorkingHours = trimToNull(workingHours);
+
+        if (showroomName == null || showroomCity == null || showroomAddress == null
+                || showroomContact == null || showroomWorkingHours == null) {
+            response.put("ok", false);
+            response.put("message", "Name, city, address, contact number, and working details are required.");
+            return response;
+        }
+
+        String digits = showroomContact.replaceAll("\\D", "");
+        if (digits.length() != 10) {
+            response.put("ok", false);
+            response.put("message", "Contact number must be exactly 10 digits.");
+            return response;
+        }
+
+        showroom.setName(showroomName);
+        showroom.setCity(showroomCity);
+        showroom.setAddress(showroomAddress);
+        showroom.setContactNumber(digits);
+        showroom.setType(showroomType == null ? "Normal" : showroomType);
+        showroom.setWorkingHours(showroomWorkingHours);
+        if (image != null && !image.isEmpty()) {
+            showroom.setImageUrl(storeShowroomImage(image));
+        }
+
+        Showroom saved = showroomRepository.save(showroom);
+        response.put("ok", true);
+        response.put("message", "Showroom updated successfully.");
+        response.put("showroom", showroomToMap(saved));
+        return response;
+    }
+
+    @DeleteMapping("/showroom/{id}")
+    public Map<String, Object> deleteShowroom(@PathVariable Long id, HttpSession session) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        Showroom showroom = showroomRepository.findById(id).orElse(null);
+        if (showroom == null) {
+            response.put("ok", false);
+            response.put("message", "Showroom not found.");
+            return response;
+        }
+        if (!canManageShowroom(session, showroom)) {
+            response.put("ok", false);
+            response.put("message", "You do not have permission to delete this showroom.");
+            return response;
+        }
+
+        long linkedCars = carRepository.countByShowroomId(id);
+        if (linkedCars > 0) {
+            response.put("ok", false);
+            response.put("message", "This showroom has cars linked to it. Remove those cars first.");
+            return response;
+        }
+
+        long linkedUsers = userRepository.countByShowroomId(id);
+        if (linkedUsers > 0) {
+            response.put("ok", false);
+            response.put("message", "This showroom is assigned to staff/admin accounts. Remove those assignments first.");
+            return response;
+        }
+
+        showroomRepository.delete(showroom);
+        response.put("ok", true);
+        response.put("message", "Showroom deleted successfully.");
+        return response;
+    }
+
+    private String normalizeContact(String value) {
+        if (value == null) {
+            return "";
+        }
+        String digits = value.replaceAll("\\D", "");
+        return digits.length() > 10 ? digits.substring(0, 10) : digits;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String storeShowroomImage(MultipartFile image) throws Exception {
+        if (image == null || image.isEmpty()) {
+            return "/images/background.jpg";
+        }
+
+        String originalName = image.getOriginalFilename() == null ? "showroom.jpg" : image.getOriginalFilename();
+        String sanitizedName = Paths.get(originalName).getFileName().toString().replaceAll("\\s+", "-");
+        String fileName = UUID.randomUUID() + "_" + sanitizedName;
+        Path uploadDir = Paths.get("uploads");
+        Files.createDirectories(uploadDir);
+        Path path = uploadDir.resolve(fileName);
+        Files.write(path, image.getBytes());
+        return "/uploads/" + fileName;
+    }
+
+    private Map<String, Object> showroomToMap(Showroom showroom) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("id", showroom.getId());
+        map.put("name", showroom.getName());
+        map.put("city", showroom.getCity());
+        map.put("address", showroom.getAddress());
+        map.put("contactNumber", showroom.getContactNumber());
+        map.put("type", showroom.getType());
+        map.put("workingHours", showroom.getWorkingHours());
+        map.put("mapUrl", showroom.getMapUrl());
+        map.put("managerName", showroom.getManagerName());
+        map.put("image", showroom.getImageUrl());
+        map.put("imageUrl", showroom.getImageUrl());
+        return map;
     }
 
     @GetMapping("/showrooms/{id}/cars")
@@ -499,12 +856,17 @@ public class DashboardRestController {
             @RequestParam(required = false) String mileageDetails,
             @RequestParam(required = false) String variantDetails,
             @RequestParam(required = false) String colorOptions,
+            @RequestParam(required = false) String colorOptionNames,
+            @RequestParam(required = false) String colorOptionCodes,
+            @RequestParam(required = false) String colorOptionImages,
             @RequestParam(required = false) Double reviewScore,
             @RequestParam(required = false) Double reviewExterior,
             @RequestParam(required = false) Double reviewPerformance,
             @RequestParam(required = false) Double reviewValue,
             @RequestParam(required = false) Double reviewFuelEconomy,
             @RequestParam(required = false) Double reviewComfort,
+            @RequestParam(required = false) String faqQuestions,
+            @RequestParam(required = false) String faqAnswers,
             @RequestParam(required = false) String faqDetails,
             @RequestParam(required = false) String vin,
             @RequestParam(required = false) String engineNo,
@@ -513,7 +875,8 @@ public class DashboardRestController {
             @RequestParam(required = false) Long showroom,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "1") Integer stockQuantity,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam(required = false) String imageUrl,
+            @RequestParam(required = false) MultipartFile image,
             HttpSession session) {
 
         java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -552,14 +915,14 @@ public class DashboardRestController {
         car.setTransmissionOptions(transmissionOptions);
         car.setMileageDetails(mileageDetails);
         car.setVariantDetails(variantDetails);
-        car.setColorOptions(colorOptions);
+        car.setColorOptions(mergeColorOptionColumns(colorOptionNames, colorOptionCodes, colorOptionImages, colorOptions));
         car.setReviewScore(reviewScore);
         car.setReviewExterior(reviewExterior);
         car.setReviewPerformance(reviewPerformance);
         car.setReviewValue(reviewValue);
         car.setReviewFuelEconomy(reviewFuelEconomy);
         car.setReviewComfort(reviewComfort);
-        car.setFaqDetails(faqDetails);
+        car.setFaqDetails(mergeFaqColumns(faqQuestions, faqAnswers, faqDetails));
         car.setVin(vin);
         car.setEngineNo(engineNo);
         car.setSupplierInfo(supplierInfo);
@@ -580,27 +943,32 @@ public class DashboardRestController {
 
         Car savedCar = carRepository.save(car);
 
-        // handle images if any
-        if (images != null && images.length > 0) {
+        java.util.List<String> urls = new java.util.ArrayList<>();
+
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            String cleanedUrl = imageUrl.trim();
+            if (!cleanedUrl.isEmpty()) {
+                urls.add(cleanedUrl);
+            }
+        }
+
+        if (image != null && !image.isEmpty()) {
             try {
                 String uploadDir = "uploads/cars/";
                 Files.createDirectories(Paths.get(uploadDir));
-                java.util.List<String> urls = new java.util.ArrayList<>();
-                for (MultipartFile img : images) {
-                    if (img == null || img.isEmpty()) continue;
-                    String original = img.getOriginalFilename();
-                    String fileName = UUID.randomUUID().toString() + "_" + (original == null ? "img" : original.replaceAll("\\s+", "_"));
-                    Path p = Paths.get(uploadDir + fileName);
-                    Files.write(p, img.getBytes());
-                    urls.add("/uploads/cars/" + fileName);
-                }
-                if (!urls.isEmpty()) {
-                    savedCar.setImageUrls(urls);
-                    carRepository.save(savedCar);
-                }
+                String original = image.getOriginalFilename();
+                String fileName = UUID.randomUUID().toString() + "_" + (original == null ? "img" : original.replaceAll("\\s+", "_"));
+                Path p = Paths.get(uploadDir + fileName);
+                Files.write(p, image.getBytes());
+                urls.add("/uploads/cars/" + fileName);
             } catch (Exception ex) {
-                logger.warn("Failed to save uploaded images", ex);
+                logger.warn("Failed to save uploaded image", ex);
             }
+        }
+
+        if (!urls.isEmpty()) {
+            savedCar.setImageUrls(urls);
+            carRepository.save(savedCar);
         }
 
         response.put("success", true);

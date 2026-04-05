@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <link rel="stylesheet" href="/css/typography.css">
+  <meta charset="UTF-8">
+  <title>DK3 Cars | Premium Car Showroom</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+   *{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:var(--font-body);
+}
+
+html{
+scroll-behavior:smooth;
+}
+
+body{
+background:#f4f6fb;
+color:#222;
+line-height:1.6;
+overflow-x:hidden;
+}
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--font-body);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f4f6fb;
+  color: #222;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 18px 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #c8c8c8, #5f23cc);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  z-index: 1000;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: none;
+}
+
+.logo img {
+  height: 85px;
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 800;
+  color: #000;
+}
+
+.logo-text span {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* NAV LINK ANIMATION */
+.nav-actions a {
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  position: relative;
+  padding: 5px 0;
+}
+
+.nav-actions a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0%;
+  height: 2.5px;
+  background: #ffffff;
+  border-radius: 10px;
+  transition: 0.4s ease;
+}
+
+.nav-actions a:hover::after,
+.nav-actions a.active::after {
+  width: 100%;
+}
+
+.hero{
+height:95vh;
+background:
+linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
+url("/images/background.jpg") center/cover;
+display:flex;
+align-items:center;
+padding:0 80px;
+margin-top:75px;
+}
+
+.hero-content{
+max-width:600px;
+color:white;
+}
+
+.hero-content h1{
+font-size:56px;
+margin-bottom:15px;
+font-weight:700;
+}
+
+.hero-content p{
+margin-bottom:30px;
+color:#ddd;
+font-size:16px;
+}
+
+.hero-actions{
+display:flex;
+gap:14px;
+flex-wrap:wrap;
+}
+
+.hero-actions a{
+padding:16px 36px;
+border:none;
+border-radius:40px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+transition:.4s;
+text-decoration:none;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+
+.btn-primary{
+background:linear-gradient(45deg,#ff3d3d,#ff7a18);
+color:white;
+box-shadow:0 10px 25px rgba(255,61,61,.4);
+}
+
+.btn-primary:hover{
+transform:translateY(-3px);
+box-shadow:0 15px 35px rgba(255,61,61,.6);
+}
+
+.btn-outline{
+background:white;
+color:#ff3d3d;
+border:2px solid #ff3d3d;
+}
+
+.btn-outline:hover{
+background:#ff3d3d;
+color:white;
+}
+
+.search-section{
+background:white;
+max-width:950px;
+margin:-70px auto 70px;
+padding:40px;
+border-radius:18px;
+box-shadow:0 20px 60px rgba(0,0,0,0.12);
+text-align:center;
+}
+
+.search-box{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:18px;
+margin-top:20px;
+}
+
+.search-box select,
+.search-box button{
+padding:15px;
+border-radius:10px;
+border:1px solid #ddd;
+font-size:14px;
+}
+
+.search-box button{
+background:linear-gradient(45deg,#5f23cc,#7d4bff);
+color:white;
+border:none;
+font-weight:600;
+cursor:pointer;
+transition:.3s;
+}
+
+.search-box button:hover{
+transform:scale(1.05);
+}
+
+.section{
+padding:90px 80px;
+text-align:center;
+background:white;
+}
+
+.section h2{
+font-size:36px;
+margin-bottom:10px;
+color:#111;
+}
+
+.sub{
+color:#777;
+margin-bottom:50px;
+}
+
+.stats{
+background:#111;
+color:white;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+text-align:center;
+}
+
+.stat{
+padding:60px;
+}
+
+.stat h3{
+font-size:42px;
+color:#ff3d3d;
+margin-bottom:10px;
+}
+
+.brands{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:50px;
+}
+
+.brand{
+width:120px;
+}
+
+.brand img{
+width:80px;
+height:80px;
+object-fit:contain;
+filter:grayscale(100%);
+transition:.3s;
+}
+
+.brand:hover img{
+filter:none;
+transform:scale(1.15);
+}
+
+.cars-grid,
+.showrooms{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:30px;
+}
+
+.car-card,
+.showroom-card{
+background:white;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 15px 40px rgba(0,0,0,0.12);
+transition:.4s;
+}
+
+.car-card:hover,
+.showroom-card:hover{
+transform:translateY(-12px);
+box-shadow:0 20px 50px rgba(0,0,0,0.2);
+}
+
+.car-card img,
+.showroom-card img{
+width:100%;
+height:200px;
+object-fit:cover;
+}
+
+.car-body,
+.showroom-body{
+padding:22px;
+text-align:left;
+}
+
+.car-price{
+margin:12px 0;
+font-size:20px;
+font-weight:700;
+color:#5f23cc;
+}
+
+.car-meta,
+.showroom-body p{
+font-size:14px;
+color:#666;
+margin-bottom:8px;
+}
+
+.card-link{
+display:inline-block;
+margin-top:10px;
+font-weight:700;
+color:#ff3d3d;
+text-decoration:none;
+}
+
+.features{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:30px;
+}
+
+.feature{
+background:#fff;
+padding:34px;
+border-radius:20px;
+box-shadow:0 15px 35px rgba(0,0,0,.08);
+transition:.5s;
+opacity:0;
+transform:translateY(40px);
+}
+
+.feature.show{
+opacity:1;
+transform:translateY(0);
+}
+
+.feature:hover{
+transform:translateY(-12px) scale(1.03);
+box-shadow:0 25px 60px rgba(255,61,61,.25);
+}
+
+.feature h4{
+margin-bottom:12px;
+color:#ff3d3d;
+}
+
+.review-stars{
+color:#f59e0b;
+font-size:18px;
+margin:10px 0;
+}
+
+footer{
+background:#111;
+color:#aaa;
+padding:60px 80px;
+cursor:pointer;
+}
+
+.footer-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:40px;
+}
+
+.footer-grid h4{
+color:white;
+margin-bottom:12px;
+}
+
+.footer-grid a{
+display:block;
+color:#aaa;
+text-decoration:none;
+margin:6px 0;
+transition:.3s;
+}
+
+.footer-grid a:hover{
+color:#ff3d3d;
+}
+
+.footer-bottom{
+text-align:center;
+margin-top:40px;
+font-size:14px;
+}
+
+.empty-state{
+max-width:850px;
+margin:0 auto;
+padding:28px;
+border-radius:18px;
+background:#f6f7fb;
+color:#666;
+border:1px dashed #d7d9e5;
+}
+
+@media(max-width:900px){
+
+.navbar{
+padding:15px 25px;
+}
+
+.hero{
+padding:0 25px;
+}
+
+.section{
+padding:70px 25px;
+}
+
+.hero-content h1{
+font-size:36px;
+}
+
+}
+
+  </style>
+</head>
+
+<body>
+
+<header class="navbar">
+  <a class="logo" href="#home">
+    <img src="/images/logo.png" alt="DK3 Cars Logo">
+ <div class="logo-text">DK3 CARS<span>Premium Showroom</span></div>  
+  </a>
+
+  <div class="nav-actions">
+    <a href="#home">Home</a>
+    <a href="#brands">Brands</a>
+    <a href="#featured-cars">Cars</a>
+    <a href="#showrooms">Showrooms</a>
+    <a href="#features">Features</a>
+    <a href="#reviews">Reviews</a>
+    <a th:href="${dashboardUrl}" th:text="${dashboardLabel}">Login</a>
+  </div>
+
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-content">
+    <h1>Premium Cars. Simple Buying.</h1>
+    <p>
+      Buy your dream car without stress. We provide verified quality vehicles,
+      easy financing options, and complete transparency from booking to delivery.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" th:href="${primaryActionUrl}" th:text="${primaryActionLabel}">Explore Cars</a>
+      <a class="btn-outline" href="#showrooms">Visit Showrooms</a>
+    </div>
+  </div>
+</section>
+
+<section class="search-section">
+  <h2>Search Cars</h2>
+  <p class="sub">Same page design, now connected with live backend filters.</p>
+
+  <div class="search-box">
+    <select id="brandFilter">
+      <option value="">All Brands</option>
+      <option th:each="brand : ${brands}" th:value="${brand.name}" th:text="${brand.name}">Brand</option>
+    </select>
+    <select id="fuelFilter">
+      <option value="">Fuel Type</option>
+      <option value="Petrol">Petrol</option>
+      <option value="Diesel">Diesel</option>
+      <option value="EV">EV</option>
+      <option value="CNG">CNG</option>
+    </select>
+    <select id="priceFilter">
+      <option value="">Price Range</option>
+      <option value="0-1000000">Up to Rs 10 Lakh</option>
+      <option value="1000000-2000000">Rs 10 - 20 Lakh</option>
+      <option value="2000000-5000000">Rs 20 - 50 Lakh</option>
+      <option value="5000000-999999999">Above Rs 50 Lakh</option>
+    </select>
+    <button type="button" onclick="openInventory()">Search Now</button>
+  </div>
+</section>
+
+<section class="section stats">
+  <div class="stat">
+    <h3 th:text="${deliveredCount} + '+'">1200+</h3>
+    <p>Cars Delivered</p>
+  </div>
+  <div class="stat">
+    <h3 th:text="${brandsAvailableCount} + '+'">50+</h3>
+    <p>Top Brands</p>
+  </div>
+  <div class="stat">
+    <h3 th:text="${showroomsLiveCount} + '+'">15+</h3>
+    <p>Showrooms</p>
+  </div>
+  <div class="stat">
+    <h3 th:text="${reviewCount} + '+'">99%</h3>
+    <p>Customer Satisfaction</p>
+  </div>
+</section>
+
+<section class="section" id="brands">
+  <h2>Popular Brands</h2>
+  <p class="sub">Driving excellence with the world’s most respected automobile brands.</p>
+
+  <div class="brands" th:if="${!#lists.isEmpty(brands)}">
+    <div class="brand" th:each="brand : ${brands}">
+      <img th:src="${brand.logoUrl}" th:alt="${brand.name}">
+      <p th:text="${brand.name}">Toyota</p>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(brands)}">No brands available yet.</div>
+</section>
+
+<section class="section" id="featured-cars">
+  <h2>Featured Cars</h2>
+  <p class="sub">Live featured inventory from your database.</p>
+
+  <div class="cars-grid" th:if="${!#lists.isEmpty(featuredCars)}">
+    <div class="car-card" th:each="car : ${featuredCars}">
+      <img th:src="${car.imageUrl}" th:alt="${car.title}">
+      <div class="car-body">
+        <h3 th:text="${car.title}">Car</h3>
+        <p class="car-meta" th:text="${car.showroomName}">Showroom</p>
+        <p class="car-meta" th:text="${car.fuelType + ' • ' + car.transmission + ' • ' + car.mileage}">Petrol • Automatic • 18 kmpl</p>
+        <div class="car-price" th:text="${car.price}">Rs 10.00 Lakh</div>
+        <a class="card-link" th:href="${car.actionUrl}" th:text="${car.actionLabel}">View Details</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(featuredCars)}">No featured cars available yet.</div>
+</section>
+
+<section class="section" id="showrooms">
+  <h2>Our Showrooms</h2>
+  <p class="sub">Experience our presence across India</p>
+
+  <div class="showrooms" th:if="${!#lists.isEmpty(showrooms)}">
+    <div class="showroom-card" th:each="showroom : ${showrooms}">
+      <img th:src="${showroom.imageUrl}" th:alt="${showroom.name}">
+      <div class="showroom-body">
+        <h4 th:text="${showroom.name}">Mumbai</h4>
+        <p th:text="${showroom.city}">City</p>
+        <p th:text="${showroom.address}">Address</p>
+        <p th:text="${showroom.workingHours}">Working Hours</p>
+        <p th:text="${showroom.contactNumber}">Contact</p>
+        <p th:text="${showroom.availableCarsCount} + ' cars available'">0 cars available</p>
+        <a class="card-link" th:href="${showroom.actionUrl}">Contact Showroom</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(showrooms)}">No showroom details available yet.</div>
+</section>
+
+<section class="section" id="features">
+  <h2>Why Choose DK3 Cars?</h2>
+  <p class="sub">Premium experience with trusted service</p>
+
+  <div class="features">
+    <div class="feature">
+      <h4>100% Verified Cars</h4>
+      <p>Every car is inspected by experts and now rendered here from your real database data.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Easy Loan Approval</h4>
+      <p>Quick loan approvals with flexible EMI options from trusted banks.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Free Test Drive</h4>
+      <p>Book a free test drive online or visit our showroom anytime.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Dynamic Showroom View</h4>
+      <p>Admin-added showroom data now appears on the home page automatically.</p>
+    </div>
+
+    <div class="feature">
+      <h4>User Reviews</h4>
+      <p>Users can review from their dashboard and that review is shown here from the database.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Working Navbar</h4>
+      <p>Home navbar links, dashboard login, and buttons now work correctly.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:#f0f2f7">
+  <h2>How It Works</h2>
+  <p class="sub">Get your dream car in 4 simple steps</p>
+
+  <div class="features">
+    <div class="feature">
+      <h4>Step 1: Sign Up</h4>
+      <p>Create your account and explore our car collection easily.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Step 2: Choose Your Car</h4>
+      <p>Filter and compare cars based on price, brand, and features.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Step 3: Book Test Drive</h4>
+      <p>Schedule a free test drive online or at our showroom.</p>
+    </div>
+
+    <div class="feature">
+      <h4>Step 4: Secure & Drive</h4>
+      <p>Complete documents, select payment option, and drive home happily.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reviews">
+  <h2>What Our Customers Say</h2>
+  <p class="sub">Real experiences from happy car owners</p>
+
+  <div class="features" th:if="${!#lists.isEmpty(reviews)}">
+    <div class="feature" th:each="review : ${reviews}">
+      <p th:text="${review.message}">Amazing service and very transparent pricing. I got my BMW within 3 days!</p>
+      <h4 class="review-stars" th:text="${review.stars}">★★★★★</h4>
+      <p>
+        <strong th:text="${review.reviewerName}">Rahul Sharma</strong>
+        <span th:text="' - ' + ${review.city}"> - Mumbai</span>
+      </p>
+      <p th:text="${review.showroomVisited}">DK3 Showroom</p>
+    </div>
+  </div>
+
+  <div class="empty-state" th:if="${#lists.isEmpty(reviews)}">No customer reviews yet. Once a user submits a review it will show here.</div>
+</section>
+
+<footer id="homeFooter">
+  <div class="footer-grid">
+    <div>
+      <h4>DK3 Cars</h4>
+      <p>India’s trusted destination for premium and budget cars.</p>
+    </div>
+    <div>
+      <h4>Quick Links</h4>
+      <a href="#home">Home</a>
+      <a href="#brands">Brands</a>
+      <a href="#showrooms">Showrooms</a>
+      <a href="#reviews">Reviews</a>
+    </div>
+    <div>
+      <h4>Services</h4>
+      <a th:href="${primaryActionUrl}">Cars</a>
+      <a href="#showrooms">Showroom Support</a>
+      <a href="/user-dashboard#reviewShare">User Reviews</a>
+      <a th:href="${dashboardUrl}" th:text="${dashboardLabel}">Login</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>Email: info@dk3cars.com</p>
+      <p>Phone: +91 98765 43210</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 DK3 Cars. All Rights Reserved.
+  </div>
+</footer>
+
+<script th:inline="javascript">
+  /* ================= SAFE VARIABLES ================= */
+  const features = document.querySelectorAll(".feature");
+
+  const isUserSession = /*[[${isUserSession}]]*/ false;
+  const primaryActionUrl = /*[[${primaryActionUrl}]]*/ "/login";
+
+  /* ================= SCROLL ANIMATION ================= */
+  function revealOnScroll() {
+    if (!features.length) return;
+
+    features.forEach(el => {
+      const position = el.getBoundingClientRect().top;
+      const screenPosition = window.innerHeight - 100;
+
+      if (position < screenPosition) {
+        el.classList.add("show");
+      }
+    });
+  }
+
+  /* ================= OPEN INVENTORY ================= */
+  function openInventory() {
+    if (!isUserSession) {
+      window.location.href = primaryActionUrl;
+      return;
+    }
+
+    const brandEl = document.getElementById("brandFilter");
+    const fuelEl = document.getElementById("fuelFilter");
+    const priceEl = document.getElementById("priceFilter");
+
+    const brand = brandEl ? brandEl.value : "";
+    const fuel = fuelEl ? fuelEl.value : "";
+    const price = priceEl ? priceEl.value : "";
+
+    const query = new URLSearchParams();
+
+    if (brand) query.set("brand", brand);
+    if (fuel) query.set("fuelType", fuel);
+
+    if (price) {
+      const [minPrice, maxPrice] = price.split("-");
+      if (minPrice) query.set("minPrice", minPrice);
+      if (maxPrice) query.set("maxPrice", maxPrice);
+    }
+
+    const suffix = query.toString() ? `?${query.toString()}` : "";
+    window.location.href = `/user-panel/cars${suffix}`;
+  }
+
+  /* ================= EVENTS ================= */
+  window.addEventListener("scroll", revealOnScroll);
+  window.addEventListener("load", revealOnScroll);
+
+  /* ================= FOOTER CLICK ================= */
+  const homeFooter = document.getElementById("homeFooter");
+
+  if (homeFooter) {
+    homeFooter.addEventListener("click", function (event) {
+      if (event.target.closest("a")) return;
+
+      const homeSection = document.getElementById("home");
+
+      if (homeSection) {
+        homeSection.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.href = "/home";
+      }
+    });
+  }
+</script>
+
+</body>
+
+</html>
